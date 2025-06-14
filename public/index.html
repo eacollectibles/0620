@@ -364,7 +364,7 @@
         <label>Cards to Trade:</label>
         <div id="card-list">
           <div class="card-row">
-            <input type="text" name="cardName" placeholder="Card Name" required />
+            <input type="text" name="cardName" placeholder="Card Name or SKU" required />
             <input type="number" name="cardQuantity" placeholder="Qty" min="1" value="1" required />
             <select name="cardCondition" required>
               <option value="NM">NM (Near Mint)</option>
@@ -441,7 +441,7 @@
           const cardRow = document.createElement('div');
           cardRow.className = 'card-row';
           cardRow.innerHTML = `
-            <input type="text" name="cardName" placeholder="Card Name" required />
+            <input type="text" name="cardName" placeholder="Card Name or SKU" required />
             <input type="number" name="cardQuantity" placeholder="Qty" min="1" value="1" required />
             <select name="cardCondition" required>
               <option value="NM">NM (Near Mint)</option>
@@ -464,12 +464,18 @@
           const quantityInput = row.querySelector('input[name="cardQuantity"]');
           const conditionSelect = row.querySelector('select[name="cardCondition"]');
           
-          const cardName = cardNameInput?.value?.trim() || '';
+          const cardNameOrSku = cardNameInput?.value?.trim() || '';
           const quantity = quantityInput ? parseInt(quantityInput.value || "1", 10) : 1;
           const condition = conditionSelect?.value || 'NM';
 
-          if (cardName && quantity > 0) {
-            cards.push({ cardName, quantity, condition });
+          if (cardNameOrSku && quantity > 0) {
+            // Send both cardName and sku with the same value - backend will handle the logic
+            cards.push({ 
+              cardName: cardNameOrSku, 
+              sku: cardNameOrSku, 
+              quantity, 
+              condition 
+            });
           }
         });
 
