@@ -204,8 +204,6 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    const profit = totalRetailValue - totalValue;
-
     res.status(200).json({
       giftCardCode,
       estimate: estimateMode,
@@ -214,10 +212,10 @@ module.exports = async function handler(req, res) {
       results,
       total: totalValue.toFixed(2),
       totalRetailValue: totalRetailValue.toFixed(2),
-      profit: profit.toFixed(2),
       overrideTotal: overrideTotal ? finalPayout.toFixed(2) : null
     });
   } catch (err) {
     console.error("Fatal API Error:", err);
     return res.status(500).json({ error: "Internal server error", details: err.message });
   }
+};
