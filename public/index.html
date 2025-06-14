@@ -613,9 +613,26 @@
         </div>
       </div>
 
+      <div class="form-group override-section">
+        <label for="overrideTotal">💰 Trade Override (Optional):</label>
+        <div class="override-input-group">
+          <input type="number" id="overrideTotal" name="overrideTotal" placeholder="0.00" min="0" max="10000" step="0.01" />
+          <span class="override-help">Leave empty to use suggested rates. Max: $10,000</span>
+        </div>
+      </div>
+
       <div class="button-group">
         <button type="button" id="add-card">➕ Add Card</button>
         <button type="button" id="estimate-trade">📊 Estimate</button>
+        <button type="submit" id="submit-trade">✅ Submit Trade</button>
+      </div>
+
+      <div class="image-upload-section">
+        <label for="cardImage"><strong>📸 Upload Card Image (optional):</strong></label>
+        <input type="file" id="cardImage" name="cardImage" accept="image/*" onchange="previewImage(event)" />
+        <div id="imagePreviewContainer">
+          <img id="imagePreview" src="" alt="Card preview" />
+        </div>
       </div>
     </form>
 
@@ -662,26 +679,6 @@
         <div id="detailedLog" style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef;">
           <p><em>Detailed processing log will appear here...</em></p>
         </div>
-      </div>
-    </div>
-
-    <div class="form-group override-section">
-      <label for="overrideTotal">💰 Trade Override (Optional):</label>
-      <div class="override-input-group">
-        <input type="number" id="overrideTotal" name="overrideTotal" placeholder="0.00" min="0" max="10000" step="0.01" />
-        <span class="override-help">Leave empty to use suggested rates. Max: $10,000</span>
-      </div>
-    </div>
-
-    <div class="button-group">
-      <button type="submit" id="submit-trade">✅ Submit Trade</button>
-    </div>
-
-    <div class="image-upload-section">
-      <label for="cardImage"><strong>📸 Upload Card Image (optional):</strong></label>
-      <input type="file" id="cardImage" name="cardImage" accept="image/*" onchange="previewImage(event)" />
-      <div id="imagePreviewContainer">
-        <img id="imagePreview" src="" alt="Card preview" />
       </div>
     </div>
   </div>
@@ -927,3 +924,232 @@
         if (override < 0) {
           throw new Error('Override total cannot be negative');
         }
+        
+        if (override > 10000) {
+          throw new Error('Override total exceeds maximum allowed limit ($10,000)');
+        }
+        
+        return override;
+      }
+
+      // Helper function to update status
+      function updateStatus(message, color = 'black') {
+        statusBar.textContent = message;
+        statusBar.style.color = color;
+        statusBar.style.borderLeftColor = color;
+      }
+
+      // Helper function to display trade results
+      function displayTradeResults(data, isEstimate = false) {
+        const tradeLog = document.getElementById('tradeLog');
+        let retailTotal = 0;
+
+        if (Array.isArray(data.results) && data.results.length > 0) {
+          tradeLog.innerHTML = '';
+          
+          data.results.forEach(result => {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            const safePrice = isNaN(parseFloat(result.retailPrice)) ? 0 : parseFloat(result.retailPrice);
+            const suggestedTotal = (result.suggestedTradeValue || 0) * result.quantity;
+            const maximumTotal = (result.maximumTradeValue || 0) * result.quantity;
+            
+            const searchMethodBadge = getSearchMethodBadge(result.searchMethod);
+            
+            logEntry.innerHTML = `
+              <strong>${result.cardName}</strong>${searchMethodBadge}<br>
+              ${result.sku ? `SKU: ${result.sku} | ` : ''}
+              ${result.match ? `Product: ${result.match} | ` : ''}
+              Condition: ${result.condition || 'N/A'} | 
+              Market Price: ${safePrice.toFixed(2)} | 
+              Quantity: ${result.quantity}
+              <div class="trade-values">
+                <span class="suggested-value">💰 Suggested: ${suggestedTotal.toFixed(2)}</span> | 
+                <span class="maximum-value">💎 Maximum: ${maximumTotal.toFixed(2)}</span>
+              </div>
+            `;
+            
+            tradeLog.appendChild(logEntry);
+            retailTotal += safePrice * result.quantity;
+          });
+
+          // Add search method summary
+          const searchStats = data.results.reduce((acc, result) => {
+            acc[result.searchMethod] = (acc[result.searchMethod] || 0) + 1;
+            return acc;
+          }, {});
+
+          const statsEntry = document.createElement('div');
+          statsEntry.style.cssText = 'margin-top: 15px; padding: 10px; background: #e8f4fd; border-radius: 6px; font-size: 0.9em;';
+          
+          let statsText = '<strong>🔍 Search Methods Used:</strong> ';
+          const statsParts = [];
+          if (searchStats.title) statsParts.push(`${searchStats.title} by Title`);
+          if (searchStats.sku) statsParts.push(`${searchStats.sku} by SKU`);
+          if (searchStats.tag) statsParts.push(`${searchStats.tag} by Card Number`);
+          if (searchStats.none) statsParts.push(`${searchStats.none} Not Found`);
+          
+          statsText += statsParts.join(', ');
+          statsEntry.innerHTML = statsText;
+          tradeLog.appendChild(statsEntry);
+
+        } else {
+          tradeLog.innerHTML = '<p><em>No matching cards found.</em></p>';
+        }
+
+        // NEW: Display chronological and detailed data
+        displayChronologicalData(data);
+        displayDetailedLog(data);
+
+        const actionText = isEstimate ? "Estimate complete!" : "Trade submitted successfully!";
+        const valueText = isEstimate ? "Estimated Trade Value" : "Trade Payout";
+        
+        let status = `${actionText} | Items Value: ${parseFloat(data.totalRetailValue || retailTotal).toFixed(2)}`;
+        
+        // Show suggested and maximum totals
+        if (data.suggestedTotal) {
+          status += ` | 💰 Suggested: ${parseFloat(data.suggestedTotal).toFixed(2)}`;
+        }
+        if (data.maximumTotal) {
+          status += ` | 💎 Maximum: ${parseFloat(data.maximumTotal).toFixed(2)}`;
+        }
+        
+        status += ` | ${valueText}: ${parseFloat(data.finalPayout || data.total || 0).toFixed(2)}`;
+
+        // Show override information
+        if (data.overrideUsed && !isEstimate) {
+          const overrideDiff = parseFloat(data.overrideDifference || 0);
+          const diffText = overrideDiff >= 0 ? `+${overrideDiff.toFixed(2)}` : `-${Math.abs(overrideDiff).toFixed(2)}`;
+          status += ` | 🔧 OVERRIDE APPLIED (${diffText})`;
+          
+          // Add override warning to the log
+          const overrideWarning = document.createElement('div');
+          overrideWarning.className = 'override-warning';
+          overrideWarning.innerHTML = `
+            <strong>⚠️ Trade Override Applied</strong><br>
+            Suggested Total: ${data.suggestedTotal}<br>
+            Override Amount: ${data.overrideAmount}<br>
+            Difference: ${diffText}
+          `;
+          tradeLog.insertBefore(overrideWarning, tradeLog.firstChild);
+        }
+
+        if (data.giftCardCode && !isEstimate) {
+          status += ` | 🎁 Gift Card Code: ${data.giftCardCode}`;
+        }
+
+        updateStatus(status, isEstimate ? '#3498db' : '#27ae60');
+      }
+
+      // Estimate trade functionality
+      if (estimateButton) {
+        estimateButton.addEventListener('click', function () {
+          const cards = collectCardData();
+          
+          if (cards.length === 0) {
+            updateStatus('Please add at least one card to estimate.', '#e74c3c');
+            return;
+          }
+
+          // Check for override in estimate mode
+          try {
+            const overrideTotal = getOverrideTotal();
+            if (overrideTotal !== null) {
+              updateStatus('Override total not allowed in estimate mode.', '#e74c3c');
+              return;
+            }
+          } catch (error) {
+            updateStatus(error.message, '#e74c3c');
+            return;
+          }
+
+          const employeeName = document.getElementById('employeeName')?.value || '';
+          const payoutMethod = document.querySelector('input[name="payoutMethod"]:checked')?.value || 'cash';
+
+          updateStatus('Calculating estimate...', '#f39c12');
+
+          fetch("/api/buybackstep4?estimate=true", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ employeeName, payoutMethod, cards })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.error) {
+              updateStatus(`Error: ${data.error}`, '#e74c3c');
+            } else {
+              displayTradeResults(data, true);
+            }
+          })
+          .catch(err => {
+            console.error("Error estimating trade:", err);
+            updateStatus('Error calculating estimate. Please try again.', '#e74c3c');
+          });
+        });
+      }
+
+      // Submit trade functionality
+      if (form && statusBar) {
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          
+          const cards = collectCardData();
+          
+          if (cards.length === 0) {
+            updateStatus('Please add at least one card to trade.', '#e74c3c');
+            return;
+          }
+
+          // Validate override total
+          let overrideTotal = null;
+          try {
+            overrideTotal = getOverrideTotal();
+          } catch (error) {
+            updateStatus(error.message, '#e74c3c');
+            return;
+          }
+
+          // Show override confirmation if override is being used
+          let confirmMessage = "Are you sure you want to submit this trade?";
+          if (overrideTotal !== null) {
+            confirmMessage = `⚠️ TRADE OVERRIDE DETECTED ⚠️\n\nYou are overriding the suggested trade value with ${overrideTotal.toFixed(2)}.\n\nAre you sure you want to proceed with this override?`;
+          }
+
+          if (!confirm(confirmMessage)) return;
+
+          updateStatus('Processing trade...', '#f39c12');
+
+          const employeeName = document.getElementById('employeeName')?.value || '';
+          const payoutMethod = document.querySelector('input[name="payoutMethod"]:checked')?.value || 'cash';
+
+          const requestBody = { employeeName, payoutMethod, cards };
+          if (overrideTotal !== null) {
+            requestBody.overrideTotal = overrideTotal;
+          }
+
+          fetch("/api/buybackstep4", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestBody)
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.error) {
+              updateStatus(`Error: ${data.error}`, '#e74c3c');
+            } else {
+              displayTradeResults(data, false);
+              // Clear form after successful submission
+              form.reset();
+              document.getElementById('imagePreview').style.display = 'none';
+            }
+          })
+          .catch(err => {
+            console.error("Error submitting trade:", err);
+            updateStatus('Error submitting trade. Please try again.', '#e74c3c');
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>
