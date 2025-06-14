@@ -386,4 +386,30 @@ export default function BarcodePrinter() {
             display: none !important;
           }
           
-          .barcode-gri
+          .barcode-grid {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 0;
+          }
+          
+          .barcode-item {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            page-break-inside: avoid;
+          }
+          
+          .card-name {
+            font-size: 10px;
+            margin-bottom: 5px;
+          }
+          
+          .barcode-text {
+            font-size: 12px;
+            margin-top: 5px;
+          }
+        }
+      `}</style>
+    </>
+  );
+}
