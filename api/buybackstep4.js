@@ -12,6 +12,28 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid or missing cards array' });
     }
 
+    // Validate override total if provided
+    let validatedOverride = null;
+    if (overrideTotal !== undefined && overrideTotal !== null && overrideTotal !== '') {
+      const override = parseFloat(overrideTotal);
+      if (isNaN(override)) {
+        return res.status(400).json({ error: 'Override total must be a valid number' });
+      }
+      if (override < 0) {
+        return res.status(400).json({ error: 'Override total cannot be negative' });
+      }
+      // Optional: Add maximum override limit (e.g., $10,000)
+      if (override > 10000) {
+        return res.status(400).json({ error: 'Override total exceeds maximum allowed limit ($10,000)' });
+      }
+      validatedOverride = override;
+    }
+
+    // Prevent overrides in estimate mode (optional business rule)
+    if (estimateMode && validatedOverride !== null) {
+      return res.status(400).json({ error: 'Override total not allowed in estimate mode' });
+    }
+
     const SHOPIFY_DOMAIN = "ke40sv-my.myshopify.com";
     const ACCESS_TOKEN = "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";
 
@@ -183,11 +205,18 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const finalPayout = overrideTotal !== undefined ? parseFloat(overrideTotal) : totalValue;
+    // Calculate final payout - use override if provided, otherwise calculated total
+    const finalPayout = validatedOverride !== null ? validatedOverride : totalValue;
+    const overrideUsed = validatedOverride !== null;
 
-    // Create gift card if needed
+    // Log override usage for auditing
+    if (overrideUsed && !estimateMode) {
+      console.log(`OVERRIDE USED: Employee: ${employeeName || 'Unknown'}, Original: $${totalValue.toFixed(2)}, Override: $${finalPayout.toFixed(2)}, Difference: $${(finalPayout - totalValue).toFixed(2)}`);
+    }
+
+    // Create gift card if needed (only for actual transactions, not estimates)
     let giftCardCode = null;
-    if (payoutMethod === "store-credit" && finalPayout > 0) {
+    if (!estimateMode && payoutMethod === "store-credit" && finalPayout > 0) {
       try {
         const giftCardRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/gift_cards.json`, {
           method: "POST",
@@ -198,30 +227,53 @@ module.exports = async function handler(req, res) {
           body: JSON.stringify({
             gift_card: {
               initial_value: finalPayout.toFixed(2),
-              note: `Buyback payout for ${employeeName || "Unknown"}`,
+              note: `Buyback payout for ${employeeName || "Unknown"}${overrideUsed ? ` (Override: $${finalPayout.toFixed(2)}, Calculated: $${totalValue.toFixed(2)})` : ''}`,
               currency: "CAD"
             }
           })
         });
+        
+        if (!giftCardRes.ok) {
+          const errorText = await giftCardRes.text();
+          console.error("Gift card creation failed:", errorText);
+          return res.status(500).json({ error: "Failed to create gift card", details: errorText });
+        }
+        
         const giftCardData = await giftCardRes.json();
         giftCardCode = giftCardData?.gift_card?.code || null;
+        
+        if (!giftCardCode) {
+          console.error("Gift card created but no code returned:", giftCardData);
+          return res.status(500).json({ error: "Gift card created but code not available" });
+        }
       } catch (err) {
         console.error("Gift card creation failed:", err);
+        return res.status(500).json({ error: "Failed to create gift card", details: err.message });
       }
     }
 
+    // Return comprehensive response
     res.status(200).json({
+      success: true,
       giftCardCode,
       estimate: estimateMode,
       employeeName,
       payoutMethod,
       results,
-      total: totalValue.toFixed(2),
+      calculatedTotal: totalValue.toFixed(2),
       totalRetailValue: totalRetailValue.toFixed(2),
-      overrideTotal: overrideTotal ? finalPayout.toFixed(2) : null
+      finalPayout: finalPayout.toFixed(2),
+      overrideUsed,
+      overrideAmount: overrideUsed ? finalPayout.toFixed(2) : null,
+      overrideDifference: overrideUsed ? (finalPayout - totalValue).toFixed(2) : null,
+      timestamp: new Date().toISOString()
     });
+
   } catch (err) {
     console.error("Fatal API Error:", err);
-    return res.status(500).json({ error: "Internal server error", details: err.message });
+    return res.status(500).json({ 
+      error: "Internal server error", 
+      details: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred'
+    });
   }
 };
