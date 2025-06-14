@@ -204,6 +204,9 @@ module.exports = async function handler(req, res) {
       }
     }
 
+    // Calculate profit based on actual payout (considering override)
+    const profit = totalRetailValue - finalPayout;
+
     res.status(200).json({
       giftCardCode,
       estimate: estimateMode,
@@ -212,6 +215,8 @@ module.exports = async function handler(req, res) {
       results,
       total: totalValue.toFixed(2),
       totalRetailValue: totalRetailValue.toFixed(2),
+      actualPayout: finalPayout.toFixed(2),
+      profit: profit.toFixed(2),
       overrideTotal: overrideTotal ? finalPayout.toFixed(2) : null
     });
   } catch (err) {
