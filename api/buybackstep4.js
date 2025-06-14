@@ -77,6 +77,7 @@ module.exports = async function handler(req, res) {
       const { cardName, sku = null, quantity = 1 } = card;
       let variant = null;
       let productTitle = null;
+      let productSku = null; // Store the actual SKU
 
       // First try to find by product title
       const productRes = await fetch(
@@ -108,13 +109,15 @@ module.exports = async function handler(req, res) {
             inventory_item_id: matchedVariant.inventoryItem?.id?.replace('gid://shopify/InventoryItem/', '')
           };
           productTitle = matchedVariant.product.title;
+          productSku = matchedVariant.sku; // Get the actual SKU
         } else {
           results.push({
             cardName,
             match: null,
             retailPrice: 0,
             tradeInValue: 0,
-            quantity
+            quantity,
+            sku: null // No SKU if no match
           });
           continue;
         }
@@ -123,6 +126,7 @@ module.exports = async function handler(req, res) {
         const match = productData.products[0];
         variant = match.variants[0];
         productTitle = match.title;
+        productSku = variant.sku; // Get the actual SKU from variant
       }
 
       if (!variant) {
@@ -131,7 +135,8 @@ module.exports = async function handler(req, res) {
           match: null,
           retailPrice: 0,
           tradeInValue: 0,
-          quantity
+          quantity,
+          sku: null
         });
         continue;
       }
@@ -173,7 +178,8 @@ module.exports = async function handler(req, res) {
         match: productTitle,
         retailPrice: variantPrice,
         tradeInValue,
-        quantity
+        quantity,
+        sku: productSku // Include the actual SKU in the response
       });
     }
 
@@ -204,9 +210,6 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // Calculate profit based on actual payout (considering override)
-    const profit = totalRetailValue - finalPayout;
-
     res.status(200).json({
       giftCardCode,
       estimate: estimateMode,
@@ -215,8 +218,6 @@ module.exports = async function handler(req, res) {
       results,
       total: totalValue.toFixed(2),
       totalRetailValue: totalRetailValue.toFixed(2),
-      actualPayout: finalPayout.toFixed(2),
-      profit: profit.toFixed(2),
       overrideTotal: overrideTotal ? finalPayout.toFixed(2) : null
     });
   } catch (err) {
