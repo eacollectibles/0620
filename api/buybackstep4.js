@@ -1,4 +1,3 @@
-
 module.exports = async function handler(req, res) {
   try {
     if (req.method !== 'POST') {
@@ -91,6 +90,63 @@ module.exports = async function handler(req, res) {
       return variantEdge?.node || null;
     };
 
+    const fetchVariantByTag = async (tag) => {
+      const query = `
+        {
+          products(first: 1, query: "tag:${tag}") {
+            edges {
+              node {
+                id
+                title
+                variants(first: 1) {
+                  edges {
+                    node {
+                      id
+                      title
+                      sku
+                      price
+                      inventoryQuantity
+                      inventoryItem {
+                        id
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      `;
+
+      const graphqlRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/graphql.json`, {
+        method: 'POST',
+        headers: {
+          'X-Shopify-Access-Token': ACCESS_TOKEN,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query })
+      });
+
+      const json = await graphqlRes.json();
+      const productEdge = json?.data?.products?.edges?.[0];
+      
+      if (productEdge?.node?.variants?.edges?.[0]) {
+        const product = productEdge.node;
+        const variant = product.variants.edges[0].node;
+        
+        return {
+          price: variant.price,
+          inventory_item_id: variant.inventoryItem?.id?.replace('gid://shopify/InventoryItem/', ''),
+          product: {
+            title: product.title
+          },
+          sku: variant.sku
+        };
+      }
+      
+      return null;
+    };
+
     let totalValue = 0;
     let totalRetailValue = 0;
     const results = [];
@@ -99,9 +155,10 @@ module.exports = async function handler(req, res) {
       const { cardName, sku = null, quantity = 1 } = card;
       let variant = null;
       let productTitle = null;
-      let productSku = null; // Store the actual SKU
+      let productSku = null;
+      let searchMethod = null; // Track which method found the product
 
-      // First try to find by product title
+      // METHOD 1: First try to find by product title
       const productRes = await fetch(
         `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/products.json?title=${encodeURIComponent(cardName)}`,
         {
@@ -122,8 +179,15 @@ module.exports = async function handler(req, res) {
         return res.status(500).json({ error: 'Failed to parse product data', details: err.message });
       }
 
-      // If no product by title, try variant SKU match
-      if (!productData || !productData.products || productData.products.length === 0) {
+      // If found by product title
+      if (productData && productData.products && productData.products.length > 0) {
+        const match = productData.products[0];
+        variant = match.variants[0];
+        productTitle = match.title;
+        productSku = variant.sku;
+        searchMethod = 'title';
+      } else {
+        // METHOD 2: Try variant SKU match
         const matchedVariant = await fetchVariantBySKU(sku || cardName);
         if (matchedVariant) {
           variant = {
@@ -131,24 +195,33 @@ module.exports = async function handler(req, res) {
             inventory_item_id: matchedVariant.inventoryItem?.id?.replace('gid://shopify/InventoryItem/', '')
           };
           productTitle = matchedVariant.product.title;
-          productSku = matchedVariant.sku; // Get the actual SKU
+          productSku = matchedVariant.sku;
+          searchMethod = 'sku';
         } else {
-          results.push({
-            cardName,
-            match: null,
-            retailPrice: 0,
-            tradeInValue: 0,
-            quantity,
-            sku: null // No SKU if no match
-          });
-          continue;
+          // METHOD 3: Try tag search as third option
+          const tagVariant = await fetchVariantByTag(cardName);
+          if (tagVariant) {
+            variant = {
+              price: tagVariant.price,
+              inventory_item_id: tagVariant.inventory_item_id
+            };
+            productTitle = tagVariant.product.title;
+            productSku = tagVariant.sku;
+            searchMethod = 'tag';
+          } else {
+            // No match found by any method
+            results.push({
+              cardName,
+              match: null,
+              retailPrice: 0,
+              tradeInValue: 0,
+              quantity,
+              sku: null,
+              searchMethod: 'none'
+            });
+            continue;
+          }
         }
-      } else {
-        // Use first product variant
-        const match = productData.products[0];
-        variant = match.variants[0];
-        productTitle = match.title;
-        productSku = variant.sku; // Get the actual SKU from variant
       }
 
       if (!variant) {
@@ -158,7 +231,8 @@ module.exports = async function handler(req, res) {
           retailPrice: 0,
           tradeInValue: 0,
           quantity,
-          sku: null
+          sku: null,
+          searchMethod: 'none'
         });
         continue;
       }
@@ -201,7 +275,8 @@ module.exports = async function handler(req, res) {
         retailPrice: variantPrice,
         tradeInValue,
         quantity,
-        sku: productSku // Include the actual SKU in the response
+        sku: productSku,
+        searchMethod // Include which method found the product for debugging
       });
     }
 
@@ -212,6 +287,15 @@ module.exports = async function handler(req, res) {
     // Log override usage for auditing
     if (overrideUsed && !estimateMode) {
       console.log(`OVERRIDE USED: Employee: ${employeeName || 'Unknown'}, Original: $${totalValue.toFixed(2)}, Override: $${finalPayout.toFixed(2)}, Difference: $${(finalPayout - totalValue).toFixed(2)}`);
+    }
+
+    // Log search method statistics for debugging
+    if (!estimateMode) {
+      const searchStats = results.reduce((acc, result) => {
+        acc[result.searchMethod] = (acc[result.searchMethod] || 0) + 1;
+        return acc;
+      }, {});
+      console.log(`Search method statistics:`, searchStats);
     }
 
     // Create gift card if needed (only for actual transactions, not estimates)
@@ -275,5 +359,5 @@ module.exports = async function handler(req, res) {
       error: "Internal server error", 
       details: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred'
     });
-  }
+ }
 };
