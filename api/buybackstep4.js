@@ -36,6 +36,51 @@ module.exports = async function handler(req, res) {
     const SHOPIFY_DOMAIN = "ke40sv-my.myshopify.com";
     const ACCESS_TOKEN = "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";
 
+    // Trade rate calculation functions
+    function calculateMaximumTradeValue(marketValue) {
+      const price = parseFloat(marketValue);
+      
+      if (price >= 50.00) {
+        return parseFloat((price * 0.75).toFixed(2)); // 75%
+      } else if (price >= 25.00) {
+        return parseFloat((price * 0.70).toFixed(2)); // 70%
+      } else if (price >= 15.01) {
+        return parseFloat((price * 0.65).toFixed(2)); // 65%
+      } else if (price >= 8.00) {
+        return parseFloat((price * 0.50).toFixed(2)); // 50%
+      } else if (price >= 5.00) {
+        return parseFloat((price * 0.35).toFixed(2)); // 35%
+      } else if (price >= 3.01) {
+        return parseFloat((price * 0.25).toFixed(2)); // 25%
+      } else if (price >= 2.00) {
+        return 0.50; // Flat $0.50
+      } else {
+        return 0; // Below $2.00 = no trade value
+      }
+    }
+
+    function calculateSuggestedTradeValue(marketValue) {
+      const price = parseFloat(marketValue);
+      
+      if (price >= 50.00) {
+        return parseFloat((price * 0.75).toFixed(2)); // 75% (same as max for high-value)
+      } else if (price >= 25.00) {
+        return parseFloat((price * 0.50).toFixed(2)); // 50%
+      } else if (price >= 15.01) {
+        return parseFloat((price * 0.35).toFixed(2)); // 35%
+      } else if (price >= 8.00) {
+        return parseFloat((price * 0.40).toFixed(2)); // 40%
+      } else if (price >= 5.00) {
+        return parseFloat((price * 0.35).toFixed(2)); // 35%
+      } else if (price >= 3.01) {
+        return parseFloat((price * 0.25).toFixed(2)); // 25%
+      } else if (price >= 2.00) {
+        return 0.10; // Flat $0.10
+      } else {
+        return 0; // Below $2.00 = no trade value
+      }
+    }
+
     // Get location ID once for inventory updates
     let locationId = null;
     if (!estimateMode) {
@@ -147,7 +192,8 @@ module.exports = async function handler(req, res) {
       return null;
     };
 
-    let totalValue = 0;
+    let totalSuggestedValue = 0;
+    let totalMaximumValue = 0;
     let totalRetailValue = 0;
     const results = [];
 
@@ -214,7 +260,8 @@ module.exports = async function handler(req, res) {
               cardName,
               match: null,
               retailPrice: 0,
-              tradeInValue: 0,
+              suggestedTradeValue: 0,
+              maximumTradeValue: 0,
               quantity,
               sku: null,
               searchMethod: 'none'
@@ -229,7 +276,8 @@ module.exports = async function handler(req, res) {
           cardName,
           match: null,
           retailPrice: 0,
-          tradeInValue: 0,
+          suggestedTradeValue: 0,
+          maximumTradeValue: 0,
           quantity,
           sku: null,
           searchMethod: 'none'
@@ -238,8 +286,11 @@ module.exports = async function handler(req, res) {
       }
 
       const variantPrice = parseFloat(variant.price || 0);
-      const tradeInValue = parseFloat((variantPrice * 0.3).toFixed(2));
-      totalValue += tradeInValue * quantity;
+      const suggestedTradeValue = calculateSuggestedTradeValue(variantPrice);
+      const maximumTradeValue = calculateMaximumTradeValue(variantPrice);
+      
+      totalSuggestedValue += suggestedTradeValue * quantity;
+      totalMaximumValue += maximumTradeValue * quantity;
       totalRetailValue += variantPrice * quantity;
 
       // Update inventory if not in estimate mode
@@ -273,20 +324,21 @@ module.exports = async function handler(req, res) {
         cardName,
         match: productTitle,
         retailPrice: variantPrice,
-        tradeInValue,
+        suggestedTradeValue,
+        maximumTradeValue,
         quantity,
         sku: productSku,
-        searchMethod // Include which method found the product for debugging
+        searchMethod
       });
     }
 
-    // Calculate final payout - use override if provided, otherwise calculated total
-    const finalPayout = validatedOverride !== null ? validatedOverride : totalValue;
+    // Calculate final payout - use override if provided, otherwise suggested total
+    const finalPayout = validatedOverride !== null ? validatedOverride : totalSuggestedValue;
     const overrideUsed = validatedOverride !== null;
 
     // Log override usage for auditing
     if (overrideUsed && !estimateMode) {
-      console.log(`OVERRIDE USED: Employee: ${employeeName || 'Unknown'}, Original: $${totalValue.toFixed(2)}, Override: $${finalPayout.toFixed(2)}, Difference: $${(finalPayout - totalValue).toFixed(2)}`);
+      console.log(`OVERRIDE USED: Employee: ${employeeName || 'Unknown'}, Suggested: $${totalSuggestedValue.toFixed(2)}, Override: $${finalPayout.toFixed(2)}, Difference: $${(finalPayout - totalSuggestedValue).toFixed(2)}`);
     }
 
     // Log search method statistics for debugging
@@ -311,7 +363,7 @@ module.exports = async function handler(req, res) {
           body: JSON.stringify({
             gift_card: {
               initial_value: finalPayout.toFixed(2),
-              note: `Buyback payout for ${employeeName || "Unknown"}${overrideUsed ? ` (Override: $${finalPayout.toFixed(2)}, Calculated: $${totalValue.toFixed(2)})` : ''}`,
+              note: `Buyback payout for ${employeeName || "Unknown"}${overrideUsed ? ` (Override: $${finalPayout.toFixed(2)}, Suggested: $${totalSuggestedValue.toFixed(2)})` : ''}`,
               currency: "CAD"
             }
           })
@@ -344,12 +396,13 @@ module.exports = async function handler(req, res) {
       employeeName,
       payoutMethod,
       results,
-      calculatedTotal: totalValue.toFixed(2),
+      suggestedTotal: totalSuggestedValue.toFixed(2),
+      maximumTotal: totalMaximumValue.toFixed(2),
       totalRetailValue: totalRetailValue.toFixed(2),
       finalPayout: finalPayout.toFixed(2),
       overrideUsed,
       overrideAmount: overrideUsed ? finalPayout.toFixed(2) : null,
-      overrideDifference: overrideUsed ? (finalPayout - totalValue).toFixed(2) : null,
+      overrideDifference: overrideUsed ? (finalPayout - totalSuggestedValue).toFixed(2) : null,
       timestamp: new Date().toISOString()
     });
 
@@ -359,5 +412,5 @@ module.exports = async function handler(req, res) {
       error: "Internal server error", 
       details: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred'
     });
- }
+  }
 };
