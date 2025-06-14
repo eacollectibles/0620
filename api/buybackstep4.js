@@ -1,3 +1,5 @@
+
+
 module.exports = async function handler(req, res) {
   try {
     if (req.method !== 'POST') {
@@ -35,6 +37,25 @@ module.exports = async function handler(req, res) {
 
     const SHOPIFY_DOMAIN = "ke40sv-my.myshopify.com";
     const ACCESS_TOKEN = "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";
+
+    // NEW: Chronological tracking array
+    const chronologicalLog = [];
+    
+    // Helper function to add chronological entry
+    function addChronologicalEntry(cardName, inputSku, action, result = null, variantSku = null, productTitle = null, searchMethod = null) {
+      chronologicalLog.push({
+        timestamp: new Date().toISOString(),
+        processingOrder: chronologicalLog.length + 1,
+        cardName,
+        inputSku,
+        action,
+        result,
+        variantSku,
+        productTitle,
+        searchMethod,
+        processingTime: Date.now()
+      });
+    }
 
     // Trade rate calculation functions
     function calculateMaximumTradeValue(marketValue) {
@@ -201,14 +222,24 @@ module.exports = async function handler(req, res) {
     let totalRetailValue = 0;
     const results = [];
 
+    // NEW: Add processing start timestamp
+    const processingStartTime = Date.now();
+
     for (const card of cards) {
       const { cardName, sku = null, quantity = 1 } = card;
+      const cardStartTime = Date.now();
+      
+      // Log the start of processing this card
+      addChronologicalEntry(cardName, sku, 'PROCESSING_START', 'Starting card lookup process');
+      
       let variant = null;
       let productTitle = null;
       let productSku = null;
       let searchMethod = null; // Track which method found the product
 
       // METHOD 1: First try to find by product title
+      addChronologicalEntry(cardName, sku, 'SEARCH_BY_TITLE', 'Attempting to find product by title');
+      
       const productRes = await fetch(
         `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/products.json?title=${encodeURIComponent(cardName)}`,
         {
@@ -226,6 +257,7 @@ module.exports = async function handler(req, res) {
       try {
         productData = JSON.parse(productText);
       } catch (err) {
+        addChronologicalEntry(cardName, sku, 'ERROR', 'Failed to parse product data');
         return res.status(500).json({ error: 'Failed to parse product data', details: err.message });
       }
 
@@ -236,8 +268,22 @@ module.exports = async function handler(req, res) {
         productTitle = match.title;
         productSku = variant.sku;
         searchMethod = 'title';
+        
+        addChronologicalEntry(
+          cardName, 
+          sku, 
+          'FOUND_BY_TITLE', 
+          'Product found by title search', 
+          productSku, 
+          productTitle, 
+          searchMethod
+        );
       } else {
+        addChronologicalEntry(cardName, sku, 'TITLE_SEARCH_FAILED', 'No product found by title, trying SKU search');
+        
         // METHOD 2: Try variant SKU match
+        addChronologicalEntry(cardName, sku, 'SEARCH_BY_SKU', 'Attempting to find product by SKU');
+        
         const matchedVariant = await fetchVariantBySKU(sku || cardName);
         if (matchedVariant) {
           variant = {
@@ -247,8 +293,22 @@ module.exports = async function handler(req, res) {
           productTitle = matchedVariant.product.title;
           productSku = matchedVariant.sku;
           searchMethod = 'sku';
+          
+          addChronologicalEntry(
+            cardName, 
+            sku, 
+            'FOUND_BY_SKU', 
+            'Product found by SKU search', 
+            productSku, 
+            productTitle, 
+            searchMethod
+          );
         } else {
+          addChronologicalEntry(cardName, sku, 'SKU_SEARCH_FAILED', 'No product found by SKU, trying tag search');
+          
           // METHOD 3: Try tag search as third option
+          addChronologicalEntry(cardName, sku, 'SEARCH_BY_TAG', 'Attempting to find product by tag');
+          
           const tagVariant = await fetchVariantByTag(cardName);
           if (tagVariant) {
             variant = {
@@ -258,8 +318,28 @@ module.exports = async function handler(req, res) {
             productTitle = tagVariant.product.title;
             productSku = tagVariant.sku;
             searchMethod = 'tag';
+            
+            addChronologicalEntry(
+              cardName, 
+              sku, 
+              'FOUND_BY_TAG', 
+              'Product found by tag search', 
+              productSku, 
+              productTitle, 
+              searchMethod
+            );
           } else {
             // No match found by any method
+            addChronologicalEntry(
+              cardName, 
+              sku, 
+              'NO_MATCH_FOUND', 
+              'No product found by any search method', 
+              null, 
+              null, 
+              'none'
+            );
+            
             results.push({
               cardName,
               match: null,
@@ -276,6 +356,8 @@ module.exports = async function handler(req, res) {
       }
 
       if (!variant) {
+        addChronologicalEntry(cardName, sku, 'VARIANT_ERROR', 'Variant data is null despite search results');
+        
         results.push({
           cardName,
           match: null,
@@ -297,6 +379,17 @@ module.exports = async function handler(req, res) {
       totalMaximumValue += maximumTradeValue * quantity;
       totalRetailValue += variantPrice * quantity;
 
+      // Log successful processing with trade values calculated
+      addChronologicalEntry(
+        cardName, 
+        sku, 
+        'PROCESSING_COMPLETE', 
+        `Trade values calculated: Retail: $${variantPrice}, Suggested: $${suggestedTradeValue}, Maximum: $${maximumTradeValue}`, 
+        productSku, 
+        productTitle, 
+        searchMethod
+      );
+
       // Update inventory if not in estimate mode
       if (!estimateMode && locationId && variant.inventory_item_id) {
         try {
@@ -316,11 +409,41 @@ module.exports = async function handler(req, res) {
           if (adjustRes.ok) {
             const adjustData = await adjustRes.json();
             console.log(`Inventory updated for ${cardName}: +${quantity}, new total: ${adjustData.inventory_level?.available || 'unknown'}`);
+            
+            addChronologicalEntry(
+              cardName, 
+              sku, 
+              'INVENTORY_UPDATED', 
+              `Inventory increased by ${quantity}`, 
+              productSku, 
+              productTitle, 
+              searchMethod
+            );
           } else {
             console.error(`Failed to update inventory for ${cardName}:`, await adjustRes.text());
+            
+            addChronologicalEntry(
+              cardName, 
+              sku, 
+              'INVENTORY_UPDATE_FAILED', 
+              'Failed to update inventory', 
+              productSku, 
+              productTitle, 
+              searchMethod
+            );
           }
         } catch (inventoryErr) {
           console.error(`Failed to update inventory for ${cardName}:`, inventoryErr);
+          
+          addChronologicalEntry(
+            cardName, 
+            sku, 
+            'INVENTORY_UPDATE_ERROR', 
+            `Inventory update error: ${inventoryErr.message}`, 
+            productSku, 
+            productTitle, 
+            searchMethod
+          );
         }
       }
 
@@ -335,6 +458,15 @@ module.exports = async function handler(req, res) {
         searchMethod
       });
     }
+
+    // Calculate processing time for each entry
+    chronologicalLog.forEach((entry, index) => {
+      if (index === 0) {
+        entry.processingDuration = 0;
+      } else {
+        entry.processingDuration = entry.processingTime - chronologicalLog[0].processingTime;
+      }
+    });
 
     // Calculate final payout - use override if provided, otherwise suggested total
     const finalPayout = validatedOverride !== null ? validatedOverride : totalSuggestedValue;
@@ -392,7 +524,20 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // Return comprehensive response
+    // NEW: Create a summary of found cards in chronological order
+    const chronologicalCardsSummary = chronologicalLog
+      .filter(entry => entry.action.startsWith('FOUND_BY_'))
+      .map((entry, index) => ({
+        order: index + 1,
+        timestamp: entry.timestamp,
+        cardName: entry.cardName,
+        variantSku: entry.variantSku,
+        productTitle: entry.productTitle,
+        searchMethod: entry.searchMethod,
+        processingDuration: entry.processingDuration
+      }));
+
+    // Return comprehensive response with chronological data
     res.status(200).json({
       success: true,
       giftCardCode,
@@ -407,7 +552,21 @@ module.exports = async function handler(req, res) {
       overrideUsed,
       overrideAmount: overrideUsed ? finalPayout.toFixed(2) : null,
       overrideDifference: overrideUsed ? (finalPayout - totalSuggestedValue).toFixed(2) : null,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      
+      // NEW: Chronological tracking data
+      chronologicalLog: chronologicalLog,
+      chronologicalCardsSummary: chronologicalCardsSummary,
+      processingStats: {
+        totalCards: cards.length,
+        cardsFound: chronologicalCardsSummary.length,
+        cardsNotFound: cards.length - chronologicalCardsSummary.length,
+        totalProcessingTime: Date.now() - processingStartTime,
+        searchMethodBreakdown: results.reduce((acc, result) => {
+          acc[result.searchMethod] = (acc[result.searchMethod] || 0) + 1;
+          return acc;
+        }, {})
+      }
     });
 
   } catch (err) {
