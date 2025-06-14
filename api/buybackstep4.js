@@ -70,6 +70,7 @@ module.exports = async function handler(req, res) {
     };
 
     let totalValue = 0;
+    let totalRetailValue = 0;
     const results = [];
 
     for (const card of cards) {
@@ -111,6 +112,7 @@ module.exports = async function handler(req, res) {
           results.push({
             cardName,
             match: null,
+            retailPrice: 0,
             tradeInValue: 0,
             quantity
           });
@@ -127,6 +129,7 @@ module.exports = async function handler(req, res) {
         results.push({
           cardName,
           match: null,
+          retailPrice: 0,
           tradeInValue: 0,
           quantity
         });
@@ -136,6 +139,7 @@ module.exports = async function handler(req, res) {
       const variantPrice = parseFloat(variant.price || 0);
       const tradeInValue = parseFloat((variantPrice * 0.3).toFixed(2));
       totalValue += tradeInValue * quantity;
+      totalRetailValue += variantPrice * quantity;
 
       // Update inventory if not in estimate mode
       if (!estimateMode && locationId && variant.inventory_item_id) {
@@ -167,6 +171,7 @@ module.exports = async function handler(req, res) {
       results.push({
         cardName,
         match: productTitle,
+        retailPrice: variantPrice,
         tradeInValue,
         quantity
       });
@@ -206,6 +211,7 @@ module.exports = async function handler(req, res) {
       payoutMethod,
       results,
       total: totalValue.toFixed(2),
+      totalRetailValue: totalRetailValue.toFixed(2),
       overrideTotal: overrideTotal ? finalPayout.toFixed(2) : null
     });
   } catch (err) {
