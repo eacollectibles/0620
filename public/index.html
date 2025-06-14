@@ -244,6 +244,24 @@
       color: white;
     }
 
+    .trade-values {
+      margin-top: 8px;
+      padding: 8px;
+      background: #f1f3f4;
+      border-radius: 4px;
+      border-left: 4px solid #17a2b8;
+    }
+
+    .suggested-value {
+      color: #3498db;
+      font-weight: 600;
+    }
+
+    .maximum-value {
+      color: #27ae60;
+      font-weight: 600;
+    }
+
     .button-group {
       display: flex;
       gap: 15px;
@@ -424,7 +442,7 @@
         <label for="overrideTotal">💰 Trade Override (Optional):</label>
         <div class="override-input-group">
           <input type="number" id="overrideTotal" name="overrideTotal" placeholder="0.00" min="0" max="10000" step="0.01" />
-          <span class="override-help">Leave empty to use calculated value. Max: $10,000</span>
+          <span class="override-help">Leave empty to use suggested rates. Max: $10,000</span>
         </div>
       </div>
 
@@ -580,7 +598,8 @@
             const logEntry = document.createElement('div');
             logEntry.className = 'log-entry';
             const safePrice = isNaN(parseFloat(result.retailPrice)) ? 0 : parseFloat(result.retailPrice);
-            const totalValue = safePrice * result.quantity;
+            const suggestedTotal = (result.suggestedTradeValue || 0) * result.quantity;
+            const maximumTotal = (result.maximumTradeValue || 0) * result.quantity;
             
             const searchMethodBadge = getSearchMethodBadge(result.searchMethod);
             
@@ -589,13 +608,16 @@
               ${result.sku ? `SKU: ${result.sku} | ` : ''}
               ${result.match ? `Product: ${result.match} | ` : ''}
               Condition: ${result.condition || 'N/A'} | 
-              Unit Price: $${safePrice.toFixed(2)} | 
-              Quantity: ${result.quantity} | 
-              Total: $${totalValue.toFixed(2)}
+              Market Price: $${safePrice.toFixed(2)} | 
+              Quantity: ${result.quantity}
+              <div class="trade-values">
+                <span class="suggested-value">💰 Suggested: $${suggestedTotal.toFixed(2)}</span> | 
+                <span class="maximum-value">💎 Maximum: $${maximumTotal.toFixed(2)}</span>
+              </div>
             `;
             
             tradeLog.appendChild(logEntry);
-            retailTotal += totalValue;
+            retailTotal += safePrice * result.quantity;
           });
 
           // Add search method summary
@@ -627,9 +649,12 @@
         
         let status = `${actionText} | Items Value: $${parseFloat(data.totalRetailValue || retailTotal).toFixed(2)}`;
         
-        // Show calculated vs final amount
-        if (data.calculatedTotal) {
-          status += ` | Calculated: $${parseFloat(data.calculatedTotal).toFixed(2)}`;
+        // Show suggested and maximum totals
+        if (data.suggestedTotal) {
+          status += ` | 💰 Suggested: $${parseFloat(data.suggestedTotal).toFixed(2)}`;
+        }
+        if (data.maximumTotal) {
+          status += ` | 💎 Maximum: $${parseFloat(data.maximumTotal).toFixed(2)}`;
         }
         
         status += ` | ${valueText}: $${parseFloat(data.finalPayout || data.total || 0).toFixed(2)}`;
@@ -645,7 +670,7 @@
           overrideWarning.className = 'override-warning';
           overrideWarning.innerHTML = `
             <strong>⚠️ Trade Override Applied</strong><br>
-            Original Calculated Total: $${data.calculatedTotal}<br>
+            Suggested Total: $${data.suggestedTotal}<br>
             Override Amount: $${data.overrideAmount}<br>
             Difference: ${diffText}
           `;
@@ -730,7 +755,7 @@
           // Show override confirmation if override is being used
           let confirmMessage = "Are you sure you want to submit this trade?";
           if (overrideTotal !== null) {
-            confirmMessage = `⚠️ TRADE OVERRIDE DETECTED ⚠️\n\nYou are overriding the calculated trade value with $${overrideTotal.toFixed(2)}.\n\nAre you sure you want to proceed with this override?`;
+            confirmMessage = `⚠️ TRADE OVERRIDE DETECTED ⚠️\n\nYou are overriding the suggested trade value with $${overrideTotal.toFixed(2)}.\n\nAre you sure you want to proceed with this override?`;
           }
 
           if (!confirm(confirmMessage)) return;
