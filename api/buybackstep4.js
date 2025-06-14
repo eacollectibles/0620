@@ -4,9 +4,9 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { cardName, cardSku, quantity = 1 } = req.body;
-  if (!cardName) {
-    return res.status(400).json({ error: 'Missing card name' });
+  const { cardName, cardSku, quantity = 1, searchBy = 'title' } = req.body;
+  if (!cardName && !cardSku) {
+    return res.status(400).json({ error: 'Missing card name or SKU' });
   }
 
   const SHOPIFY_DOMAIN = process.env.SHOPIFY_DOMAIN || "ke40sv-my.myshopify.com";
@@ -16,30 +16,9 @@ module.exports = async function handler(req, res) {
     let product = null;
     let variant = null;
 
-    // Step 1: Try to find product by title (ORIGINAL WORKING METHOD)
-    const productRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/products.json?title=${encodeURIComponent(cardName)}`, {
-      method: 'GET',
-      headers: {
-        'X-Shopify-Access-Token': ACCESS_TOKEN,
-        'Content-Type': 'application/json'
-      }
-    });
-    const productText = await productRes.text();
-
-    let productData;
-    try {
-      productData = JSON.parse(productText);
-    } catch (parseErr) {
-      return res.status(500).json({ error: "Invalid JSON from Shopify", raw: productText });
-    }
-
-    // Step 2: If found by title, use it
-    if (productData.products && productData.products.length > 0) {
-      product = productData.products[0];
-      variant = product.variants[0];
-    }
-    // Step 3: If not found by title and we have a SKU, try SKU lookup
-    else if (cardSku) {
+    if (searchBy === 'sku' && cardSku) {
+      // Search by SKU first
+      console.log(`🔍 Searching by SKU: ${cardSku}`);
       const skuRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/variants.json?sku=${encodeURIComponent(cardSku)}`, {
         method: 'GET',
         headers: {
@@ -52,11 +31,13 @@ module.exports = async function handler(req, res) {
       let skuData;
       try {
         skuData = JSON.parse(skuText);
+        console.log(`🔍 SKU search results for "${cardSku}":`, skuData.variants?.map(v => `${v.sku} (${v.title})`) || 'No variants found');
       } catch (parseErr) {
         return res.status(500).json({ error: "Invalid JSON from SKU lookup", raw: skuText });
       }
 
       if (skuData.variants && skuData.variants.length > 0) {
+        console.log(`✅ Found by SKU: ${cardSku}`);
         variant = skuData.variants[0];
         
         // Get the full product info for this variant
@@ -70,12 +51,43 @@ module.exports = async function handler(req, res) {
         
         const productByIdData = await productByIdRes.json();
         product = productByIdData.product;
+      } else {
+        console.log(`❌ Not found by SKU: "${cardSku}"`);
+      }
+    } else if (searchBy === 'title' && cardName) {
+      // Search by title
+      console.log(`🔍 Searching by title: ${cardName}`);
+      const productRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/products.json?title=${encodeURIComponent(cardName)}`, {
+        method: 'GET',
+        headers: {
+          'X-Shopify-Access-Token': ACCESS_TOKEN,
+          'Content-Type': 'application/json'
+        }
+      });
+      const productText = await productRes.text();
+
+      let productData;
+      try {
+        productData = JSON.parse(productText);
+        console.log(`🔍 Title search results for "${cardName}":`, productData.products?.map(p => p.title) || 'No products found');
+      } catch (parseErr) {
+        return res.status(500).json({ error: "Invalid JSON from Shopify", raw: productText });
+      }
+
+      if (productData.products && productData.products.length > 0) {
+        console.log(`✅ Found by title: ${productData.products[0].title}`);
+        product = productData.products[0];
+        variant = product.variants[0];
+      } else {
+        console.log(`❌ Not found by title: "${cardName}"`);
       }
     }
 
-    // Step 4: If still no product found, return error
+    // If still no product found, return error
     if (!product || !variant) {
-      return res.status(404).json({ error: 'Card not found in Shopify inventory by title or SKU' });
+      const searchMethod = searchBy === 'sku' ? 'SKU' : 'title';
+      const searchValue = searchBy === 'sku' ? cardSku : cardName;
+      return res.status(404).json({ error: `Card not found in Shopify inventory by ${searchMethod}: "${searchValue}"` });
     }
 
     const inventoryItemId = variant.inventory_item_id;
@@ -123,7 +135,7 @@ module.exports = async function handler(req, res) {
       condition: "NM",
       tradeInValue: (parseFloat(variant.price) * 0.30).toFixed(2),
       restocked: parseInt(quantity),
-      foundBy: variant.sku === cardSku ? 'SKU' : 'Title' // Optional: shows how it was found
+      foundBy: searchBy === 'sku' ? 'SKU' : 'Title' // Shows how it was found
     });
 
   } catch (err) {
