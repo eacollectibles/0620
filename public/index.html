@@ -115,6 +115,16 @@
       margin-bottom: 0;
     }
 
+    .search-info {
+      background: #e8f4fd;
+      border: 1px solid #bee5eb;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 15px;
+      font-size: 0.9em;
+      color: #0c5460;
+    }
+
     .card-row {
       display: flex;
       align-items: center;
@@ -202,6 +212,36 @@
       border-radius: 6px;
       margin: 10px 0;
       font-weight: 600;
+    }
+
+    .search-method-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.75em;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-left: 8px;
+    }
+
+    .search-method-title {
+      background: #3498db;
+      color: white;
+    }
+
+    .search-method-sku {
+      background: #27ae60;
+      color: white;
+    }
+
+    .search-method-tag {
+      background: #e67e22;
+      color: white;
+    }
+
+    .search-method-none {
+      background: #e74c3c;
+      color: white;
     }
 
     .button-group {
@@ -362,9 +402,13 @@
 
       <div class="form-group">
         <label>Cards to Trade:</label>
+        <div class="search-info">
+          <strong>🔍 Smart Search:</strong> Enter card name, SKU, or card number - the system will automatically find your card using the best match!
+          <br><strong>Examples:</strong> "Lightning Bolt", "MTG-123-456", "#025/151"
+        </div>
         <div id="card-list">
           <div class="card-row">
-            <input type="text" name="cardName" placeholder="Card Name or SKU" required />
+            <input type="text" name="cardName" placeholder="Card Name, SKU, or Card Number" required />
             <input type="number" name="cardQuantity" placeholder="Qty" min="1" value="1" required />
             <select name="cardCondition" required>
               <option value="NM">NM (Near Mint)</option>
@@ -428,6 +472,16 @@
       }
     }
 
+    function getSearchMethodBadge(method) {
+      const badges = {
+        'title': '<span class="search-method-badge search-method-title">Title</span>',
+        'sku': '<span class="search-method-badge search-method-sku">SKU</span>',
+        'tag': '<span class="search-method-badge search-method-tag">Card #</span>',
+        'none': '<span class="search-method-badge search-method-none">Not Found</span>'
+      };
+      return badges[method] || '';
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
       const form = document.getElementById('trade-form');
       const statusBar = document.getElementById('statusBar');
@@ -441,7 +495,7 @@
           const cardRow = document.createElement('div');
           cardRow.className = 'card-row';
           cardRow.innerHTML = `
-            <input type="text" name="cardName" placeholder="Card Name or SKU" required />
+            <input type="text" name="cardName" placeholder="Card Name, SKU, or Card Number" required />
             <input type="number" name="cardQuantity" placeholder="Qty" min="1" value="1" required />
             <select name="cardCondition" required>
               <option value="NM">NM (Near Mint)</option>
@@ -528,9 +582,12 @@
             const safePrice = isNaN(parseFloat(result.retailPrice)) ? 0 : parseFloat(result.retailPrice);
             const totalValue = safePrice * result.quantity;
             
+            const searchMethodBadge = getSearchMethodBadge(result.searchMethod);
+            
             logEntry.innerHTML = `
-              <strong>${result.cardName}</strong><br>
+              <strong>${result.cardName}</strong>${searchMethodBadge}<br>
               ${result.sku ? `SKU: ${result.sku} | ` : ''}
+              ${result.match ? `Product: ${result.match} | ` : ''}
               Condition: ${result.condition || 'N/A'} | 
               Unit Price: $${safePrice.toFixed(2)} | 
               Quantity: ${result.quantity} | 
@@ -540,6 +597,27 @@
             tradeLog.appendChild(logEntry);
             retailTotal += totalValue;
           });
+
+          // Add search method summary
+          const searchStats = data.results.reduce((acc, result) => {
+            acc[result.searchMethod] = (acc[result.searchMethod] || 0) + 1;
+            return acc;
+          }, {});
+
+          const statsEntry = document.createElement('div');
+          statsEntry.style.cssText = 'margin-top: 15px; padding: 10px; background: #e8f4fd; border-radius: 6px; font-size: 0.9em;';
+          
+          let statsText = '<strong>🔍 Search Methods Used:</strong> ';
+          const statsParts = [];
+          if (searchStats.title) statsParts.push(`${searchStats.title} by Title`);
+          if (searchStats.sku) statsParts.push(`${searchStats.sku} by SKU`);
+          if (searchStats.tag) statsParts.push(`${searchStats.tag} by Card Number`);
+          if (searchStats.none) statsParts.push(`${searchStats.none} Not Found`);
+          
+          statsText += statsParts.join(', ');
+          statsEntry.innerHTML = statsText;
+          tradeLog.appendChild(statsEntry);
+
         } else {
           tradeLog.innerHTML = '<p><em>No matching cards found.</em></p>';
         }
