@@ -54,8 +54,10 @@ module.exports = async function handler(req, res) {
         return parseFloat((price * 0.25).toFixed(2)); // 25%
       } else if (price >= 2.00) {
         return 0.50; // Flat $0.50
+      } else if (price >= 0.01) {
+        return 0.01; // Flat $0.01 for items under $2.00
       } else {
-        return 0; // Below $2.00 = no trade value
+        return 0; // No trade value for $0 items
       }
     }
 
@@ -63,7 +65,7 @@ module.exports = async function handler(req, res) {
       const price = parseFloat(marketValue);
       
       if (price >= 50.00) {
-        return parseFloat((price * 0.75).toFixed(2)); // 75% (same as max for high-value)
+        return parseFloat((price * 0.75).toFixed(2)); // 75%
       } else if (price >= 25.00) {
         return parseFloat((price * 0.50).toFixed(2)); // 50%
       } else if (price >= 15.01) {
@@ -76,8 +78,10 @@ module.exports = async function handler(req, res) {
         return parseFloat((price * 0.25).toFixed(2)); // 25%
       } else if (price >= 2.00) {
         return 0.10; // Flat $0.10
+      } else if (price >= 0.01) {
+        return 0.01; // Flat $0.01 for items under $2.00
       } else {
-        return 0; // Below $2.00 = no trade value
+        return 0; // No trade value for $0 items
       }
     }
 
