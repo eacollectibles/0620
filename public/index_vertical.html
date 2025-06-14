@@ -1,0 +1,213 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TESTING VERSION – Buyback Portal</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input, select, button { margin: 5px; padding: 8px; font-size: 14px; }
+    .card-row { margin-bottom: 10px; display: flex; flex-direction: column; align-items: flex-start; align-items: center; gap: 10px; }
+    .remove-btn { background: red; color: white; border: none; padding: 6px 10px; cursor: pointer; }
+    #trade-result { margin-top: 20px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <div style="background: #ffd700; color: #000; text-align: center; font-weight: bold; padding: 10px;">
+    TESTING VERSION ACTIVE
+  </div>
+
+  <h2>Trade-In Cards</h2>
+  
+    <form id="trade-form" style="display: flex; flex-direction: column; align-items: flex-start; flex-direction: column; gap: 15px; max-width: 500px;">
+    
+    <label for="employeeName"><strong>Employee:</strong></label>
+    <select name="employeeName" id="employeeName" required style="margin-bottom: 10px;">
+      <option value="" disabled selected>Select Employee</option>
+      <option value="Alex">Alex</option>
+      <option value="Jamie">Jamie</option>
+      <option value="Morgan">Morgan</option>
+      <option value="Taylor">Taylor</option>
+    </select><br>
+
+<fieldset>
+  <legend><strong>Payout Method:</strong></legend>
+  <label><input type="radio" name="payoutMethod" value="store-credit" required> Store Credit</label>
+  <label><input type="radio" name="payoutMethod" value="cash" required> Cash</label>
+</fieldset>
+
+    <div id="card-list">
+      <div class="card-row" style="flex-direction: column; align-items: flex-start;">
+        <input type="text" name="cardName" placeholder="Card Name" required />
+        <input type="number" name="cardQty" placeholder="Qty" min="1" value="1" required />
+        <select name="cardCondition" required>
+          <option value="NM">NM</option>
+          <option value="LP">LP</option>
+          <option value="MP">MP</option>
+        </select>
+        <button type="button" class="remove-btn" onclick="this.parentElement.remove()">✖</button>
+      </div>
+    </div>
+    <button type="button" id="add-card">➕ Add Card</button>
+    <button type="submit" id="submit-trade">Submit Trade</button>
+  
+    <div id="card-image-upload" style="margin-top: 10px;">
+      <label for="cardImage"><strong>Upload Card Image (optional):</strong></label>
+      <input type="file" id="cardImage" name="cardImage" accept="image/*" style="display: block; margin-top: 5px;" />
+    </div>
+
+    <button type="button" id="testButton" style="background-color: orange; color: white; font-weight: bold;">
+      Test Trade Input
+    </button>
+
+    <button type="submit" style="background-color: green; color: white; font-weight: bold;">
+      Submit Trade
+    </button>
+    </form>
+
+    <div id="statusBar" style="margin-top: 20px; font-weight: bold;"></div>
+
+    <div id="tradeLog" style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px;">
+      <h3>Trade Log</h3>
+      <ul id="logList" style="list-style-type: disc; padding-left: 20px;"></ul>
+    </div>
+
+    <script>
+      document.getElementById('testButton').addEventListener('click', function () {
+        const name = document.getElementById('employeeName').value;
+        if (!name) {
+          alert("Please select an employee.");
+        } else {
+          alert("Test passed. Employee selected: " + name);
+        }
+      });
+
+      document.getElementById('trade-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!confirm("Are you sure you want to submit this trade?")) return;
+
+        const statusBar = document.getElementById('statusBar');
+        const logList = document.getElementById('logList');
+
+        statusBar.textContent = "Processing...";
+        statusBar.style.color = "blue";
+
+        // Simulate success
+        setTimeout(() => {
+          statusBar.textContent = "Trade submitted successfully!";
+          statusBar.style.color = "green";
+
+          const logItem = document.createElement('li');
+          logItem.textContent = "Trade submitted by " + document.getElementById('employeeName').value + " at " + new Date().toLocaleTimeString();
+          logList.appendChild(logItem);
+        }, 1000);
+      });
+    </script>
+    
+
+  
+        <div id="status-bar" style="margin-top: 15px; padding: 10px; display: none;"></div>
+        <div id="trade-log" style="margin-top: 20px;">
+          <h3>Trade Log</h3>
+          <div id="log-entries"></div>
+        </div>
+        <div id="trade-result">
+        </div>
+
+  
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const cardList = document.getElementById('card-list');
+  const tradeLog = document.getElementById('log-entries');
+  const statusBar = document.getElementById('status-bar');
+
+  document.getElementById('add-card').addEventListener('click', function () {
+    const newRow = document.createElement('div');
+    newRow.className = 'card-row';
+    newRow.innerHTML = `
+      <input type="text" name="cardName" placeholder="Card Name" required />
+      <input type="number" name="cardQty" placeholder="Qty" min="1" value="1" required />
+      <select name="cardCondition" required>
+        <option value="NM">NM</option>
+        <option value="LP">LP</option>
+        <option value="MP">MP</option>
+      </select>
+      <button type="button" class="remove-btn" onclick="this.parentElement.remove()">✖</button>
+    `;
+    cardList.appendChild(newRow);
+  });
+
+  document.getElementById('trade-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    if (!confirm("Are you sure you want to process this trade and update Shopify inventory?")) {
+      return;
+    }
+
+    const cardRows = document.querySelectorAll('.card-row');
+    const tradeResult = document.getElementById("trade-result");
+    tradeResult.innerHTML = "Processing...";
+
+    const employee = document.getElementById('employeeName')?.value || 'Unknown';
+    let total = 0;
+    let processed = 0;
+    let summaryHTML = `<div><strong>Processed by:</strong> ${employee}</div>`;
+    let logEntry = `<strong>${new Date().toLocaleString()}</strong> — ${employee}<ul>`;
+
+    cardRows.forEach((row, index) => {
+      const name = row.querySelector('input[name="cardName"]').value;
+      const qty = parseInt(row.querySelector('input[name="cardQty"]').value) || 1;
+      const cond = row.querySelector('select[name="cardCondition"]').value;
+
+      fetch('/api/buybackstep4', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cardName: name, quantity: qty })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          summaryHTML += `<div style="color: red;">${name}: ${data.error}</div>`;
+          logEntry += `<li style="color:red;">${name}: ${data.error}</li>`;
+        } else {
+          const cardTotal = parseFloat(data.tradeInValue) * qty;
+          total += cardTotal;
+          summaryHTML += `
+            <div style="margin-bottom: 10px;">
+              <strong>${data.name}</strong> (${cond}) x${qty}<br>
+              Retail: $${data.price.toFixed(2)} | Inventory Now: ${data.inventory}<br>
+              Buyback: <span style="color: green;">$${data.tradeInValue}</span> × ${qty} = 
+              <span style="color: darkgreen;">$${cardTotal.toFixed(2)}</span>
+            </div>
+          `;
+          logEntry += `<li>${data.name} (${cond}) x${qty} → New Inventory: ${data.inventory}, Buyback Total: $${cardTotal.toFixed(2)}</li>`;
+        }
+      })
+      .catch(err => {
+        console.error("API error:", err);
+        summaryHTML += `<div style="color: red;">${name}: API error</div>`;
+        logEntry += `<li style="color:red;">${name}: API error</li>`;
+      })
+      .finally(() => {
+        processed++;
+        if (processed === cardRows.length) {
+          summaryHTML += `<hr><strong>Total Offer:</strong> <span style="color: darkgreen;">$${total.toFixed(2)}</span>`;
+          tradeResult.innerHTML = summaryHTML;
+          logEntry += `</ul><hr>`;
+          tradeLog.innerHTML = logEntry + tradeLog.innerHTML;
+          statusBar.innerText = "✅ Trade successfully processed.";
+          statusBar.style.background = "#d4edda";
+          statusBar.style.color = "#155724";
+          statusBar.style.border = "1px solid #c3e6cb";
+          statusBar.style.display = "block";
+        }
+      });
+    });
+  });
+});
+</script>
+
+
+</body>
+</html>
