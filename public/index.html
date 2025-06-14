@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -263,156 +262,6 @@
       font-weight: 600;
     }
 
-    /* NEW: Chronological display styles */
-    .chronological-section {
-      background: #f8f9fa;
-      border: 2px solid #17a2b8;
-      border-radius: 8px;
-      padding: 20px;
-      margin: 20px 0;
-    }
-
-    .chronological-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid #17a2b8;
-    }
-
-    .chronological-title {
-      color: #17a2b8;
-      font-weight: bold;
-      font-size: 1.2em;
-      margin: 0;
-    }
-
-    .chronological-stats {
-      font-size: 0.9em;
-      color: #5a6268;
-    }
-
-    .chronological-list {
-      max-height: 300px;
-      overflow-y: auto;
-      border: 1px solid #dee2e6;
-      border-radius: 6px;
-      background: white;
-    }
-
-    .chronological-item {
-      display: flex;
-      align-items: center;
-      padding: 12px 15px;
-      border-bottom: 1px solid #f1f3f4;
-      transition: background-color 0.2s ease;
-    }
-
-    .chronological-item:hover {
-      background-color: #f8f9fa;
-    }
-
-    .chronological-item:last-child {
-      border-bottom: none;
-    }
-
-    .chronological-order {
-      background: #17a2b8;
-      color: white;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 0.9em;
-      margin-right: 15px;
-      flex-shrink: 0;
-    }
-
-    .chronological-content {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .chronological-card-name {
-      font-weight: 600;
-      color: #2c3e50;
-      margin-bottom: 4px;
-    }
-
-    .chronological-details {
-      font-size: 0.85em;
-      color: #6c757d;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .chronological-sku {
-      background: #e9ecef;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: 'Courier New', monospace;
-    }
-
-    .chronological-time {
-      color: #17a2b8;
-      font-size: 0.8em;
-      margin-left: auto;
-      flex-shrink: 0;
-      text-align: right;
-    }
-
-    .chronological-empty {
-      text-align: center;
-      padding: 40px 20px;
-      color: #6c757d;
-      font-style: italic;
-    }
-
-    .results-tabs {
-      display: flex;
-      border-bottom: 2px solid #dee2e6;
-      margin-bottom: 20px;
-      background: #f8f9fa;
-      border-radius: 8px 8px 0 0;
-    }
-
-    .tab-button {
-      background: none;
-      border: none;
-      padding: 12px 20px;
-      cursor: pointer;
-      font-weight: 600;
-      color: #6c757d;
-      border-radius: 8px 8px 0 0;
-      transition: all 0.3s ease;
-      min-width: auto;
-    }
-
-    .tab-button.active {
-      background: white;
-      color: #17a2b8;
-      border-bottom: 2px solid #17a2b8;
-    }
-
-    .tab-button:hover:not(.active) {
-      background: #e9ecef;
-      color: #495057;
-    }
-
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
     .button-group {
       display: flex;
       gap: 15px;
@@ -538,30 +387,6 @@
       button {
         min-width: auto;
       }
-
-      .chronological-details {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-      }
-
-      .chronological-time {
-        margin-left: 0;
-        margin-top: 4px;
-      }
-
-      .results-tabs {
-        flex-direction: column;
-      }
-
-      .tab-button {
-        border-radius: 0;
-        border-bottom: 1px solid #dee2e6;
-      }
-
-      .tab-button.active {
-        border-bottom: 2px solid #17a2b8;
-      }
     }
   </style>
 </head>
@@ -641,44 +466,9 @@
     </div>
 
     <div class="trade-log-section">
-      <h3>📋 Trade Results</h3>
-      
-      <!-- NEW: Results tabs -->
-      <div class="results-tabs">
-        <button type="button" class="tab-button active" data-tab="summary">📊 Summary</button>
-        <button type="button" class="tab-button" data-tab="chronological">⏱️ Processing Order</button>
-        <button type="button" class="tab-button" data-tab="detailed">📋 Detailed Log</button>
-      </div>
-
-      <!-- Summary Tab -->
-      <div id="summary-tab" class="tab-content active">
-        <div id="tradeLog">
-          <p><em>Trade results will appear here...</em></p>
-        </div>
-      </div>
-
-      <!-- NEW: Chronological Tab -->
-      <div id="chronological-tab" class="tab-content">
-        <div class="chronological-section">
-          <div class="chronological-header">
-            <h4 class="chronological-title">🔍 Card Processing Order</h4>
-            <div class="chronological-stats" id="chronological-stats">
-              No processing data available
-            </div>
-          </div>
-          <div class="chronological-list" id="chronological-list">
-            <div class="chronological-empty">
-              Process an estimate or trade to see the chronological order of card lookups
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Detailed Log Tab -->
-      <div id="detailed-tab" class="tab-content">
-        <div id="detailedLog" style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef;">
-          <p><em>Detailed processing log will appear here...</em></p>
-        </div>
+      <h3>📋 Trade Log</h3>
+      <div id="tradeLog">
+        <p><em>Trade results will appear here...</em></p>
       </div>
     </div>
   </div>
@@ -710,156 +500,12 @@
       return badges[method] || '';
     }
 
-    function formatTimestamp(timestamp) {
-      const date = new Date(timestamp);
-      return date.toLocaleTimeString('en-US', { 
-        hour12: false, 
-        hour: '2-digit', 
-        minute: '2-digit', 
-        second: '2-digit', 
-        fractionalSecondDigits: 3 
-      });
-    }
-
-    function formatDuration(ms) {
-      if (ms < 1000) return `${ms}ms`;
-      return `${(ms / 1000).toFixed(2)}s`;
-    }
-
-    // NEW: Display chronological data
-    function displayChronologicalData(data) {
-      const chronologicalList = document.getElementById('chronological-list');
-      const chronologicalStats = document.getElementById('chronological-stats');
-      
-      if (data.chronologicalCardsSummary && data.chronologicalCardsSummary.length > 0) {
-        chronologicalList.innerHTML = '';
-        
-        data.chronologicalCardsSummary.forEach((item, index) => {
-          const chronoItem = document.createElement('div');
-          chronoItem.className = 'chronological-item';
-          
-          const searchBadgeText = {
-            'title': 'Title Match',
-            'sku': 'SKU Match',
-            'tag': 'Card # Match',
-            'none': 'Not Found'
-          }[item.searchMethod] || 'Unknown';
-          
-          chronoItem.innerHTML = `
-            <div class="chronological-order">${item.order}</div>
-            <div class="chronological-content">
-              <div class="chronological-card-name">${item.cardName}</div>
-              <div class="chronological-details">
-                <span class="chronological-sku">${item.variantSku || 'No SKU'}</span>
-                <span>${item.productTitle || 'No product match'}</span>
-                <span class="search-method-badge search-method-${item.searchMethod}">${searchBadgeText}</span>
-              </div>
-            </div>
-            <div class="chronological-time">
-              ${formatTimestamp(item.timestamp)}<br>
-              <small>+${formatDuration(item.processingDuration)}</small>
-            </div>
-          `;
-          
-          chronologicalList.appendChild(chronoItem);
-        });
-        
-        // Update stats
-        const stats = data.processingStats;
-        if (stats) {
-          chronologicalStats.innerHTML = `
-            ${stats.cardsFound}/${stats.totalCards} found • 
-            ${formatDuration(stats.totalProcessingTime)} total
-          `;
-        }
-      } else {
-        chronologicalList.innerHTML = '<div class="chronological-empty">No cards were successfully processed</div>';
-        chronologicalStats.textContent = 'No processing data available';
-      }
-    }
-
-    // NEW: Display detailed log
-    function displayDetailedLog(data) {
-      const detailedLog = document.getElementById('detailedLog');
-      
-      if (data.chronologicalLog && data.chronologicalLog.length > 0) {
-        detailedLog.innerHTML = '';
-        
-        data.chronologicalLog.forEach(entry => {
-          const logEntry = document.createElement('div');
-          logEntry.className = 'log-entry';
-          logEntry.style.fontFamily = "'Courier New', monospace";
-          logEntry.style.fontSize = '0.85em';
-          
-          const actionColors = {
-            'PROCESSING_START': '#3498db',
-            'SEARCH_BY_TITLE': '#9b59b6',
-            'FOUND_BY_TITLE': '#27ae60',
-            'SEARCH_BY_SKU': '#f39c12',
-            'FOUND_BY_SKU': '#27ae60',
-            'SEARCH_BY_TAG': '#e67e22',
-            'FOUND_BY_TAG': '#27ae60',
-            'NO_MATCH_FOUND': '#e74c3c',
-            'PROCESSING_COMPLETE': '#2ecc71',
-            'INVENTORY_UPDATED': '#1abc9c',
-            'ERROR': '#e74c3c'
-          };
-          
-          const actionColor = actionColors[entry.action] || '#7f8c8d';
-          
-          logEntry.innerHTML = `
-            <div style="display: flex; justify-content: between; align-items: flex-start; margin-bottom: 5px;">
-              <strong style="color: ${actionColor};">[${entry.action}]</strong>
-              <span style="margin-left: auto; font-size: 0.8em; color: #7f8c8d;">
-                ${formatTimestamp(entry.timestamp)} (+${formatDuration(entry.processingDuration)})
-              </span>
-            </div>
-            <div style="margin-left: 10px;">
-              <strong>Card:</strong> ${entry.cardName}
-              ${entry.inputSku ? `<br><strong>Input SKU:</strong> ${entry.inputSku}` : ''}
-              ${entry.variantSku ? `<br><strong>Found SKU:</strong> ${entry.variantSku}` : ''}
-              ${entry.productTitle ? `<br><strong>Product:</strong> ${entry.productTitle}` : ''}
-              ${entry.searchMethod ? `<br><strong>Method:</strong> ${entry.searchMethod}` : ''}
-              <br><strong>Result:</strong> ${entry.result}
-            </div>
-          `;
-          
-          detailedLog.appendChild(logEntry);
-        });
-      } else {
-        detailedLog.innerHTML = '<p><em>No detailed processing log available</em></p>';
-      }
-    }
-
-    // NEW: Tab functionality
-    function initializeTabs() {
-      const tabButtons = document.querySelectorAll('.tab-button');
-      const tabContents = document.querySelectorAll('.tab-content');
-      
-      tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-          const targetTab = button.dataset.tab;
-          
-          // Remove active class from all buttons and contents
-          tabButtons.forEach(btn => btn.classList.remove('active'));
-          tabContents.forEach(content => content.classList.remove('active'));
-          
-          // Add active class to clicked button and corresponding content
-          button.classList.add('active');
-          document.getElementById(`${targetTab}-tab`).classList.add('active');
-        });
-      });
-    }
-
     document.addEventListener("DOMContentLoaded", function () {
       const form = document.getElementById('trade-form');
       const statusBar = document.getElementById('statusBar');
       const addCardButton = document.getElementById('add-card');
       const cardList = document.getElementById('card-list');
       const estimateButton = document.getElementById('estimate-trade');
-
-      // Initialize tab functionality
-      initializeTabs();
 
       // Add card functionality
       if (addCardButton && cardList) {
@@ -895,6 +541,7 @@
           const condition = conditionSelect?.value || 'NM';
 
           if (cardNameOrSku && quantity > 0) {
+            // Send both cardName and sku with the same value - backend will handle the logic
             cards.push({ 
               cardName: cardNameOrSku, 
               sku: cardNameOrSku, 
@@ -961,11 +608,11 @@
               ${result.sku ? `SKU: ${result.sku} | ` : ''}
               ${result.match ? `Product: ${result.match} | ` : ''}
               Condition: ${result.condition || 'N/A'} | 
-              Market Price: ${safePrice.toFixed(2)} | 
+              Market Price: $${safePrice.toFixed(2)} | 
               Quantity: ${result.quantity}
               <div class="trade-values">
-                <span class="suggested-value">💰 Suggested: ${suggestedTotal.toFixed(2)}</span> | 
-                <span class="maximum-value">💎 Maximum: ${maximumTotal.toFixed(2)}</span>
+                <span class="suggested-value">💰 Suggested: $${suggestedTotal.toFixed(2)}</span> | 
+                <span class="maximum-value">💎 Maximum: $${maximumTotal.toFixed(2)}</span>
               </div>
             `;
             
@@ -997,29 +644,25 @@
           tradeLog.innerHTML = '<p><em>No matching cards found.</em></p>';
         }
 
-        // NEW: Display chronological and detailed data
-        displayChronologicalData(data);
-        displayDetailedLog(data);
-
         const actionText = isEstimate ? "Estimate complete!" : "Trade submitted successfully!";
         const valueText = isEstimate ? "Estimated Trade Value" : "Trade Payout";
         
-        let status = `${actionText} | Items Value: ${parseFloat(data.totalRetailValue || retailTotal).toFixed(2)}`;
+        let status = `${actionText} | Items Value: $${parseFloat(data.totalRetailValue || retailTotal).toFixed(2)}`;
         
         // Show suggested and maximum totals
         if (data.suggestedTotal) {
-          status += ` | 💰 Suggested: ${parseFloat(data.suggestedTotal).toFixed(2)}`;
+          status += ` | 💰 Suggested: $${parseFloat(data.suggestedTotal).toFixed(2)}`;
         }
         if (data.maximumTotal) {
-          status += ` | 💎 Maximum: ${parseFloat(data.maximumTotal).toFixed(2)}`;
+          status += ` | 💎 Maximum: $${parseFloat(data.maximumTotal).toFixed(2)}`;
         }
         
-        status += ` | ${valueText}: ${parseFloat(data.finalPayout || data.total || 0).toFixed(2)}`;
+        status += ` | ${valueText}: $${parseFloat(data.finalPayout || data.total || 0).toFixed(2)}`;
 
         // Show override information
         if (data.overrideUsed && !isEstimate) {
           const overrideDiff = parseFloat(data.overrideDifference || 0);
-          const diffText = overrideDiff >= 0 ? `+${overrideDiff.toFixed(2)}` : `-${Math.abs(overrideDiff).toFixed(2)}`;
+          const diffText = overrideDiff >= 0 ? `+$${overrideDiff.toFixed(2)}` : `-$${Math.abs(overrideDiff).toFixed(2)}`;
           status += ` | 🔧 OVERRIDE APPLIED (${diffText})`;
           
           // Add override warning to the log
@@ -1027,8 +670,8 @@
           overrideWarning.className = 'override-warning';
           overrideWarning.innerHTML = `
             <strong>⚠️ Trade Override Applied</strong><br>
-            Suggested Total: ${data.suggestedTotal}<br>
-            Override Amount: ${data.overrideAmount}<br>
+            Suggested Total: $${data.suggestedTotal}<br>
+            Override Amount: $${data.overrideAmount}<br>
             Difference: ${diffText}
           `;
           tradeLog.insertBefore(overrideWarning, tradeLog.firstChild);
@@ -1112,7 +755,7 @@
           // Show override confirmation if override is being used
           let confirmMessage = "Are you sure you want to submit this trade?";
           if (overrideTotal !== null) {
-            confirmMessage = `⚠️ TRADE OVERRIDE DETECTED ⚠️\n\nYou are overriding the suggested trade value with ${overrideTotal.toFixed(2)}.\n\nAre you sure you want to proceed with this override?`;
+            confirmMessage = `⚠️ TRADE OVERRIDE DETECTED ⚠️\n\nYou are overriding the suggested trade value with $${overrideTotal.toFixed(2)}.\n\nAre you sure you want to proceed with this override?`;
           }
 
           if (!confirm(confirmMessage)) return;
