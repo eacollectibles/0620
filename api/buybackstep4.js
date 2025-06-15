@@ -137,11 +137,31 @@ module.exports = async function handler(req, res) {
 
         const result = await graphqlRes.json();
         
+        console.log('GraphQL Response:', JSON.stringify(result, null, 2));
+        console.log('Store credit mutation result:', {
+          hasData: !!result.data,
+          hasStoreCreditCreate: !!result.data?.storeCreditAccountCreditCreate,
+          hasTransaction: !!result.data?.storeCreditAccountCreditCreate?.storeCreditAccountTransaction,
+          hasErrors: !!result.data?.storeCreditAccountCreditCreate?.userErrors?.length,
+          errors: result.data?.storeCreditAccountCreditCreate?.userErrors,
+          graphqlErrors: result.errors
+        });
+        
+        if (result.errors) {
+          throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
+        }
+        
         if (result.data?.storeCreditAccountCreditCreate?.userErrors?.length > 0) {
           throw new Error(`Store credit error: ${result.data.storeCreditAccountCreditCreate.userErrors[0].message}`);
         }
 
-        return result.data?.storeCreditAccountCreditCreate?.storeCreditAccountTransaction;
+        const transaction = result.data?.storeCreditAccountCreditCreate?.storeCreditAccountTransaction;
+        
+        if (!transaction) {
+          throw new Error('Store credit transaction was not created - no transaction returned');
+        }
+
+        return transaction;
       } catch (err) {
         console.error('Error issuing store credit:', err);
         throw err;
@@ -596,7 +616,7 @@ module.exports = async function handler(req, res) {
       console.log(`Search method statistics:`, searchStats);
     }
 
-    // NEW: Handle store credit or gift card creation
+    // NEW: Handle store credit, gift card, or cash payouts
     let giftCardCode = null;
     let storeCreditTransaction = null;
     let customer = null;
@@ -606,9 +626,20 @@ module.exports = async function handler(req, res) {
         try {
           // Find or create customer
           customer = await findOrCreateCustomer(customerEmail);
+          console.log('Customer found/created:', {
+            id: customer.id,
+            email: customer.email,
+            gid: `gid://shopify/Customer/${customer.id}`
+          });
           
           // Issue store credit using new native feature
           const reason = `Trade-in payout for ${employeeName || "Unknown"}${overrideUsed ? ` (Override: $${finalPayout.toFixed(2)}, Suggested: $${totalSuggestedValue.toFixed(2)})` : ''}`;
+          
+          console.log('Attempting store credit with:', {
+            customerId: customer.id,
+            amount: finalPayout,
+            reason: reason
+          });
           
           storeCreditTransaction = await issueStoreCredit(customer.id, finalPayout, reason);
           
@@ -616,39 +647,57 @@ module.exports = async function handler(req, res) {
           
         } catch (err) {
           console.error("Store credit creation failed:", err);
+          console.error("Store credit error details:", {
+            message: err.message,
+            customerEmail: customerEmail,
+            customerId: customer?.id,
+            amount: finalPayout
+          });
           
-          // Fallback to gift card if store credit fails
-          console.log("Falling back to gift card creation...");
+          // Return error instead of silent fallback
+          return res.status(500).json({ 
+            error: "Store credit creation failed", 
+            details: err.message,
+            fallbackAvailable: true
+          });
+        }
+      } else if (payoutMethod === "gift-card") {
+        try {
+          const giftCardRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/gift_cards.json`, {
+            method: "POST",
+            headers: {
+              "X-Shopify-Access-Token": ACCESS_TOKEN,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              gift_card: {
+                initial_value: finalPayout.toFixed(2),
+                note: `Trade-in payout for ${employeeName || "Unknown"}${overrideUsed ? ` (Override: $${finalPayout.toFixed(2)}, Suggested: $${totalSuggestedValue.toFixed(2)})` : ''}`,
+                currency: "CAD"
+              }
+            })
+          });
           
-          try {
-            const giftCardRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/gift_cards.json`, {
-              method: "POST",
-              headers: {
-                "X-Shopify-Access-Token": ACCESS_TOKEN,
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify({
-                gift_card: {
-                  initial_value: finalPayout.toFixed(2),
-                  note: `Buyback payout for ${employeeName || "Unknown"}${overrideUsed ? ` (Override: $${finalPayout.toFixed(2)}, Suggested: $${totalSuggestedValue.toFixed(2)})` : ''} - Store credit fallback`,
-                  currency: "CAD"
-                }
-              })
+          if (!giftCardRes.ok) {
+            const errorText = await giftCardRes.text();
+            console.error("Gift card creation failed:", errorText);
+            return res.status(500).json({ 
+              error: "Gift card creation failed", 
+              details: errorText 
             });
-            
-            if (!giftCardRes.ok) {
-              const errorText = await giftCardRes.text();
-              console.error("Gift card creation failed:", errorText);
-              return res.status(500).json({ error: "Failed to create store credit or gift card", details: errorText });
-            }
-            
-            const giftCardData = await giftCardRes.json();
-            giftCardCode = giftCardData?.gift_card?.code || null;
-            
-          } catch (giftCardErr) {
-            console.error("Gift card fallback failed:", giftCardErr);
-            return res.status(500).json({ error: "Failed to create store credit or gift card", details: giftCardErr.message });
           }
+          
+          const giftCardData = await giftCardRes.json();
+          giftCardCode = giftCardData?.gift_card?.code || null;
+          
+          console.log(`Gift card created: $${finalPayout.toFixed(2)} CAD, Code: ${giftCardCode}`);
+          
+        } catch (giftCardErr) {
+          console.error("Gift card creation failed:", giftCardErr);
+          return res.status(500).json({ 
+            error: "Gift card creation failed", 
+            details: giftCardErr.message 
+          });
         }
       } else if (payoutMethod === "cash") {
         // For cash payouts, no gift card or store credit needed
