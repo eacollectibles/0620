@@ -1,5 +1,3 @@
-
-
 module.exports = async function handler(req, res) {
   try {
     if (req.method !== 'POST') {
@@ -7,7 +5,12 @@ module.exports = async function handler(req, res) {
     }
 
     const estimateMode = req.query?.estimate === 'true';
-    const { cards, employeeName, payoutMethod, overrideTotal } = req.body;
+    const { cards, employeeName, payoutMethod, overrideTotal, customerEmail } = req.body;
+
+    // Add customer email validation for store credit
+    if (!estimateMode && payoutMethod === "store-credit" && !customerEmail) {
+      return res.status(400).json({ error: 'Customer email is required for store credit payouts' });
+    }
 
     if (!cards || !Array.isArray(cards)) {
       return res.status(400).json({ error: 'Invalid or missing cards array' });
@@ -23,9 +26,9 @@ module.exports = async function handler(req, res) {
       if (override < 0) {
         return res.status(400).json({ error: 'Override total cannot be negative' });
       }
-      // Optional: Add maximum override limit (e.g., $10,000)
-      if (override > 10000) {
-        return res.status(400).json({ error: 'Override total exceeds maximum allowed limit ($10,000)' });
+      // Store credit limit is $10,000 USD ≈ $13,500 CAD
+      if (override > 13500) {
+        return res.status(400).json({ error: 'Override total exceeds maximum allowed limit ($13,500 CAD)' });
       }
       validatedOverride = override;
     }
@@ -37,6 +40,113 @@ module.exports = async function handler(req, res) {
 
     const SHOPIFY_DOMAIN = "ke40sv-my.myshopify.com";
     const ACCESS_TOKEN = "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";
+
+    // NEW: Store credit helper functions
+    const findOrCreateCustomer = async (email) => {
+      try {
+        // First, try to find existing customer
+        const searchRes = await fetch(
+          `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/customers/search.json?query=email:${encodeURIComponent(email)}`,
+          {
+            headers: {
+              'X-Shopify-Access-Token': ACCESS_TOKEN,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        const searchData = await searchRes.json();
+        
+        if (searchData.customers && searchData.customers.length > 0) {
+          return searchData.customers[0];
+        }
+
+        // If customer doesn't exist, create one
+        const createRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/customers.json`, {
+          method: 'POST',
+          headers: {
+            'X-Shopify-Access-Token': ACCESS_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            customer: {
+              email: email,
+              first_name: "Trade-in",
+              last_name: "Customer",
+              note: "Customer created via trade-in system",
+              tags: "trade-in-customer"
+            }
+          })
+        });
+
+        if (!createRes.ok) {
+          throw new Error(`Failed to create customer: ${await createRes.text()}`);
+        }
+
+        const customerData = await createRes.json();
+        return customerData.customer;
+      } catch (err) {
+        console.error('Error finding/creating customer:', err);
+        throw err;
+      }
+    };
+
+    const issueStoreCredit = async (customerId, amount, reason) => {
+      try {
+        const mutation = `
+          mutation StoreCreditAccountCreditCreate($input: StoreCreditAccountCreditInput!) {
+            storeCreditAccountCreditCreate(input: $input) {
+              storeCreditAccountTransaction {
+                id
+                amount {
+                  amount
+                  currencyCode
+                }
+                createdAt
+              }
+              userErrors {
+                field
+                message
+              }
+            }
+          }
+        `;
+
+        const variables = {
+          input: {
+            customerId: `gid://shopify/Customer/${customerId}`,
+            amount: {
+              amount: amount.toFixed(2),
+              currencyCode: "CAD"
+            },
+            note: reason
+          }
+        };
+
+        const graphqlRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/graphql.json`, {
+          method: 'POST',
+          headers: {
+            'X-Shopify-Access-Token': ACCESS_TOKEN,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            query: mutation,
+            variables: variables
+          })
+        });
+
+        const result = await graphqlRes.json();
+        
+        if (result.data?.storeCreditAccountCreditCreate?.userErrors?.length > 0) {
+          throw new Error(`Store credit error: ${result.data.storeCreditAccountCreditCreate.userErrors[0].message}`);
+        }
+
+        return result.data?.storeCreditAccountCreditCreate?.storeCreditAccountTransaction;
+      } catch (err) {
+        console.error('Error issuing store credit:', err);
+        throw err;
+      }
+    };
 
     // NEW: Chronological tracking array
     const chronologicalLog = [];
@@ -486,41 +596,63 @@ module.exports = async function handler(req, res) {
       console.log(`Search method statistics:`, searchStats);
     }
 
-    // Create gift card if needed (only for actual transactions, not estimates)
+    // NEW: Handle store credit or gift card creation
     let giftCardCode = null;
-    if (!estimateMode && payoutMethod === "store-credit" && finalPayout > 0) {
-      try {
-        const giftCardRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/gift_cards.json`, {
-          method: "POST",
-          headers: {
-            "X-Shopify-Access-Token": ACCESS_TOKEN,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            gift_card: {
-              initial_value: finalPayout.toFixed(2),
-              note: `Buyback payout for ${employeeName || "Unknown"}${overrideUsed ? ` (Override: $${finalPayout.toFixed(2)}, Suggested: $${totalSuggestedValue.toFixed(2)})` : ''}`,
-              currency: "CAD"
+    let storeCreditTransaction = null;
+    let customer = null;
+
+    if (!estimateMode && finalPayout > 0) {
+      if (payoutMethod === "store-credit") {
+        try {
+          // Find or create customer
+          customer = await findOrCreateCustomer(customerEmail);
+          
+          // Issue store credit using new native feature
+          const reason = `Trade-in payout for ${employeeName || "Unknown"}${overrideUsed ? ` (Override: $${finalPayout.toFixed(2)}, Suggested: $${totalSuggestedValue.toFixed(2)})` : ''}`;
+          
+          storeCreditTransaction = await issueStoreCredit(customer.id, finalPayout, reason);
+          
+          console.log(`Store credit issued: $${finalPayout.toFixed(2)} CAD to ${customerEmail}`);
+          
+        } catch (err) {
+          console.error("Store credit creation failed:", err);
+          
+          // Fallback to gift card if store credit fails
+          console.log("Falling back to gift card creation...");
+          
+          try {
+            const giftCardRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/gift_cards.json`, {
+              method: "POST",
+              headers: {
+                "X-Shopify-Access-Token": ACCESS_TOKEN,
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                gift_card: {
+                  initial_value: finalPayout.toFixed(2),
+                  note: `Buyback payout for ${employeeName || "Unknown"}${overrideUsed ? ` (Override: $${finalPayout.toFixed(2)}, Suggested: $${totalSuggestedValue.toFixed(2)})` : ''} - Store credit fallback`,
+                  currency: "CAD"
+                }
+              })
+            });
+            
+            if (!giftCardRes.ok) {
+              const errorText = await giftCardRes.text();
+              console.error("Gift card creation failed:", errorText);
+              return res.status(500).json({ error: "Failed to create store credit or gift card", details: errorText });
             }
-          })
-        });
-        
-        if (!giftCardRes.ok) {
-          const errorText = await giftCardRes.text();
-          console.error("Gift card creation failed:", errorText);
-          return res.status(500).json({ error: "Failed to create gift card", details: errorText });
+            
+            const giftCardData = await giftCardRes.json();
+            giftCardCode = giftCardData?.gift_card?.code || null;
+            
+          } catch (giftCardErr) {
+            console.error("Gift card fallback failed:", giftCardErr);
+            return res.status(500).json({ error: "Failed to create store credit or gift card", details: giftCardErr.message });
+          }
         }
-        
-        const giftCardData = await giftCardRes.json();
-        giftCardCode = giftCardData?.gift_card?.code || null;
-        
-        if (!giftCardCode) {
-          console.error("Gift card created but no code returned:", giftCardData);
-          return res.status(500).json({ error: "Gift card created but code not available" });
-        }
-      } catch (err) {
-        console.error("Gift card creation failed:", err);
-        return res.status(500).json({ error: "Failed to create gift card", details: err.message });
+      } else if (payoutMethod === "cash") {
+        // For cash payouts, no gift card or store credit needed
+        console.log(`Cash payout: $${finalPayout.toFixed(2)} CAD for ${employeeName || "Unknown"}`);
       }
     }
 
@@ -540,10 +672,25 @@ module.exports = async function handler(req, res) {
     // Return comprehensive response with chronological data
     res.status(200).json({
       success: true,
+      
+      // Payment method details
       giftCardCode,
+      storeCreditTransaction: storeCreditTransaction ? {
+        id: storeCreditTransaction.id,
+        amount: storeCreditTransaction.amount,
+        createdAt: storeCreditTransaction.createdAt
+      } : null,
+      customer: customer ? {
+        id: customer.id,
+        email: customer.email,
+        name: `${customer.first_name} ${customer.last_name}`
+      } : null,
+      
+      // Transaction details
       estimate: estimateMode,
       employeeName,
       payoutMethod,
+      customerEmail,
       results,
       suggestedTotal: totalSuggestedValue.toFixed(2),
       maximumTotal: totalMaximumValue.toFixed(2),
