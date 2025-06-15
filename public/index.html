@@ -242,15 +242,21 @@
       background: #f8f9fa;
       border-radius: 8px;
       border: 1px solid #e9ecef;
+      position: relative;
     }
 
     .card-row input, .card-row select {
       margin: 0;
     }
 
-    .card-row input[name="cardName"] {
+    .card-input-container {
+      position: relative;
       flex: 2;
       min-width: 200px;
+    }
+
+    .card-row input[name="cardName"] {
+      width: 100%;
     }
 
     .card-row input[name="cardQuantity"] {
@@ -260,6 +266,104 @@
 
     .card-row select {
       width: 100px;
+    }
+
+    /* Search suggestion styles */
+    .search-suggestion {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 2px solid #3498db;
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      padding: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 1000;
+      animation: slideDown 0.2s ease;
+    }
+
+    .search-suggestion.searching {
+      background: #f8f9fa;
+      color: #666;
+      font-style: italic;
+    }
+
+    .search-suggestion.found {
+      background: #d4edda;
+      border-color: #27ae60;
+      color: #155724;
+    }
+
+    .search-suggestion.not-found {
+      background: #f8d7da;
+      border-color: #e74c3c;
+      color: #721c24;
+    }
+
+    .suggestion-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .suggestion-info {
+      flex: 1;
+    }
+
+    .suggestion-card-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .suggestion-sku {
+      font-size: 0.9em;
+      color: #666;
+    }
+
+    .suggestion-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .suggestion-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      min-width: auto;
+    }
+
+    .confirm-btn {
+      background: #27ae60;
+      color: white;
+    }
+
+    .confirm-btn:hover {
+      background: #219a52;
+    }
+
+    .reject-btn {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .reject-btn:hover {
+      background: #c0392b;
+    }
+
+    .continue-btn {
+      background: #f39c12;
+      color: white;
+    }
+
+    .continue-btn:hover {
+      background: #e67e22;
     }
 
     .remove-btn {
@@ -619,6 +723,10 @@
       .customer-email-section input {
         max-width: 100%;
       }
+
+      .card-input-container {
+        min-width: auto;
+      }
     }
   </style>
 </head>
@@ -674,12 +782,14 @@
       <div class="form-group">
         <label>Cards to Trade:</label>
         <div class="search-info">
-          <strong>🔍 Smart Search:</strong> Enter card name, SKU, or card number - the system will automatically find your card using the best match!
+          <strong>🔍 Smart Search:</strong> Enter card name, SKU, or card number - the system will automatically find your card and ask for confirmation!
           <br><strong>Examples:</strong> "Lightning Bolt", "MTG-123-456", "#025/151"
         </div>
         <div id="card-list">
           <div class="card-row">
-            <input type="text" name="cardName" placeholder="Card Name, SKU, or Card Number" required />
+            <div class="card-input-container">
+              <input type="text" name="cardName" placeholder="Card Name, SKU, or Card Number" required />
+            </div>
             <input type="number" name="cardQuantity" placeholder="Qty" min="1" value="1" required />
             <select name="cardCondition" required>
               <option value="NM">NM (Near Mint)</option>
@@ -734,6 +844,9 @@
   <script>
     // Store the last trade data for label printing
     let lastTradeData = null;
+
+    // Debounce timer for search
+    const searchTimers = new Map();
 
     // API Configuration
     const API_BASE_URL = '/api/buybackstep4'; // Updated to match your actual endpoint
@@ -816,6 +929,154 @@
       return cardNumberMatch ? `#${cardNumberMatch[1]}` : null;
     }
 
+    // Debounced search function
+    function setupCardSearch(inputElement) {
+      const container = inputElement.closest('.card-input-container');
+      
+      inputElement.addEventListener('input', function() {
+        const query = this.value.trim();
+        const timerId = searchTimers.get(this) || null;
+        
+        // Clear existing timer
+        if (timerId) {
+          clearTimeout(timerId);
+        }
+        
+        // Remove existing suggestion
+        const existingSuggestion = container.querySelector('.search-suggestion');
+        if (existingSuggestion) {
+          existingSuggestion.remove();
+        }
+        
+        // Reset input styling
+        this.style.borderColor = '';
+        this.style.backgroundColor = '';
+        delete this.dataset.confirmedSku;
+        delete this.dataset.confirmedResult;
+        
+        // If query is too short, don't search
+        if (query.length < 2) {
+          return;
+        }
+        
+        // Show searching indicator
+        const searchingDiv = document.createElement('div');
+        searchingDiv.className = 'search-suggestion searching';
+        searchingDiv.innerHTML = '🔍 Searching...';
+        container.appendChild(searchingDiv);
+        
+        // Set new timer
+        const newTimerId = setTimeout(async () => {
+          try {
+            const result = await searchCard(query);
+            
+            // Remove searching indicator
+            const currentSearching = container.querySelector('.search-suggestion.searching');
+            if (currentSearching) {
+              currentSearching.remove();
+            }
+            
+            // Show suggestion based on result
+            showSearchSuggestion(container, inputElement, result, query);
+            
+          } catch (error) {
+            console.error('Search error:', error);
+            const currentSearching = container.querySelector('.search-suggestion.searching');
+            if (currentSearching) {
+              currentSearching.remove();
+            }
+          }
+          
+          searchTimers.delete(this);
+        }, 1500); // 1.5 second delay
+        
+        searchTimers.set(this, newTimerId);
+      });
+      
+      // Hide suggestion when input loses focus (with a small delay)
+      inputElement.addEventListener('blur', function() {
+        setTimeout(() => {
+          const suggestion = container.querySelector('.search-suggestion');
+          if (suggestion && !suggestion.matches(':hover')) {
+            suggestion.remove();
+          }
+        }, 200);
+      });
+    }
+
+    // Show search suggestion
+    function showSearchSuggestion(container, inputElement, result, originalQuery) {
+      const suggestionDiv = document.createElement('div');
+      
+      if (result.found) {
+        suggestionDiv.className = 'search-suggestion found';
+        suggestionDiv.innerHTML = `
+          <div class="suggestion-content">
+            <div class="suggestion-info">
+              <div class="suggestion-card-name">✅ ${result.name}</div>
+              <div class="suggestion-sku">SKU: ${result.sku} ${result.cardNumber !== 'N/A' ? '| ' + result.cardNumber : ''}</div>
+            </div>
+            <div class="suggestion-actions">
+              <button type="button" class="suggestion-btn confirm-btn">✅ Confirm</button>
+              <button type="button" class="suggestion-btn reject-btn">❌ Reject</button>
+            </div>
+          </div>
+        `;
+        
+        // Confirm button handler
+        const confirmBtn = suggestionDiv.querySelector('.confirm-btn');
+        confirmBtn.addEventListener('click', () => {
+          inputElement.value = result.name;
+          inputElement.dataset.confirmedSku = result.sku;
+          inputElement.dataset.confirmedResult = JSON.stringify(result);
+          suggestionDiv.remove();
+          inputElement.style.borderColor = '#27ae60';
+          inputElement.style.backgroundColor = '#d4edda';
+        });
+        
+        // Reject button handler
+        const rejectBtn = suggestionDiv.querySelector('.reject-btn');
+        rejectBtn.addEventListener('click', () => {
+          suggestionDiv.remove();
+          inputElement.focus();
+        });
+        
+      } else {
+        suggestionDiv.className = 'search-suggestion not-found';
+        suggestionDiv.innerHTML = `
+          <div class="suggestion-content">
+            <div class="suggestion-info">
+              <div class="suggestion-card-name">❌ "${originalQuery}" not found in inventory</div>
+              <div class="suggestion-sku">This card is not in your Shopify store</div>
+            </div>
+            <div class="suggestion-actions">
+              <button type="button" class="suggestion-btn continue-btn">⚠️ Continue Anyway</button>
+              <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
+            </div>
+          </div>
+        `;
+        
+        // Continue anyway button handler
+        const continueBtn = suggestionDiv.querySelector('.continue-btn');
+        continueBtn.addEventListener('click', () => {
+          inputElement.dataset.confirmedResult = JSON.stringify(result);
+          suggestionDiv.remove();
+          inputElement.style.borderColor = '#f39c12';
+          inputElement.style.backgroundColor = '#fff3cd';
+        });
+        
+        // Cancel button handler
+        const rejectBtn = suggestionDiv.querySelector('.reject-btn');
+        rejectBtn.addEventListener('click', () => {
+          inputElement.value = '';
+          suggestionDiv.remove();
+          inputElement.focus();
+        });
+      }
+      
+      container.appendChild(suggestionDiv);
+    }
+
     // Email function with proper number parsing
     function sendTradeEmail(tradeData) {
       const tradeId = tradeData.tradeId || Date.now().toString();
@@ -825,7 +1086,7 @@
       if (tradeData.results && tradeData.results.length > 0) {
         cardsSummary = tradeData.results.map(result => {
           const found = result.searchMethod !== 'none' ? '✅' : '❌';
-          return `${found} ${result.cardName} ${result.sku ? `(SKU: ${result.sku})` : ''} x${result.quantity} - $${parseFloat(result.retailPrice || 0).toFixed(2)}`;
+          return `${found} ${result.cardName} ${result.sku ? `(SKU: ${result.sku})` : ''} x${result.quantity} - ${parseFloat(result.retailPrice || 0).toFixed(2)}`;
         }).join('\n');
       }
 
@@ -845,14 +1106,14 @@ Cards Processed (${foundCards}/${totalCards} found in Shopify):
 ${cardsSummary}
 
 Trade Values:
-- Total Retail Value: $${parseFloat(tradeData.totalRetailValue || 0).toFixed(2)}
-- Suggested Trade Value: $${parseFloat(tradeData.suggestedTotal || 0).toFixed(2)}
-- Maximum Trade Value: $${parseFloat(tradeData.maximumTotal || 0).toFixed(2)}
-- Final Payout: $${parseFloat(tradeData.finalPayout || 0).toFixed(2)}
+- Total Retail Value: ${parseFloat(tradeData.totalRetailValue || 0).toFixed(2)}
+- Suggested Trade Value: ${parseFloat(tradeData.suggestedTotal || 0).toFixed(2)}
+- Maximum Trade Value: ${parseFloat(tradeData.maximumTotal || 0).toFixed(2)}
+- Final Payout: ${parseFloat(tradeData.finalPayout || 0).toFixed(2)}
 
 ${tradeData.overrideUsed ? `OVERRIDE APPLIED:
-- Override Amount: $${parseFloat(tradeData.overrideAmount || 0).toFixed(2)}
-- Difference: ${tradeData.overrideDifference >= 0 ? '+' : ''}$${parseFloat(tradeData.overrideDifference || 0).toFixed(2)}
+- Override Amount: ${parseFloat(tradeData.overrideAmount || 0).toFixed(2)}
+- Difference: ${tradeData.overrideDifference >= 0 ? '+' : ''}${parseFloat(tradeData.overrideDifference || 0).toFixed(2)}
 
 ` : ''}${tradeData.customer?.email ? `STORE CREDIT:
 - Customer Email: ${tradeData.customer.email}
@@ -1075,6 +1336,9 @@ Generated by Buyback Portal (Connected to Shopify)`;
       const overrideCancel = document.getElementById('override-cancel');
       const customerEmailSection = document.getElementById('customer-email-section');
 
+      // Setup search for existing card inputs
+      document.querySelectorAll('input[name="cardName"]').forEach(setupCardSearch);
+
       // Handle payout method changes
       document.querySelectorAll('input[name="payoutMethod"]').forEach(radio => {
         radio.addEventListener('change', function() {
@@ -1093,7 +1357,9 @@ Generated by Buyback Portal (Connected to Shopify)`;
         const newRow = document.createElement('div');
         newRow.className = 'card-row';
         newRow.innerHTML = `
-          <input type="text" name="cardName" placeholder="Card Name, SKU, or Card Number" required />
+          <div class="card-input-container">
+            <input type="text" name="cardName" placeholder="Card Name, SKU, or Card Number" required />
+          </div>
           <input type="number" name="cardQuantity" placeholder="Qty" min="1" value="1" required />
           <select name="cardCondition" required>
             <option value="NM">NM (Near Mint)</option>
@@ -1103,6 +1369,10 @@ Generated by Buyback Portal (Connected to Shopify)`;
           <button type="button" class="remove-btn" onclick="this.parentElement.remove()">✖</button>
         `;
         cardList.appendChild(newRow);
+        
+        // Setup search for the new input
+        const newInput = newRow.querySelector('input[name="cardName"]');
+        setupCardSearch(newInput);
       });
 
       // Handle override toggle
@@ -1134,57 +1404,41 @@ Generated by Buyback Portal (Connected to Shopify)`;
           return;
         }
 
-        statusBar.textContent = '🔍 Searching your Shopify database for cards...';
+        // Check if all cards have been confirmed
+        const unconfirmedCards = cards.filter(card => !card.confirmed);
+        if (unconfirmedCards.length > 0) {
+          alert(`Please confirm the search results for all cards before estimating. ${unconfirmedCards.length} card(s) need confirmation.`);
+          return;
+        }
+
+        statusBar.textContent = '🔍 Calculating trade estimates...';
         estimateButton.disabled = true;
         
         try {
-          // Use estimate mode for getting trade values
-          const response = await fetch(`${API_BASE_URL}?estimate=true`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              cards: cards.map(card => ({
-                cardName: card.name,
-                sku: null,
-                quantity: card.quantity
-              })),
-              employeeName: 'Estimate', // Temporary for estimate
-              payoutMethod: 'cash' // Temporary for estimate
-            })
+          // Use confirmed results for estimation
+          const results = cards.map(card => {
+            const result = card.confirmedResult;
+            return {
+              cardName: result.name,
+              sku: result.sku,
+              cardNumber: result.cardNumber,
+              condition: card.condition,
+              quantity: card.quantity,
+              retailPrice: result.retailPrice,
+              suggestedPrice: result.suggestedTrade,
+              maxPrice: result.maxTrade,
+              searchMethod: result.searchMethod
+            };
           });
 
-          if (!response.ok) {
-            throw new Error(`API Error: ${response.status}`);
-          }
+          const totalRetail = results.reduce((sum, r) => sum + (r.retailPrice * r.quantity), 0);
+          const totalSuggested = results.reduce((sum, r) => sum + (r.suggestedPrice * r.quantity), 0);
+          const totalMaximum = results.reduce((sum, r) => sum + (r.maxPrice * r.quantity), 0);
 
-          const data = await response.json();
+          displayEstimateResults(results, totalRetail, totalSuggested, totalMaximum);
           
-          if (data.success) {
-            const results = data.results.map((result, index) => ({
-              cardName: result.match || result.cardName,
-              sku: result.sku || 'NOT-FOUND',
-              cardNumber: extractCardNumber(result.sku) || 'N/A',
-              condition: cards[index].condition,
-              quantity: result.quantity,
-              retailPrice: parseFloat(result.retailPrice) || 0,
-              suggestedPrice: parseFloat(result.suggestedTradeValue) || 0,
-              maxPrice: parseFloat(result.maximumTradeValue) || 0,
-              searchMethod: result.searchMethod || 'none'
-            }));
-
-            const totalRetail = parseFloat(data.totalRetailValue) || 0;
-            const totalSuggested = parseFloat(data.suggestedTotal) || 0;
-            const totalMaximum = parseFloat(data.maximumTotal) || 0;
-
-            displayEstimateResults(results, totalRetail, totalSuggested, totalMaximum);
-            
-            const foundCards = results.filter(r => r.searchMethod !== 'none').length;
-            statusBar.textContent = `✅ Estimate complete! Found ${foundCards}/${results.length} cards in your Shopify store.`;
-          } else {
-            throw new Error(data.error || 'Estimation failed');
-          }
+          const foundCards = results.filter(r => r.searchMethod !== 'none').length;
+          statusBar.textContent = `✅ Estimate complete! Using ${foundCards}/${results.length} confirmed cards.`;
         } catch (error) {
           console.error('Estimation error:', error);
           statusBar.textContent = '❌ Error getting estimates. Please try again.';
@@ -1203,6 +1457,13 @@ Generated by Buyback Portal (Connected to Shopify)`;
         
         if (cards.length === 0) {
           alert('Please add at least one card to trade.');
+          return;
+        }
+
+        // Check if all cards have been confirmed
+        const unconfirmedCards = cards.filter(card => !card.confirmed);
+        if (unconfirmedCards.length > 0) {
+          alert(`Please confirm the search results for all cards before submitting. ${unconfirmedCards.length} card(s) need confirmation.`);
           return;
         }
 
@@ -1240,12 +1501,27 @@ Generated by Buyback Portal (Connected to Shopify)`;
         const cards = [];
         
         cardRows.forEach(row => {
-          const name = row.querySelector('input[name="cardName"]').value.trim();
+          const input = row.querySelector('input[name="cardName"]');
+          const name = input.value.trim();
           const quantity = parseInt(row.querySelector('input[name="cardQuantity"]').value) || 1;
           const condition = row.querySelector('select[name="cardCondition"]').value;
+          const confirmedResult = input.dataset.confirmedResult;
           
-          if (name) {
-            cards.push({ name, quantity, condition });
+          if (name && confirmedResult) {
+            cards.push({ 
+              name, 
+              quantity, 
+              condition,
+              confirmed: true,
+              confirmedResult: JSON.parse(confirmedResult)
+            });
+          } else if (name) {
+            cards.push({ 
+              name, 
+              quantity, 
+              condition,
+              confirmed: false
+            });
           }
         });
         
@@ -1289,11 +1565,11 @@ Generated by Buyback Portal (Connected to Shopify)`;
 
       async function processTrade(cards, employeeName, payoutMethod, customerEmail, overrideAmount) {
         try {
-          // Prepare the trade data for your backend API
+          // Prepare the trade data using confirmed results
           const tradeData = {
             cards: cards.map(card => ({
-              cardName: card.name,
-              sku: null, // Let the backend search for the SKU
+              cardName: card.confirmedResult.name,
+              sku: card.confirmedResult.sku,
               quantity: card.quantity
             })),
             employeeName,
@@ -1368,6 +1644,15 @@ Generated by Buyback Portal (Connected to Shopify)`;
             cardRows.forEach((row, index) => {
               if (index > 0) row.remove(); // Keep first row, remove others
             });
+            
+            // Reset the first row
+            const firstInput = document.querySelector('input[name="cardName"]');
+            if (firstInput) {
+              firstInput.style.borderColor = '';
+              firstInput.style.backgroundColor = '';
+              delete firstInput.dataset.confirmedSku;
+              delete firstInput.dataset.confirmedResult;
+            }
             
             // Reset override button
             overrideToggle.classList.remove('active');
