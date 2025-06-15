@@ -1,18 +1,51 @@
 module.exports = async function handler(req, res) {
+  // 🔧 ADD CORS HEADERS FIRST
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  // 🔧 HANDLE OPTIONS PREFLIGHT
+  if (req.method === 'OPTIONS') {
+    console.log('OPTIONS request received - sending CORS headers');
+    return res.status(200).end();
+  }
+
+  // 🔧 LOG ALL REQUESTS
+  console.log('=== API REQUEST START ===');
+  console.log('Method:', req.method);
+  console.log('URL:', req.url);
+  console.log('Headers:', req.headers);
+  console.log('Query:', req.query);
+  console.log('Body:', req.body);
+
   try {
     if (req.method !== 'POST') {
+      console.log('❌ Method not allowed:', req.method);
       return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
     const estimateMode = req.query?.estimate === 'true';
+    console.log('🔍 Estimate mode:', estimateMode);
+    
     const { cards, employeeName, payoutMethod, overrideTotal, customerEmail } = req.body;
+    
+    console.log('📋 Parsed request data:', {
+      cardsCount: cards?.length,
+      employeeName,
+      payoutMethod,
+      overrideTotal,
+      customerEmail,
+      estimateMode
+    });
 
     // Add customer email validation for store credit
     if (!estimateMode && payoutMethod === "store-credit" && !customerEmail) {
+      console.log('❌ Missing customer email for store credit');
       return res.status(400).json({ error: 'Customer email is required for store credit payouts' });
     }
 
     if (!cards || !Array.isArray(cards)) {
+      console.log('❌ Invalid cards array:', cards);
       return res.status(400).json({ error: 'Invalid or missing cards array' });
     }
 
@@ -21,29 +54,41 @@ module.exports = async function handler(req, res) {
     if (overrideTotal !== undefined && overrideTotal !== null && overrideTotal !== '') {
       const override = parseFloat(overrideTotal);
       if (isNaN(override)) {
+        console.log('❌ Invalid override total:', overrideTotal);
         return res.status(400).json({ error: 'Override total must be a valid number' });
       }
       if (override < 0) {
+        console.log('❌ Negative override total:', override);
         return res.status(400).json({ error: 'Override total cannot be negative' });
       }
       // Store credit limit is $10,000 USD ≈ $13,500 CAD
       if (override > 13500) {
+        console.log('❌ Override total too high:', override);
         return res.status(400).json({ error: 'Override total exceeds maximum allowed limit ($13,500 CAD)' });
       }
       validatedOverride = override;
+      console.log('✅ Validated override:', validatedOverride);
     }
 
     // Prevent overrides in estimate mode (optional business rule)
     if (estimateMode && validatedOverride !== null) {
+      console.log('❌ Override not allowed in estimate mode');
       return res.status(400).json({ error: 'Override total not allowed in estimate mode' });
     }
 
     const SHOPIFY_DOMAIN = "ke40sv-my.myshopify.com";
     const ACCESS_TOKEN = "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";
 
+    console.log('🛍️ Shopify config:', {
+      domain: SHOPIFY_DOMAIN,
+      hasToken: !!ACCESS_TOKEN
+    });
+
     // NEW: Store credit helper functions
     const findOrCreateCustomer = async (email) => {
       try {
+        console.log('🔍 Finding customer:', email);
+        
         // First, try to find existing customer
         const searchRes = await fetch(
           `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/customers/search.json?query=email:${encodeURIComponent(email)}`,
@@ -56,11 +101,18 @@ module.exports = async function handler(req, res) {
         );
         
         const searchData = await searchRes.json();
+        console.log('👤 Customer search result:', {
+          found: searchData.customers?.length > 0,
+          count: searchData.customers?.length
+        });
         
         if (searchData.customers && searchData.customers.length > 0) {
+          console.log('✅ Existing customer found');
           return searchData.customers[0];
         }
 
+        console.log('➕ Creating new customer');
+        
         // If customer doesn't exist, create one
         const createRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/customers.json`, {
           method: 'POST',
@@ -80,19 +132,24 @@ module.exports = async function handler(req, res) {
         });
 
         if (!createRes.ok) {
-          throw new Error(`Failed to create customer: ${await createRes.text()}`);
+          const errorText = await createRes.text();
+          console.log('❌ Customer creation failed:', errorText);
+          throw new Error(`Failed to create customer: ${errorText}`);
         }
 
         const customerData = await createRes.json();
+        console.log('✅ New customer created:', customerData.customer.id);
         return customerData.customer;
       } catch (err) {
-        console.error('Error finding/creating customer:', err);
+        console.error('❌ Error finding/creating customer:', err);
         throw err;
       }
     };
 
     const issueStoreCredit = async (customerId, amount, reason) => {
       try {
+        console.log('💳 Issuing store credit:', { customerId, amount, reason });
+        
         const mutation = `
           mutation StoreCreditAccountCreditCreate($input: StoreCreditAccountCreditInput!) {
             storeCreditAccountCreditCreate(input: $input) {
@@ -123,6 +180,8 @@ module.exports = async function handler(req, res) {
           }
         };
 
+        console.log('📤 GraphQL mutation variables:', variables);
+
         const graphqlRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/graphql.json`, {
           method: 'POST',
           headers: {
@@ -137,8 +196,8 @@ module.exports = async function handler(req, res) {
 
         const result = await graphqlRes.json();
         
-        console.log('GraphQL Response:', JSON.stringify(result, null, 2));
-        console.log('Store credit mutation result:', {
+        console.log('📥 GraphQL Response:', JSON.stringify(result, null, 2));
+        console.log('💳 Store credit mutation result:', {
           hasData: !!result.data,
           hasStoreCreditCreate: !!result.data?.storeCreditAccountCreditCreate,
           hasTransaction: !!result.data?.storeCreditAccountCreditCreate?.storeCreditAccountTransaction,
@@ -148,22 +207,26 @@ module.exports = async function handler(req, res) {
         });
         
         if (result.errors) {
+          console.log('❌ GraphQL errors:', result.errors);
           throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
         }
         
         if (result.data?.storeCreditAccountCreditCreate?.userErrors?.length > 0) {
+          console.log('❌ Store credit user errors:', result.data.storeCreditAccountCreditCreate.userErrors);
           throw new Error(`Store credit error: ${result.data.storeCreditAccountCreditCreate.userErrors[0].message}`);
         }
 
         const transaction = result.data?.storeCreditAccountCreditCreate?.storeCreditAccountTransaction;
         
         if (!transaction) {
+          console.log('❌ No transaction returned');
           throw new Error('Store credit transaction was not created - no transaction returned');
         }
 
+        console.log('✅ Store credit issued successfully:', transaction.id);
         return transaction;
       } catch (err) {
-        console.error('Error issuing store credit:', err);
+        console.error('❌ Error issuing store credit:', err);
         throw err;
       }
     };
@@ -173,7 +236,7 @@ module.exports = async function handler(req, res) {
     
     // Helper function to add chronological entry
     function addChronologicalEntry(cardName, inputSku, action, result = null, variantSku = null, productTitle = null, searchMethod = null) {
-      chronologicalLog.push({
+      const entry = {
         timestamp: new Date().toISOString(),
         processingOrder: chronologicalLog.length + 1,
         cardName,
@@ -184,7 +247,9 @@ module.exports = async function handler(req, res) {
         productTitle,
         searchMethod,
         processingTime: Date.now()
-      });
+      };
+      chronologicalLog.push(entry);
+      console.log(`📝 Log entry: ${action} - ${cardName}`);
     }
 
     // Trade rate calculation functions
@@ -240,6 +305,7 @@ module.exports = async function handler(req, res) {
     let locationId = null;
     if (!estimateMode) {
       try {
+        console.log('📍 Getting location ID...');
         const locationRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/locations.json`, {
           headers: {
             'X-Shopify-Access-Token': ACCESS_TOKEN,
@@ -248,12 +314,15 @@ module.exports = async function handler(req, res) {
         });
         const locations = await locationRes.json();
         locationId = locations.locations?.[0]?.id;
+        console.log('📍 Location ID:', locationId);
       } catch (err) {
-        console.error('Failed to get location ID:', err);
+        console.error('❌ Failed to get location ID:', err);
       }
     }
 
     const fetchVariantBySKU = async (sku) => {
+      console.log('🔍 Fetching variant by SKU:', sku);
+      
       const query = `
         {
           productVariants(first: 1, query: "sku:${sku}") {
@@ -287,10 +356,15 @@ module.exports = async function handler(req, res) {
 
       const json = await graphqlRes.json();
       const variantEdge = json?.data?.productVariants?.edges?.[0];
-      return variantEdge?.node || null;
+      const result = variantEdge?.node || null;
+      
+      console.log('🔍 SKU search result:', !!result);
+      return result;
     };
 
     const fetchVariantByTag = async (tag) => {
+      console.log('🏷️ Fetching variant by tag:', tag);
+      
       const query = `
         {
           products(first: 1, query: "tag:${tag}") {
@@ -334,7 +408,7 @@ module.exports = async function handler(req, res) {
         const product = productEdge.node;
         const variant = product.variants.edges[0].node;
         
-        return {
+        const result = {
           price: variant.price,
           inventory_item_id: variant.inventoryItem?.id?.replace('gid://shopify/InventoryItem/', ''),
           product: {
@@ -342,8 +416,12 @@ module.exports = async function handler(req, res) {
           },
           sku: variant.sku
         };
+        
+        console.log('🏷️ Tag search result: found');
+        return result;
       }
       
+      console.log('🏷️ Tag search result: not found');
       return null;
     };
 
@@ -354,10 +432,13 @@ module.exports = async function handler(req, res) {
 
     // NEW: Add processing start timestamp
     const processingStartTime = Date.now();
+    console.log('⏱️ Processing started for', cards.length, 'cards');
 
     for (const card of cards) {
       const { cardName, sku = null, quantity = 1 } = card;
       const cardStartTime = Date.now();
+      
+      console.log(`🃏 Processing card: ${cardName} (SKU: ${sku}, Qty: ${quantity})`);
       
       // Log the start of processing this card
       addChronologicalEntry(cardName, sku, 'PROCESSING_START', 'Starting card lookup process');
@@ -369,6 +450,8 @@ module.exports = async function handler(req, res) {
 
       // METHOD 1: First try to find by product title
       addChronologicalEntry(cardName, sku, 'SEARCH_BY_TITLE', 'Attempting to find product by title');
+      
+      console.log('🔍 Searching by title:', cardName);
       
       const productRes = await fetch(
         `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/products.json?title=${encodeURIComponent(cardName)}`,
@@ -387,6 +470,7 @@ module.exports = async function handler(req, res) {
       try {
         productData = JSON.parse(productText);
       } catch (err) {
+        console.error('❌ Failed to parse product data:', err);
         addChronologicalEntry(cardName, sku, 'ERROR', 'Failed to parse product data');
         return res.status(500).json({ error: 'Failed to parse product data', details: err.message });
       }
@@ -399,6 +483,8 @@ module.exports = async function handler(req, res) {
         productSku = variant.sku;
         searchMethod = 'title';
         
+        console.log('✅ Found by title:', productTitle);
+        
         addChronologicalEntry(
           cardName, 
           sku, 
@@ -409,6 +495,7 @@ module.exports = async function handler(req, res) {
           searchMethod
         );
       } else {
+        console.log('❌ Title search failed, trying SKU');
         addChronologicalEntry(cardName, sku, 'TITLE_SEARCH_FAILED', 'No product found by title, trying SKU search');
         
         // METHOD 2: Try variant SKU match
@@ -424,6 +511,8 @@ module.exports = async function handler(req, res) {
           productSku = matchedVariant.sku;
           searchMethod = 'sku';
           
+          console.log('✅ Found by SKU:', productTitle);
+          
           addChronologicalEntry(
             cardName, 
             sku, 
@@ -434,6 +523,7 @@ module.exports = async function handler(req, res) {
             searchMethod
           );
         } else {
+          console.log('❌ SKU search failed, trying tag');
           addChronologicalEntry(cardName, sku, 'SKU_SEARCH_FAILED', 'No product found by SKU, trying tag search');
           
           // METHOD 3: Try tag search as third option
@@ -449,6 +539,8 @@ module.exports = async function handler(req, res) {
             productSku = tagVariant.sku;
             searchMethod = 'tag';
             
+            console.log('✅ Found by tag:', productTitle);
+            
             addChronologicalEntry(
               cardName, 
               sku, 
@@ -460,6 +552,7 @@ module.exports = async function handler(req, res) {
             );
           } else {
             // No match found by any method
+            console.log('❌ No match found by any method');
             addChronologicalEntry(
               cardName, 
               sku, 
@@ -486,6 +579,7 @@ module.exports = async function handler(req, res) {
       }
 
       if (!variant) {
+        console.log('❌ Variant is null despite search results');
         addChronologicalEntry(cardName, sku, 'VARIANT_ERROR', 'Variant data is null despite search results');
         
         results.push({
@@ -509,6 +603,8 @@ module.exports = async function handler(req, res) {
       totalMaximumValue += maximumTradeValue * quantity;
       totalRetailValue += variantPrice * quantity;
 
+      console.log(`💰 Trade values for ${cardName}: Retail: $${variantPrice}, Suggested: $${suggestedTradeValue}, Maximum: $${maximumTradeValue}`);
+
       // Log successful processing with trade values calculated
       addChronologicalEntry(
         cardName, 
@@ -523,6 +619,8 @@ module.exports = async function handler(req, res) {
       // Update inventory if not in estimate mode
       if (!estimateMode && locationId && variant.inventory_item_id) {
         try {
+          console.log(`📦 Updating inventory for ${cardName}: +${quantity}`);
+          
           const adjustRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/inventory_levels/adjust.json`, {
             method: 'POST',
             headers: {
@@ -538,7 +636,7 @@ module.exports = async function handler(req, res) {
           
           if (adjustRes.ok) {
             const adjustData = await adjustRes.json();
-            console.log(`Inventory updated for ${cardName}: +${quantity}, new total: ${adjustData.inventory_level?.available || 'unknown'}`);
+            console.log(`✅ Inventory updated for ${cardName}: +${quantity}, new total: ${adjustData.inventory_level?.available || 'unknown'}`);
             
             addChronologicalEntry(
               cardName, 
@@ -550,7 +648,8 @@ module.exports = async function handler(req, res) {
               searchMethod
             );
           } else {
-            console.error(`Failed to update inventory for ${cardName}:`, await adjustRes.text());
+            const errorText = await adjustRes.text();
+            console.error(`❌ Failed to update inventory for ${cardName}:`, errorText);
             
             addChronologicalEntry(
               cardName, 
@@ -563,7 +662,7 @@ module.exports = async function handler(req, res) {
             );
           }
         } catch (inventoryErr) {
-          console.error(`Failed to update inventory for ${cardName}:`, inventoryErr);
+          console.error(`❌ Failed to update inventory for ${cardName}:`, inventoryErr);
           
           addChronologicalEntry(
             cardName, 
@@ -602,9 +701,17 @@ module.exports = async function handler(req, res) {
     const finalPayout = validatedOverride !== null ? validatedOverride : totalSuggestedValue;
     const overrideUsed = validatedOverride !== null;
 
+    console.log('💰 Final calculations:', {
+      totalSuggestedValue,
+      totalMaximumValue,
+      totalRetailValue,
+      finalPayout,
+      overrideUsed
+    });
+
     // Log override usage for auditing
     if (overrideUsed && !estimateMode) {
-      console.log(`OVERRIDE USED: Employee: ${employeeName || 'Unknown'}, Suggested: $${totalSuggestedValue.toFixed(2)}, Override: $${finalPayout.toFixed(2)}, Difference: $${(finalPayout - totalSuggestedValue).toFixed(2)}`);
+      console.log(`🔧 OVERRIDE USED: Employee: ${employeeName || 'Unknown'}, Suggested: $${totalSuggestedValue.toFixed(2)}, Override: $${finalPayout.toFixed(2)}, Difference: $${(finalPayout - totalSuggestedValue).toFixed(2)}`);
     }
 
     // Log search method statistics for debugging
@@ -613,7 +720,7 @@ module.exports = async function handler(req, res) {
         acc[result.searchMethod] = (acc[result.searchMethod] || 0) + 1;
         return acc;
       }, {});
-      console.log(`Search method statistics:`, searchStats);
+      console.log(`📊 Search method statistics:`, searchStats);
     }
 
     // NEW: Handle store credit, gift card, or cash payouts
@@ -622,11 +729,13 @@ module.exports = async function handler(req, res) {
     let customer = null;
 
     if (!estimateMode && finalPayout > 0) {
+      console.log('💳 Processing payout:', { payoutMethod, finalPayout });
+      
       if (payoutMethod === "store-credit") {
         try {
           // Find or create customer
           customer = await findOrCreateCustomer(customerEmail);
-          console.log('Customer found/created:', {
+          console.log('👤 Customer found/created:', {
             id: customer.id,
             email: customer.email,
             gid: `gid://shopify/Customer/${customer.id}`
@@ -635,7 +744,7 @@ module.exports = async function handler(req, res) {
           // Issue store credit using new native feature
           const reason = `Trade-in payout for ${employeeName || "Unknown"}${overrideUsed ? ` (Override: $${finalPayout.toFixed(2)}, Suggested: $${totalSuggestedValue.toFixed(2)})` : ''}`;
           
-          console.log('Attempting store credit with:', {
+          console.log('💳 Attempting store credit with:', {
             customerId: customer.id,
             amount: finalPayout,
             reason: reason
@@ -643,11 +752,11 @@ module.exports = async function handler(req, res) {
           
           storeCreditTransaction = await issueStoreCredit(customer.id, finalPayout, reason);
           
-          console.log(`Store credit issued: $${finalPayout.toFixed(2)} CAD to ${customerEmail}`);
+          console.log(`✅ Store credit issued: $${finalPayout.toFixed(2)} CAD to ${customerEmail}`);
           
         } catch (err) {
-          console.error("Store credit creation failed:", err);
-          console.error("Store credit error details:", {
+          console.error("❌ Store credit creation failed:", err);
+          console.error("❌ Store credit error details:", {
             message: err.message,
             customerEmail: customerEmail,
             customerId: customer?.id,
@@ -663,6 +772,8 @@ module.exports = async function handler(req, res) {
         }
       } else if (payoutMethod === "gift-card") {
         try {
+          console.log('🎁 Creating gift card...');
+          
           const giftCardRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/gift_cards.json`, {
             method: "POST",
             headers: {
@@ -680,7 +791,7 @@ module.exports = async function handler(req, res) {
           
           if (!giftCardRes.ok) {
             const errorText = await giftCardRes.text();
-            console.error("Gift card creation failed:", errorText);
+            console.error("❌ Gift card creation failed:", errorText);
             return res.status(500).json({ 
               error: "Gift card creation failed", 
               details: errorText 
@@ -690,10 +801,10 @@ module.exports = async function handler(req, res) {
           const giftCardData = await giftCardRes.json();
           giftCardCode = giftCardData?.gift_card?.code || null;
           
-          console.log(`Gift card created: $${finalPayout.toFixed(2)} CAD, Code: ${giftCardCode}`);
+          console.log(`✅ Gift card created: $${finalPayout.toFixed(2)} CAD, Code: ${giftCardCode}`);
           
         } catch (giftCardErr) {
-          console.error("Gift card creation failed:", giftCardErr);
+          console.error("❌ Gift card creation failed:", giftCardErr);
           return res.status(500).json({ 
             error: "Gift card creation failed", 
             details: giftCardErr.message 
@@ -701,7 +812,7 @@ module.exports = async function handler(req, res) {
         }
       } else if (payoutMethod === "cash") {
         // For cash payouts, no gift card or store credit needed
-        console.log(`Cash payout: $${finalPayout.toFixed(2)} CAD for ${employeeName || "Unknown"}`);
+        console.log(`💵 Cash payout: ${finalPayout.toFixed(2)} CAD for ${employeeName || "Unknown"}`);
       }
     }
 
@@ -718,8 +829,15 @@ module.exports = async function handler(req, res) {
         processingDuration: entry.processingDuration
       }));
 
+    console.log('✅ Processing complete:', {
+      totalCards: cards.length,
+      cardsFound: chronologicalCardsSummary.length,
+      cardsNotFound: cards.length - chronologicalCardsSummary.length,
+      totalProcessingTime: Date.now() - processingStartTime
+    });
+
     // Return comprehensive response with chronological data
-    res.status(200).json({
+    const response = {
       success: true,
       
       // Payment method details
@@ -763,13 +881,32 @@ module.exports = async function handler(req, res) {
           return acc;
         }, {})
       }
+    };
+
+    console.log('📤 Sending response:', {
+      success: response.success,
+      resultsCount: response.results.length,
+      finalPayout: response.finalPayout,
+      payoutMethod: response.payoutMethod
     });
 
+    console.log('=== API REQUEST END ===');
+    
+    res.status(200).json(response);
+
   } catch (err) {
-    console.error("Fatal API Error:", err);
+    console.error("💥 FATAL API ERROR:", err);
+    console.error("💥 Error stack:", err.stack);
+    console.error("💥 Error details:", {
+      name: err.name,
+      message: err.message,
+      code: err.code
+    });
+    
     return res.status(500).json({ 
       error: "Internal server error", 
-      details: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred'
+      details: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred',
+      timestamp: new Date().toISOString()
     });
   }
 };
