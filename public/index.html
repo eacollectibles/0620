@@ -735,17 +735,102 @@
     // Store the last trade data for label printing
     let lastTradeData = null;
 
+    // API Configuration
+    const API_BASE_URL = '/api'; // Update this to match your API endpoint
+    
+    // Connect to your actual backend API
+    async function searchCard(query) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/trade`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            cards: [{ 
+              cardName: query, 
+              sku: null, 
+              quantity: 1 
+            }],
+            employeeName: 'Preview', // Temporary for search
+            payoutMethod: 'cash' // Temporary for search
+          }),
+          // Add estimate parameter to use estimate mode
+          signal: AbortSignal.timeout(30000) // 30 second timeout
+        });
+
+        if (!response.ok) {
+          console.error('API Error:', response.status, response.statusText);
+          throw new Error(`API Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        if (data.success && data.results && data.results.length > 0) {
+          const result = data.results[0];
+          
+          return {
+            name: result.match || result.cardName,
+            sku: result.sku || 'NOT-FOUND',
+            cardNumber: extractCardNumber(result.sku) || 'N/A',
+            retailPrice: parseFloat(result.retailPrice) || 0,
+            suggestedTrade: parseFloat(result.suggestedTradeValue) || 0,
+            maxTrade: parseFloat(result.maximumTradeValue) || 0,
+            searchMethod: result.searchMethod || 'none',
+            found: !!result.match
+          };
+        } else {
+          // Card not found in your Shopify database
+          return {
+            name: query,
+            sku: 'NOT-FOUND',
+            cardNumber: 'N/A',
+            retailPrice: 0,
+            suggestedTrade: 0,
+            maxTrade: 0,
+            searchMethod: 'none',
+            found: false
+          };
+        }
+      } catch (error) {
+        console.error('Search error:', error);
+        return {
+          name: query,
+          sku: 'ERROR',
+          cardNumber: 'N/A',
+          retailPrice: 0,
+          suggestedTrade: 0,
+          maxTrade: 0,
+          searchMethod: 'none',
+          found: false,
+          error: error.message
+        };
+      }
+    }
+
+    // Helper function to extract card number from SKU or tags
+    function extractCardNumber(sku) {
+      if (!sku) return null;
+      // Look for patterns like "#123/456" or "123/456" or "#123"
+      const cardNumberMatch = sku.match(/#?(\d+(?:\/\d+)?)/);
+      return cardNumberMatch ? `#${cardNumberMatch[1]}` : null;
+    }
+
     // Email function with proper number parsing
     function sendTradeEmail(tradeData) {
-      const tradeId = Date.now().toString();
+      const tradeId = tradeData.tradeId || Date.now().toString();
       const tradeDate = new Date().toLocaleDateString();
       
       let cardsSummary = '';
       if (tradeData.results && tradeData.results.length > 0) {
-        cardsSummary = tradeData.results.map(result => 
-          `${result.cardName} (${result.condition || 'N/A'}) x${result.quantity} - $${parseFloat(result.retailPrice || 0).toFixed(2)}`
-        ).join('\n');
+        cardsSummary = tradeData.results.map(result => {
+          const found = result.searchMethod !== 'none' ? '✅' : '❌';
+          return `${found} ${result.cardName} ${result.sku ? `(SKU: ${result.sku})` : ''} x${result.quantity} - $${parseFloat(result.retailPrice || 0).toFixed(2)}`;
+        }).join('\n');
       }
+
+      const foundCards = tradeData.results.filter(r => r.searchMethod !== 'none').length;
+      const totalCards = tradeData.results.length;
 
       const subject = `Trade Confirmation - ${tradeId}`;
       const body = `TRADE CONFIRMATION
@@ -754,30 +839,31 @@ Trade Details:
 - Trade ID: ${tradeId}
 - Date: ${tradeDate}
 - Employee: ${tradeData.employeeName || 'N/A'}
-- Payout Method: ${tradeData.payoutMethod || 'N/A'}
+- Payout Method: ${tradeData.payoutMethod?.replace('-', ' ').toUpperCase() || 'N/A'}
 
-Cards Traded:
+Cards Processed (${foundCards}/${totalCards} found in Shopify):
 ${cardsSummary}
 
 Trade Values:
 - Total Retail Value: $${parseFloat(tradeData.totalRetailValue || 0).toFixed(2)}
 - Suggested Trade Value: $${parseFloat(tradeData.suggestedTotal || 0).toFixed(2)}
 - Maximum Trade Value: $${parseFloat(tradeData.maximumTotal || 0).toFixed(2)}
-- Final Payout: $${parseFloat(tradeData.finalPayout || tradeData.total || 0).toFixed(2)}
+- Final Payout: $${parseFloat(tradeData.finalPayout || 0).toFixed(2)}
 
 ${tradeData.overrideUsed ? `OVERRIDE APPLIED:
 - Override Amount: $${parseFloat(tradeData.overrideAmount || 0).toFixed(2)}
-- Difference: $${parseFloat(tradeData.overrideDifference || 0).toFixed(2)}
+- Difference: ${tradeData.overrideDifference >= 0 ? '+' : ''}$${parseFloat(tradeData.overrideDifference || 0).toFixed(2)}
 
 ` : ''}${tradeData.customer?.email ? `STORE CREDIT:
 - Customer Email: ${tradeData.customer.email}
+- Customer ID: ${tradeData.customer.id || 'N/A'}
 - Transaction ID: ${tradeData.storeCreditTransaction?.id || 'N/A'}
 
 ` : ''}${tradeData.giftCardCode ? `GIFT CARD:
 - Gift Card Code: ${tradeData.giftCardCode}
 
 ` : ''}---
-Generated by Buyback Portal`;
+Generated by Buyback Portal (Connected to Shopify)`;
 
       // Create mailto link
       const mailtoLink = `mailto:ea.collectibles.service@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -975,111 +1061,6 @@ Generated by Buyback Portal`;
       return badges[method] || '';
     }
 
-    // Mock card database for demo purposes
-    const mockCardDatabase = [
-      {
-        name: "Lightning Bolt",
-        sku: "MTG-LEA-161",
-        cardNumber: "#161/302",
-        retailPrice: 45.99,
-        suggestedTrade: 32.19,
-        maxTrade: 36.79
-      },
-      {
-        name: "Black Lotus",
-        sku: "MTG-LEA-232",
-        cardNumber: "#232/302",
-        retailPrice: 15000.00,
-        suggestedTrade: 10500.00,
-        maxTrade: 12000.00
-      },
-      {
-        name: "Charizard",
-        sku: "PKM-BS-004",
-        cardNumber: "#004/102",
-        retailPrice: 350.00,
-        suggestedTrade: 245.00,
-        maxTrade: 280.00
-      },
-      {
-        name: "Pikachu",
-        sku: "PKM-BS-058",
-        cardNumber: "#058/102",
-        retailPrice: 125.00,
-        suggestedTrade: 87.50,
-        maxTrade: 100.00
-      },
-      {
-        name: "Ancestral Recall",
-        sku: "MTG-LEA-048",
-        cardNumber: "#048/302",
-        retailPrice: 8500.00,
-        suggestedTrade: 5950.00,
-        maxTrade: 6800.00
-      }
-    ];
-
-    // Improved search function
-    function searchCard(query) {
-      const lowerQuery = query.toLowerCase().trim();
-      let foundCard = null;
-      let searchMethod = 'none';
-      
-      // Try exact name match first
-      foundCard = mockCardDatabase.find(c => c.name.toLowerCase() === lowerQuery);
-      if (foundCard) {
-        searchMethod = 'title';
-      } else {
-        // Try partial name match
-        foundCard = mockCardDatabase.find(c => c.name.toLowerCase().includes(lowerQuery));
-        if (foundCard) {
-          searchMethod = 'title';
-        } else {
-          // Try exact SKU match
-          foundCard = mockCardDatabase.find(c => c.sku.toLowerCase() === lowerQuery);
-          if (foundCard) {
-            searchMethod = 'sku';
-          } else {
-            // Try partial SKU match
-            foundCard = mockCardDatabase.find(c => c.sku.toLowerCase().includes(lowerQuery));
-            if (foundCard) {
-              searchMethod = 'sku';
-            } else {
-              // Try card number match
-              foundCard = mockCardDatabase.find(c => c.cardNumber.toLowerCase().includes(lowerQuery));
-              if (foundCard) {
-                searchMethod = 'tag';
-              }
-            }
-          }
-        }
-      }
-      
-      // If card found, return the actual card data
-      if (foundCard) {
-        return {
-          name: foundCard.name,
-          sku: foundCard.sku,
-          cardNumber: foundCard.cardNumber,
-          retailPrice: foundCard.retailPrice,
-          suggestedTrade: foundCard.suggestedTrade,
-          maxTrade: foundCard.maxTrade,
-          searchMethod: searchMethod
-        };
-      }
-      
-      // If not found, create a reasonable demo card
-      return {
-        name: query,
-        sku: `DEMO-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-        cardNumber: `#${String(Math.floor(Math.random() * 999) + 1).padStart(3, '0')}/${Math.floor(Math.random() * 200) + 100}`,
-        retailPrice: Math.round((Math.random() * 50 + 15) * 100) / 100,
-        suggestedTrade: 0,
-        maxTrade: 0,
-        searchMethod: 'none'
-      };
-    }
-
     document.addEventListener("DOMContentLoaded", function () {
       const form = document.getElementById('trade-form');
       const statusBar = document.getElementById('statusBar');
@@ -1146,54 +1127,75 @@ Generated by Buyback Portal`;
       });
 
       // Estimate trade values
-      estimateButton.addEventListener('click', function() {
+      estimateButton.addEventListener('click', async function() {
         const cards = getCardData();
         if (cards.length === 0) {
           alert('Please add at least one card to estimate.');
           return;
         }
 
-        statusBar.textContent = '🔍 Searching for cards and calculating values...';
+        statusBar.textContent = '🔍 Searching your Shopify database for cards...';
+        estimateButton.disabled = true;
         
-        setTimeout(() => {
-          const results = [];
-          let totalRetail = 0;
-          let totalSuggested = 0;
-          let totalMaximum = 0;
-
-          cards.forEach(card => {
-            const searchResult = searchCard(card.name);
-            const conditionMultiplier = getConditionMultiplier(card.condition);
-            
-            const retailPrice = searchResult.retailPrice * conditionMultiplier;
-            const suggestedPrice = retailPrice * 0.7; // 70% of retail
-            const maxPrice = retailPrice * 0.8; // 80% of retail
-            
-            const cardResult = {
-              cardName: searchResult.name,
-              sku: searchResult.sku,
-              cardNumber: searchResult.cardNumber,  // Include card number
-              condition: card.condition,
-              quantity: card.quantity,
-              retailPrice: retailPrice * card.quantity,
-              suggestedPrice: suggestedPrice * card.quantity,
-              maxPrice: maxPrice * card.quantity,
-              searchMethod: searchResult.searchMethod
-            };
-            
-            results.push(cardResult);
-            totalRetail += cardResult.retailPrice;
-            totalSuggested += cardResult.suggestedPrice;
-            totalMaximum += cardResult.maxPrice;
+        try {
+          // Use estimate mode for getting trade values
+          const response = await fetch(`${API_BASE_URL}/trade?estimate=true`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              cards: cards.map(card => ({
+                cardName: card.name,
+                sku: null,
+                quantity: card.quantity
+              })),
+              employeeName: 'Estimate', // Temporary for estimate
+              payoutMethod: 'cash' // Temporary for estimate
+            })
           });
 
-          displayEstimateResults(results, totalRetail, totalSuggested, totalMaximum);
-          statusBar.textContent = `✅ Estimation complete! Found ${results.length} cards.`;
-        }, 1000);
+          if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+          }
+
+          const data = await response.json();
+          
+          if (data.success) {
+            const results = data.results.map((result, index) => ({
+              cardName: result.match || result.cardName,
+              sku: result.sku || 'NOT-FOUND',
+              cardNumber: extractCardNumber(result.sku) || 'N/A',
+              condition: cards[index].condition,
+              quantity: result.quantity,
+              retailPrice: parseFloat(result.retailPrice) || 0,
+              suggestedPrice: parseFloat(result.suggestedTradeValue) || 0,
+              maxPrice: parseFloat(result.maximumTradeValue) || 0,
+              searchMethod: result.searchMethod || 'none'
+            }));
+
+            const totalRetail = parseFloat(data.totalRetailValue) || 0;
+            const totalSuggested = parseFloat(data.suggestedTotal) || 0;
+            const totalMaximum = parseFloat(data.maximumTotal) || 0;
+
+            displayEstimateResults(results, totalRetail, totalSuggested, totalMaximum);
+            
+            const foundCards = results.filter(r => r.searchMethod !== 'none').length;
+            statusBar.textContent = `✅ Estimate complete! Found ${foundCards}/${results.length} cards in your Shopify store.`;
+          } else {
+            throw new Error(data.error || 'Estimation failed');
+          }
+        } catch (error) {
+          console.error('Estimation error:', error);
+          statusBar.textContent = '❌ Error getting estimates. Please try again.';
+          alert('Error getting estimates: ' + error.message);
+        } finally {
+          estimateButton.disabled = false;
+        }
       });
 
       // Handle form submission
-      form.addEventListener('submit', function(e) {
+      form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         const formData = new FormData(form);
@@ -1219,11 +1221,18 @@ Generated by Buyback Portal`;
           return;
         }
 
-        statusBar.textContent = '⏳ Processing trade...';
+        statusBar.textContent = '⏳ Processing trade through Shopify...';
+        submitButton.disabled = true;
         
-        setTimeout(() => {
-          processTrade(cards, employeeName, payoutMethod, customerEmail, overrideAmount);
-        }, 1500);
+        try {
+          await processTrade(cards, employeeName, payoutMethod, customerEmail, overrideAmount);
+        } catch (error) {
+          console.error('Trade processing error:', error);
+          statusBar.textContent = '❌ Trade processing failed. Please try again.';
+          alert('Trade processing failed: ' + error.message);
+        } finally {
+          submitButton.disabled = false;
+        }
       });
 
       function getCardData() {
@@ -1241,15 +1250,6 @@ Generated by Buyback Portal`;
         });
         
         return cards;
-      }
-
-      function getConditionMultiplier(condition) {
-        const multipliers = {
-          'NM': 1.0,
-          'LP': 0.85,
-          'MP': 0.7
-        };
-        return multipliers[condition] || 1.0;
       }
 
       function displayEstimateResults(results, totalRetail, totalSuggested, totalMaximum) {
@@ -1287,92 +1287,100 @@ Generated by Buyback Portal`;
         estimateResults.style.display = 'block';
       }
 
-      function processTrade(cards, employeeName, payoutMethod, customerEmail, overrideAmount) {
-        const results = [];
-        let totalRetail = 0;
-        let totalSuggested = 0;
-        let totalMaximum = 0;
-
-        // Process each card
-        cards.forEach(card => {
-          const searchResult = searchCard(card.name);
-          const conditionMultiplier = getConditionMultiplier(card.condition);
-          
-          const retailPrice = searchResult.retailPrice * conditionMultiplier;
-          const suggestedPrice = retailPrice * 0.7;
-          const maxPrice = retailPrice * 0.8;
-          
-          const cardResult = {
-            cardName: searchResult.name,
-            sku: searchResult.sku,
-            cardNumber: searchResult.cardNumber,  // Make sure to include this
-            condition: card.condition,
-            quantity: card.quantity,
-            retailPrice: retailPrice * card.quantity,
-            suggestedPrice: suggestedPrice * card.quantity,
-            maxPrice: maxPrice * card.quantity,
-            searchMethod: searchResult.searchMethod
+      async function processTrade(cards, employeeName, payoutMethod, customerEmail, overrideAmount) {
+        try {
+          // Prepare the trade data for your backend API
+          const tradeData = {
+            cards: cards.map(card => ({
+              cardName: card.name,
+              sku: null, // Let the backend search for the SKU
+              quantity: card.quantity
+            })),
+            employeeName,
+            payoutMethod,
+            customerEmail,
+            overrideTotal: overrideAmount && parseFloat(overrideAmount) > 0 ? parseFloat(overrideAmount) : null
           };
-          
-          results.push(cardResult);
-          totalRetail += cardResult.retailPrice;
-          totalSuggested += cardResult.suggestedPrice;
-          totalMaximum += cardResult.maxPrice;
-        });
 
-        // Determine final payout amount
-        let finalPayout = totalSuggested;
-        let overrideUsed = false;
-        let overrideDifference = 0;
+          console.log('Sending trade data to backend:', tradeData);
 
-        if (overrideAmount && parseFloat(overrideAmount) > 0) {
-          const override = parseFloat(overrideAmount);
-          if (override <= 13500) {
-            overrideUsed = true;
-            overrideDifference = override - totalSuggested;
-            finalPayout = override;
+          const response = await fetch(`${API_BASE_URL}/trade`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(tradeData)
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `API Error: ${response.status}`);
           }
+
+          const data = await response.json();
+          
+          if (data.success) {
+            // Process the response from your backend
+            const tradeResults = {
+              tradeId: Date.now().toString(),
+              employeeName: data.employeeName,
+              payoutMethod: data.payoutMethod,
+              results: data.results.map(result => ({
+                cardName: result.match || result.cardName,
+                sku: result.sku,
+                cardNumber: extractCardNumber(result.sku) || 'N/A',
+                condition: 'NM', // Default condition
+                quantity: result.quantity,
+                retailPrice: result.retailPrice,
+                suggestedPrice: result.suggestedTradeValue,
+                maxPrice: result.maximumTradeValue,
+                searchMethod: result.searchMethod
+              })),
+              totalRetailValue: parseFloat(data.totalRetailValue),
+              suggestedTotal: parseFloat(data.suggestedTotal),
+              maximumTotal: parseFloat(data.maximumTotal),
+              finalPayout: parseFloat(data.finalPayout),
+              overrideUsed: data.overrideUsed,
+              overrideAmount: data.overrideAmount ? parseFloat(data.overrideAmount) : null,
+              overrideDifference: data.overrideDifference ? parseFloat(data.overrideDifference) : null,
+              customer: data.customer,
+              storeCreditTransaction: data.storeCreditTransaction,
+              giftCardCode: data.giftCardCode
+            };
+
+            // Store for label printing
+            lastTradeData = tradeResults;
+
+            // Display results
+            displayTradeResults(tradeResults);
+            
+            // Send email
+            sendTradeEmail(tradeResults);
+            
+            // Show print labels button
+            printLabelsButton.style.display = 'inline-block';
+            
+            statusBar.textContent = '✅ Trade completed successfully!';
+
+            // Clear the form for next trade
+            form.reset();
+            const cardRows = document.querySelectorAll('.card-row');
+            cardRows.forEach((row, index) => {
+              if (index > 0) row.remove(); // Keep first row, remove others
+            });
+            
+            // Reset override button
+            overrideToggle.classList.remove('active');
+            overrideContainer.classList.remove('visible');
+            overrideToggle.textContent = '💰 Override';
+            
+          } else {
+            throw new Error(data.error || 'Trade processing failed');
+          }
+        } catch (error) {
+          console.error('Trade processing error:', error);
+          throw error; // Re-throw to be caught by the form handler
         }
-
-        // Create trade data object
-        const tradeData = {
-          tradeId: Date.now().toString(),
-          employeeName,
-          payoutMethod,
-          results,
-          totalRetailValue: totalRetail,
-          suggestedTotal: totalSuggested,
-          maximumTotal: totalMaximum,
-          finalPayout,
-          overrideUsed,
-          overrideAmount: overrideUsed ? parseFloat(overrideAmount) : null,
-          overrideDifference
-        };
-
-        // Handle different payout methods
-        if (payoutMethod === 'store-credit') {
-          tradeData.customer = { email: customerEmail };
-          tradeData.storeCreditTransaction = {
-            id: `SC-${Date.now()}`,
-            amount: finalPayout
-          };
-        } else if (payoutMethod === 'gift-card') {
-          tradeData.giftCardCode = `GC-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-        }
-
-        // Store for label printing
-        lastTradeData = tradeData;
-
-        // Display results
-        displayTradeResults(tradeData);
-        
-        // Send email
-        sendTradeEmail(tradeData);
-        
-        // Show print labels button
-        printLabelsButton.style.display = 'inline-block';
-        
-        statusBar.textContent = '✅ Trade completed successfully!';
       }
 
       function displayTradeResults(tradeData) {
