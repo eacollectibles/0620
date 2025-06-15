@@ -618,6 +618,10 @@
               <span class="payout-label">🏪 Store Credit</span>
             </label>
             <label class="payout-option">
+              <input type="radio" name="payoutMethod" value="gift-card" required>
+              <span class="payout-label">🎁 Gift Card</span>
+            </label>
+            <label class="payout-option">
               <input type="radio" name="payoutMethod" value="cash" required>
               <span class="payout-label">💵 Cash</span>
             </label>
@@ -935,7 +939,7 @@
           storeCreditSuccess.className = 'store-credit-success';
           storeCreditSuccess.innerHTML = `
             <strong>🏪 Store Credit Issued Successfully!</strong><br>
-            Amount: $${data.finalPayout} CAD<br>
+            Amount: ${data.finalPayout} CAD<br>
             Customer: ${data.customer?.email}<br>
             Transaction ID: ${data.storeCreditTransaction.id}
           `;
@@ -945,178 +949,182 @@
         const actionText = isEstimate ? "Estimate complete!" : "Trade submitted successfully!";
         const valueText = isEstimate ? "Estimated Trade Value" : "Trade Payout";
         
-        let status = `${actionText} | Items Value: $${parseFloat(data.totalRetailValue || retailTotal).toFixed(2)}`;
+        let status = `${actionText} | Items Value: ${parseFloat(data.totalRetailValue || retailTotal).toFixed(2)}`;
         
         if (data.suggestedTotal) {
-          status
-    status += ` | 💰 Suggested: $${parseFloat(data.suggestedTotal).toFixed(2)}`;
-       }
-       if (data.maximumTotal) {
-         status += ` | 💎 Maximum: $${parseFloat(data.maximumTotal).toFixed(2)}`;
-       }
-       
-       status += ` | ${valueText}: $${parseFloat(data.finalPayout || data.total || 0).toFixed(2)}`;
+          status += ` | 💰 Suggested: ${parseFloat(data.suggestedTotal).toFixed(2)}`;
+        }
+        if (data.maximumTotal) {
+          status += ` | 💎 Maximum: ${parseFloat(data.maximumTotal).toFixed(2)}`;
+        }
+        
+        status += ` | ${valueText}: ${parseFloat(data.finalPayout || data.total || 0).toFixed(2)}`;
 
-       if (data.overrideUsed && !isEstimate) {
-         const overrideDiff = parseFloat(data.overrideDifference || 0);
-         const diffText = overrideDiff >= 0 ? `+$${overrideDiff.toFixed(2)}` : `-$${Math.abs(overrideDiff).toFixed(2)}`;
-         status += ` | 🔧 OVERRIDE APPLIED (${diffText})`;
-         
-         const overrideWarning = document.createElement('div');
-         overrideWarning.className = 'override-warning';
-         overrideWarning.innerHTML = `
-           <strong>⚠️ Trade Override Applied</strong><br>
-           Suggested Total: $${data.suggestedTotal}<br>
-           Override Amount: $${data.overrideAmount}<br>
-           Difference: ${diffText}
-         `;
-         tradeLog.insertBefore(overrideWarning, tradeLog.firstChild);
-       }
+        if (data.overrideUsed && !isEstimate) {
+          const overrideDiff = parseFloat(data.overrideDifference || 0);
+          const diffText = overrideDiff >= 0 ? `+${overrideDiff.toFixed(2)}` : `-${Math.abs(overrideDiff).toFixed(2)}`;
+          status += ` | 🔧 OVERRIDE APPLIED (${diffText})`;
+          
+          const overrideWarning = document.createElement('div');
+          overrideWarning.className = 'override-warning';
+          overrideWarning.innerHTML = `
+            <strong>⚠️ Trade Override Applied</strong><br>
+            Suggested Total: ${data.suggestedTotal}<br>
+            Override Amount: ${data.overrideAmount}<br>
+            Difference: ${diffText}
+          `;
+          tradeLog.insertBefore(overrideWarning, tradeLog.firstChild);
+        }
 
-       // NEW: Enhanced status messages for different payout methods
-       if (!isEstimate) {
-         if (data.storeCreditTransaction) {
-           status += ` | 🏪 Store Credit Issued to ${data.customer?.email}`;
-         } else if (data.giftCardCode) {
-           status += ` | 🎁 Gift Card Code: ${data.giftCardCode}`;
-         }
-       }
+        // Enhanced status messages for different payout methods
+        if (!isEstimate) {
+          if (data.storeCreditTransaction) {
+            status += ` | 🏪 Store Credit Issued to ${data.customer?.email}`;
+          } else if (data.giftCardCode) {
+            status += ` | 🎁 Gift Card Code: ${data.giftCardCode}`;
+          } else if (data.payoutMethod === 'cash') {
+            status += ` | 💵 Cash Payout`;
+          }
+        }
 
-       if (isEstimate) {
-         updateEstimateResults(status, '#3498db');
-       } else {
-         updateStatus(status, '#27ae60');
-         hideEstimateResults();
-       }
-     }
+        if (isEstimate) {
+          updateEstimateResults(status, '#3498db');
+        } else {
+          updateStatus(status, '#27ae60');
+          hideEstimateResults();
+        }
+      }
 
-     if (estimateButton) {
-       estimateButton.addEventListener('click', function () {
-         const cards = collectCardData();
-         
-         if (cards.length === 0) {
-           updateEstimateResults('Please add at least one card to estimate.', '#e74c3c');
-           return;
-         }
+      if (estimateButton) {
+        estimateButton.addEventListener('click', function () {
+          const cards = collectCardData();
+          
+          if (cards.length === 0) {
+            updateEstimateResults('Please add at least one card to estimate.', '#e74c3c');
+            return;
+          }
 
-         // Check for override in estimate mode
-         try {
-           const overrideTotal = getOverrideTotal();
-           if (overrideTotal !== null) {
-             updateEstimateResults('Override total not allowed in estimate mode.', '#e74c3c');
-             return;
-           }
-         } catch (error) {
-           updateEstimateResults(error.message, '#e74c3c');
-           return;
-         }
+          // Check for override in estimate mode
+          try {
+            const overrideTotal = getOverrideTotal();
+            if (overrideTotal !== null) {
+              updateEstimateResults('Override total not allowed in estimate mode.', '#e74c3c');
+              return;
+            }
+          } catch (error) {
+            updateEstimateResults(error.message, '#e74c3c');
+            return;
+          }
 
-         const employeeName = document.getElementById('employeeName')?.value || '';
-         const payoutMethod = document.querySelector('input[name="payoutMethod"]:checked')?.value || 'cash';
+          const employeeName = document.getElementById('employeeName')?.value || '';
+          const payoutMethod = document.querySelector('input[name="payoutMethod"]:checked')?.value || 'cash';
 
-         updateEstimateResults('Calculating estimate...', '#f39c12');
+          updateEstimateResults('Calculating estimate...', '#f39c12');
 
-         fetch("/api/buybackstep4?estimate=true", {
-           method: "POST",
-           headers: { "Content-Type": "application/json" },
-           body: JSON.stringify({ employeeName, payoutMethod, cards })
-         })
-         .then(res => res.json())
-         .then(data => {
-           if (data.error) {
-             updateEstimateResults(`Error: ${data.error}`, '#e74c3c');
-           } else {
-             displayTradeResults(data, true);
-           }
-         })
-         .catch(err => {
-           console.error("Error estimating trade:", err);
-           updateEstimateResults('Error calculating estimate. Please try again.', '#e74c3c');
-         });
-       });
-     }
+          fetch("/api/buybackstep4?estimate=true", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ employeeName, payoutMethod, cards })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.error) {
+              updateEstimateResults(`Error: ${data.error}`, '#e74c3c');
+            } else {
+              displayTradeResults(data, true);
+            }
+          })
+          .catch(err => {
+            console.error("Error estimating trade:", err);
+            updateEstimateResults('Error calculating estimate. Please try again.', '#e74c3c');
+          });
+        });
+      }
 
-     if (form && statusBar) {
-       form.addEventListener('submit', function (e) {
-         e.preventDefault();
-         
-         const cards = collectCardData();
-         
-         if (cards.length === 0) {
-           updateStatus('Please add at least one card to trade.', '#e74c3c');
-           return;
-         }
+      if (form && statusBar) {
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          
+          const cards = collectCardData();
+          
+          if (cards.length === 0) {
+            updateStatus('Please add at least one card to trade.', '#e74c3c');
+            return;
+          }
 
-         // NEW: Validate customer email for store credit
-         const payoutMethod = document.querySelector('input[name="payoutMethod"]:checked')?.value || 'cash';
-         const customerEmail = customerEmailInput?.value?.trim() || '';
-         
-         if (payoutMethod === 'store-credit' && !customerEmail) {
-           updateStatus('Customer email is required for store credit payouts.', '#e74c3c');
-           customerEmailInput.focus();
-           return;
-         }
+          // NEW: Validate customer email for store credit
+          const payoutMethod = document.querySelector('input[name="payoutMethod"]:checked')?.value || 'cash';
+          const customerEmail = customerEmailInput?.value?.trim() || '';
+          
+          if (payoutMethod === 'store-credit' && !customerEmail) {
+            updateStatus('Customer email is required for store credit payouts.', '#e74c3c');
+            customerEmailInput.focus();
+            return;
+          }
 
-         let overrideTotal = null;
-         try {
-           overrideTotal = getOverrideTotal();
-         } catch (error) {
-           updateStatus(error.message, '#e74c3c');
-           return;
-         }
+          let overrideTotal = null;
+          try {
+            overrideTotal = getOverrideTotal();
+          } catch (error) {
+            updateStatus(error.message, '#e74c3c');
+            return;
+          }
 
-         let confirmMessage = "Are you sure you want to submit this trade?";
-         if (overrideTotal !== null) {
-           confirmMessage = `⚠️ TRADE OVERRIDE DETECTED ⚠️\n\nYou are overriding the suggested trade value with $${overrideTotal.toFixed(2)}.\n\nAre you sure you want to proceed with this override?`;
-         }
+          let confirmMessage = "Are you sure you want to submit this trade?";
+          if (overrideTotal !== null) {
+            confirmMessage = `⚠️ TRADE OVERRIDE DETECTED ⚠️\n\nYou are overriding the suggested trade value with ${overrideTotal.toFixed(2)}.\n\nAre you sure you want to proceed with this override?`;
+          }
 
-         if (!confirm(confirmMessage)) return;
+          if (!confirm(confirmMessage)) return;
 
-         updateStatus('Processing trade...', '#f39c12');
+          updateStatus('Processing trade...', '#f39c12');
 
-         const employeeName = document.getElementById('employeeName')?.value || '';
+          const employeeName = document.getElementById('employeeName')?.value || '';
 
-         const requestBody = { employeeName, payoutMethod, cards };
-         
-         // NEW: Include customer email for store credit
-         if (payoutMethod === 'store-credit' && customerEmail) {
-           requestBody.customerEmail = customerEmail;
-         }
-         
-         if (overrideTotal !== null) {
-           requestBody.overrideTotal = overrideTotal;
-         }
+          const requestBody = { employeeName, payoutMethod, cards };
+          
+          // NEW: Include customer email for store credit
+          if (payoutMethod === 'store-credit' && customerEmail) {
+            requestBody.customerEmail = customerEmail;
+          }
+          
+          if (overrideTotal !== null) {
+            requestBody.overrideTotal = overrideTotal;
+          }
 
-         fetch("/api/buybackstep4", {
-           method: "POST",
-           headers: { "Content-Type": "application/json" },
-           body: JSON.stringify(requestBody)
-         })
-         .then(res => res.json())
-         .then(data => {
-           if (data.error) {
-             updateStatus(`Error: ${data.error}`, '#e74c3c');
-           } else {
-             displayTradeResults(data, false);
-             form.reset();
-             document.getElementById('imagePreview').style.display = 'none';
-             
-             // Reset override state after successful submission
-             if (overrideActive) {
-               toggleOverride();
-             }
-             
-             // NEW: Reset customer email section
-             toggleCustomerEmailSection();
-           }
-         })
-         .catch(err => {
-           console.error("Error submitting trade:", err);
-           updateStatus('Error submitting trade. Please try again.', '#e74c3c');
-         });
-       });
-     }
-   });
- </script>
+          // Debug: Log what we're sending
+          console.log('Sending request:', requestBody);
+          
+          fetch("/api/buybackstep4", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestBody)
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.error) {
+              updateStatus(`Error: ${data.error}`, '#e74c3c');
+            } else {
+              displayTradeResults(data, false);
+              form.reset();
+              document.getElementById('imagePreview').style.display = 'none';
+              
+              // Reset override state after successful submission
+              if (overrideActive) {
+                toggleOverride();
+              }
+              
+              // NEW: Reset customer email section
+              toggleCustomerEmailSection();
+            }
+          })
+          .catch(err => {
+            console.error("Error submitting trade:", err);
+            updateStatus('Error submitting trade. Please try again.', '#e74c3c');
+          });
+        });
+      }
+    });
+  </script>
 </body>
 </html>
