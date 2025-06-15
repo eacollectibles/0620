@@ -38,42 +38,50 @@ module.exports = async function handler(req, res) {
       estimateMode
     });
 
-    // Add customer email validation for store credit
-    if (!estimateMode && payoutMethod === "store-credit" && !customerEmail) {
-      console.log('❌ Missing customer email for store credit');
-      return res.status(400).json({ error: 'Customer email is required for store credit payouts' });
+    // 🆕 DETECT SEARCH PREVIEW MODE
+    const isSearchPreview = employeeName === 'Preview' || estimateMode;
+    console.log('🔍 Search preview mode:', isSearchPreview);
+
+    // 🆕 SKIP VALIDATIONS FOR SEARCH PREVIEWS
+    let validatedOverride = null;
+    
+    if (!isSearchPreview) {
+      // Add customer email validation for store credit
+      if (payoutMethod === "store-credit" && !customerEmail) {
+        console.log('❌ Missing customer email for store credit');
+        return res.status(400).json({ error: 'Customer email is required for store credit payouts' });
+      }
+
+      // Validate override total if provided
+      if (overrideTotal !== undefined && overrideTotal !== null && overrideTotal !== '') {
+        const override = parseFloat(overrideTotal);
+        if (isNaN(override)) {
+          console.log('❌ Invalid override total:', overrideTotal);
+          return res.status(400).json({ error: 'Override total must be a valid number' });
+        }
+        if (override < 0) {
+          console.log('❌ Negative override total:', override);
+          return res.status(400).json({ error: 'Override total cannot be negative' });
+        }
+        // Store credit limit is $10,000 USD ≈ $13,500 CAD
+        if (override > 13500) {
+          console.log('❌ Override total too high:', override);
+          return res.status(400).json({ error: 'Override total exceeds maximum allowed limit ($13,500 CAD)' });
+        }
+        validatedOverride = override;
+        console.log('✅ Validated override:', validatedOverride);
+      }
+
+      // Prevent overrides in estimate mode (optional business rule)
+      if (estimateMode && validatedOverride !== null) {
+        console.log('❌ Override not allowed in estimate mode');
+        return res.status(400).json({ error: 'Override total not allowed in estimate mode' });
+      }
     }
 
     if (!cards || !Array.isArray(cards)) {
       console.log('❌ Invalid cards array:', cards);
       return res.status(400).json({ error: 'Invalid or missing cards array' });
-    }
-
-    // Validate override total if provided
-    let validatedOverride = null;
-    if (overrideTotal !== undefined && overrideTotal !== null && overrideTotal !== '') {
-      const override = parseFloat(overrideTotal);
-      if (isNaN(override)) {
-        console.log('❌ Invalid override total:', overrideTotal);
-        return res.status(400).json({ error: 'Override total must be a valid number' });
-      }
-      if (override < 0) {
-        console.log('❌ Negative override total:', override);
-        return res.status(400).json({ error: 'Override total cannot be negative' });
-      }
-      // Store credit limit is $10,000 USD ≈ $13,500 CAD
-      if (override > 13500) {
-        console.log('❌ Override total too high:', override);
-        return res.status(400).json({ error: 'Override total exceeds maximum allowed limit ($13,500 CAD)' });
-      }
-      validatedOverride = override;
-      console.log('✅ Validated override:', validatedOverride);
-    }
-
-    // Prevent overrides in estimate mode (optional business rule)
-    if (estimateMode && validatedOverride !== null) {
-      console.log('❌ Override not allowed in estimate mode');
-      return res.status(400).json({ error: 'Override total not allowed in estimate mode' });
     }
 
     const SHOPIFY_DOMAIN = "ke40sv-my.myshopify.com";
@@ -301,9 +309,9 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // Get location ID once for inventory updates
+    // 🆕 SKIP LOCATION ID LOOKUP FOR SEARCH PREVIEWS
     let locationId = null;
-    if (!estimateMode) {
+    if (!estimateMode && !isSearchPreview) {
       try {
         console.log('📍 Getting location ID...');
         const locationRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/locations.json`, {
@@ -434,7 +442,18 @@ module.exports = async function handler(req, res) {
     const processingStartTime = Date.now();
     console.log('⏱️ Processing started for', cards.length, 'cards');
 
+    // 🆕 ADD SEARCH TIMEOUT PROTECTION
+    const SEARCH_TIMEOUT = isSearchPreview ? 5000 : 30000; // 5s for previews, 30s for real trades
+    const searchStartTime = Date.now();
+
     for (const card of cards) {
+      // 🆕 CHECK FOR TIMEOUT
+      if (Date.now() - searchStartTime > SEARCH_TIMEOUT) {
+        console.log('⏰ Search timeout reached, returning partial results');
+        addChronologicalEntry('TIMEOUT', null, 'SEARCH_TIMEOUT', 'Search timeout reached, partial results returned');
+        break;
+      }
+
       const { cardName, sku = null, quantity = 1 } = card;
       const cardStartTime = Date.now();
       
@@ -616,8 +635,9 @@ module.exports = async function handler(req, res) {
         searchMethod
       );
 
-      // Update inventory if not in estimate mode
-      if (!estimateMode && locationId && variant.inventory_item_id) {
+      // 🆕 SKIP INVENTORY UPDATES FOR SEARCH PREVIEWS
+      // Update inventory if not in estimate mode AND not a search preview
+      if (!estimateMode && !isSearchPreview && locationId && variant.inventory_item_id) {
         try {
           console.log(`📦 Updating inventory for ${cardName}: +${quantity}`);
           
@@ -710,12 +730,12 @@ module.exports = async function handler(req, res) {
     });
 
     // Log override usage for auditing
-    if (overrideUsed && !estimateMode) {
+    if (overrideUsed && !estimateMode && !isSearchPreview) {
       console.log(`🔧 OVERRIDE USED: Employee: ${employeeName || 'Unknown'}, Suggested: $${totalSuggestedValue.toFixed(2)}, Override: $${finalPayout.toFixed(2)}, Difference: $${(finalPayout - totalSuggestedValue).toFixed(2)}`);
     }
 
     // Log search method statistics for debugging
-    if (!estimateMode) {
+    if (!estimateMode && !isSearchPreview) {
       const searchStats = results.reduce((acc, result) => {
         acc[result.searchMethod] = (acc[result.searchMethod] || 0) + 1;
         return acc;
@@ -723,12 +743,13 @@ module.exports = async function handler(req, res) {
       console.log(`📊 Search method statistics:`, searchStats);
     }
 
-    // NEW: Handle store credit, gift card, or cash payouts
+    // 🆕 SKIP PAYOUT PROCESSING FOR SEARCH PREVIEWS
+    // Handle store credit, gift card, or cash payouts
     let giftCardCode = null;
     let storeCreditTransaction = null;
     let customer = null;
 
-    if (!estimateMode && finalPayout > 0) {
+    if (!estimateMode && !isSearchPreview && finalPayout > 0) {
       console.log('💳 Processing payout:', { payoutMethod, finalPayout });
       
       if (payoutMethod === "store-credit") {
@@ -783,7 +804,7 @@ module.exports = async function handler(req, res) {
             body: JSON.stringify({
               gift_card: {
                 initial_value: finalPayout.toFixed(2),
-                note: `Trade-in payout for ${employeeName || "Unknown"}${overrideUsed ? ` (Override: $${finalPayout.toFixed(2)}, Suggested: $${totalSuggestedValue.toFixed(2)})` : ''}`,
+                note: `Trade-in payout for ${employeeName || "Unknown"}${overrideUsed ? ` (Override: ${finalPayout.toFixed(2)}, Suggested: ${totalSuggestedValue.toFixed(2)})` : ''}`,
                 currency: "CAD"
               }
             })
@@ -801,7 +822,7 @@ module.exports = async function handler(req, res) {
           const giftCardData = await giftCardRes.json();
           giftCardCode = giftCardData?.gift_card?.code || null;
           
-          console.log(`✅ Gift card created: $${finalPayout.toFixed(2)} CAD, Code: ${giftCardCode}`);
+          console.log(`✅ Gift card created: ${finalPayout.toFixed(2)} CAD, Code: ${giftCardCode}`);
           
         } catch (giftCardErr) {
           console.error("❌ Gift card creation failed:", giftCardErr);
@@ -836,40 +857,52 @@ module.exports = async function handler(req, res) {
       totalProcessingTime: Date.now() - processingStartTime
     });
 
+    // 🆕 ENHANCED RESPONSE WITH SEARCH OPTIMIZATIONS
     // Return comprehensive response with chronological data
     const response = {
       success: true,
       
-      // Payment method details
-      giftCardCode,
-      storeCreditTransaction: storeCreditTransaction ? {
+      // 🆕 Search-specific fields for frontend
+      isSearchPreview: isSearchPreview,
+      searchPerformance: {
+        totalSearchTime: Date.now() - processingStartTime,
+        averageTimePerCard: Math.round((Date.now() - processingStartTime) / cards.length),
+        fastResponse: (Date.now() - processingStartTime) < 2000, // Under 2 seconds
+        timeoutReached: chronologicalLog.some(entry => entry.action === 'SEARCH_TIMEOUT')
+      },
+      
+      // Payment method details (only for real trades)
+      giftCardCode: isSearchPreview ? null : giftCardCode,
+      storeCreditTransaction: isSearchPreview ? null : (storeCreditTransaction ? {
         id: storeCreditTransaction.id,
         amount: storeCreditTransaction.amount,
         createdAt: storeCreditTransaction.createdAt
-      } : null,
-      customer: customer ? {
+      } : null),
+      customer: isSearchPreview ? null : (customer ? {
         id: customer.id,
         email: customer.email,
         name: `${customer.first_name} ${customer.last_name}`
-      } : null,
+      } : null),
       
       // Transaction details
       estimate: estimateMode,
       employeeName,
       payoutMethod,
-      customerEmail,
+      customerEmail: isSearchPreview ? null : customerEmail,
       results,
       suggestedTotal: totalSuggestedValue.toFixed(2),
       maximumTotal: totalMaximumValue.toFixed(2),
       totalRetailValue: totalRetailValue.toFixed(2),
       finalPayout: finalPayout.toFixed(2),
-      overrideUsed,
-      overrideAmount: overrideUsed ? finalPayout.toFixed(2) : null,
-      overrideDifference: overrideUsed ? (finalPayout - totalSuggestedValue).toFixed(2) : null,
+      overrideUsed: isSearchPreview ? false : overrideUsed,
+      overrideAmount: (isSearchPreview || !overrideUsed) ? null : finalPayout.toFixed(2),
+      overrideDifference: (isSearchPreview || !overrideUsed) ? null : (finalPayout - totalSuggestedValue).toFixed(2),
       timestamp: new Date().toISOString(),
       
-      // NEW: Chronological tracking data
-      chronologicalLog: chronologicalLog,
+      // Chronological tracking data (simplified for search previews)
+      chronologicalLog: isSearchPreview ? chronologicalLog.filter(entry => 
+        entry.action.includes('SEARCH') || entry.action.includes('FOUND') || entry.action.includes('NO_MATCH')
+      ) : chronologicalLog,
       chronologicalCardsSummary: chronologicalCardsSummary,
       processingStats: {
         totalCards: cards.length,
@@ -879,7 +912,15 @@ module.exports = async function handler(req, res) {
         searchMethodBreakdown: results.reduce((acc, result) => {
           acc[result.searchMethod] = (acc[result.searchMethod] || 0) + 1;
           return acc;
-        }, {})
+        }, {}),
+        // 🆕 Search optimization metrics
+        searchOptimizations: {
+          skippedValidations: isSearchPreview,
+          skippedInventoryUpdates: isSearchPreview,
+          skippedPayoutProcessing: isSearchPreview,
+          searchTimeout: SEARCH_TIMEOUT,
+          fastSearchMode: isSearchPreview
+        }
       }
     };
 
@@ -887,7 +928,9 @@ module.exports = async function handler(req, res) {
       success: response.success,
       resultsCount: response.results.length,
       finalPayout: response.finalPayout,
-      payoutMethod: response.payoutMethod
+      payoutMethod: response.payoutMethod,
+      isSearchPreview: response.isSearchPreview,
+      searchTime: response.searchPerformance.totalSearchTime
     });
 
     console.log('=== API REQUEST END ===');
