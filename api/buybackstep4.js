@@ -318,7 +318,18 @@ module.exports = async function handler(req, res) {
 
     const issueStoreCredit = async (customerId, amount, reason) => {
       try {
-        console.log('💳 Issuing store credit:', { customerId, amount, reason });
+        console.log('💳 Starting store credit process...');
+        console.log('💳 Input parameters:', { customerId, amount, reason });
+        
+        // Validate inputs
+        if (!customerId) {
+          throw new Error('Customer ID is required');
+        }
+        if (!amount || amount <= 0) {
+          throw new Error('Amount must be greater than 0');
+        }
+        
+        console.log('💳 Building GraphQL mutation...');
         
         const mutation = `
           mutation StoreCreditAccountCreditCreate($input: StoreCreditAccountCreditInput!) {
@@ -330,6 +341,13 @@ module.exports = async function handler(req, res) {
                   currencyCode
                 }
                 createdAt
+                account {
+                  id
+                  balance {
+                    amount
+                    currencyCode
+                  }
+                }
               }
               userErrors {
                 field
@@ -350,8 +368,10 @@ module.exports = async function handler(req, res) {
           }
         };
 
-        console.log('📤 GraphQL mutation variables:', variables);
+        console.log('💳 GraphQL mutation:', mutation);
+        console.log('💳 GraphQL variables:', JSON.stringify(variables, null, 2));
 
+        console.log('💳 Sending request to Shopify GraphQL...');
         const graphqlRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/graphql.json`, {
           method: 'POST',
           headers: {
@@ -364,39 +384,72 @@ module.exports = async function handler(req, res) {
           })
         });
 
+        console.log('💳 GraphQL Response Status:', graphqlRes.status);
+        console.log('💳 GraphQL Response Headers:', Object.fromEntries(graphqlRes.headers.entries()));
+
+        if (!graphqlRes.ok) {
+          const errorText = await graphqlRes.text();
+          console.log('💳 ❌ GraphQL HTTP Error:', errorText);
+          throw new Error(`HTTP Error ${graphqlRes.status}: ${errorText}`);
+        }
+
         const result = await graphqlRes.json();
         
-        console.log('📥 GraphQL Response:', JSON.stringify(result, null, 2));
-        console.log('💳 Store credit mutation result:', {
-          hasData: !!result.data,
-          hasStoreCreditCreate: !!result.data?.storeCreditAccountCreditCreate,
-          hasTransaction: !!result.data?.storeCreditAccountCreditCreate?.storeCreditAccountTransaction,
-          hasErrors: !!result.data?.storeCreditAccountCreditCreate?.userErrors?.length,
-          errors: result.data?.storeCreditAccountCreditCreate?.userErrors,
-          graphqlErrors: result.errors
-        });
+        console.log('💳 📥 Full GraphQL Response:', JSON.stringify(result, null, 2));
         
+        // Check for GraphQL errors
         if (result.errors) {
-          console.log('❌ GraphQL errors:', result.errors);
+          console.log('💳 ❌ GraphQL errors found:', result.errors);
           throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
         }
         
+        // Check for user errors
         if (result.data?.storeCreditAccountCreditCreate?.userErrors?.length > 0) {
-          console.log('❌ Store credit user errors:', result.data.storeCreditAccountCreditCreate.userErrors);
+          console.log('💳 ❌ Store credit user errors:', result.data.storeCreditAccountCreditCreate.userErrors);
           throw new Error(`Store credit error: ${result.data.storeCreditAccountCreditCreate.userErrors[0].message}`);
         }
 
         const transaction = result.data?.storeCreditAccountCreditCreate?.storeCreditAccountTransaction;
         
         if (!transaction) {
-          console.log('❌ No transaction returned');
+          console.log('💳 ❌ No transaction returned in response');
+          console.log('💳 Full data object:', result.data);
           throw new Error('Store credit transaction was not created - no transaction returned');
         }
 
-        console.log('✅ Store credit issued successfully:', transaction.id);
+        console.log('💳 ✅ Store credit transaction created successfully:');
+        console.log('💳 Transaction ID:', transaction.id);
+        console.log('💳 Amount:', transaction.amount);
+        console.log('💳 Account Balance:', transaction.account?.balance);
+        console.log('💳 Created At:', transaction.createdAt);
+        
+        // Additional verification - try to fetch the customer to see their balance
+        console.log('💳 🔍 Verifying customer balance...');
+        try {
+          const customerRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/customers/${customerId}.json`, {
+            headers: {
+              'X-Shopify-Access-Token': ACCESS_TOKEN,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (customerRes.ok) {
+            const customerData = await customerRes.json();
+            console.log('💳 Customer after store credit:', {
+              id: customerData.customer.id,
+              email: customerData.customer.email,
+              // Note: REST API might not show store credit balance
+              // Store credit balance might only be visible via GraphQL
+            });
+          }
+        } catch (verifyError) {
+          console.log('💳 ⚠️ Could not verify customer balance:', verifyError.message);
+        }
+
         return transaction;
       } catch (err) {
-        console.error('❌ Error issuing store credit:', err);
+        console.error('💳 ❌ Store credit creation failed:', err);
+        console.error('💳 ❌ Error stack:', err.stack);
         throw err;
       }
     };
@@ -816,14 +869,14 @@ module.exports = async function handler(req, res) {
       totalMaximumValue += maximumTradeValue * quantity;
       totalRetailValue += variantPrice * quantity;
 
-      console.log(`💰 Trade values for ${cardName}: Retail: $${variantPrice}, Suggested: $${suggestedTradeValue}, Maximum: $${maximumTradeValue}`);
+      console.log(`💰 Trade values for ${cardName}: Retail: ${variantPrice}, Suggested: ${suggestedTradeValue}, Maximum: ${maximumTradeValue}`);
 
       // Log successful processing with trade values calculated
       addChronologicalEntry(
         cardName,
         sku,
         'PROCESSING_COMPLETE',
-        `Trade values calculated: Retail: $${variantPrice}, Suggested: $${suggestedTradeValue}, Maximum: $${maximumTradeValue}`,
+        `Trade values calculated: Retail: ${variantPrice}, Suggested: ${suggestedTradeValue}, Maximum: ${maximumTradeValue}`,
         productSku,
         productTitle,
         searchMethod
