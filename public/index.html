@@ -1,289 +1,222 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trade-In Processing</title>
+  <title>TESTING VERSION – Buyback Portal</title>
   
-  <style>
-    :root {
-      --primary: #1a365d;
-      --primary-light: #2c5282;
-      --accent: #3182ce;
-      --success: #38a169;
-      --warning: #d69e2e;
-      --error: #e53e3e;
-      --gray-50: #f7fafc;
-      --gray-100: #edf2f7;
-      --gray-200: #e2e8f0;
-      --gray-300: #cbd5e0;
-      --gray-500: #718096;
-      --gray-600: #4a5568;
-      --gray-700: #2d3748;
-      --gray-800: #1a202c;
-      --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      --border-radius: 8px;
-      --border-radius-lg: 12px;
-    }
+  <!-- No external dependencies needed for mailto -->
 
+  <style>
     * {
       box-sizing: border-box;
     }
 
     body {
-      font-family: var(--font-family);
-      background: linear-gradient(135deg, var(--gray-50) 0%, #fff 50%, var(--gray-50) 100%);
-      min-height: 100vh;
-      margin: 0;
-      padding: 24px;
-      color: var(--gray-800);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: #f8f9fa;
       line-height: 1.6;
     }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .main-card {
-      background: white;
-      border-radius: var(--border-radius-lg);
-      box-shadow: var(--shadow-lg);
-      border: 1px solid var(--gray-200);
-      overflow: visible;
-    }
-
-    .card-header {
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-      color: white;
-      padding: 32px;
+    .testing-banner {
+      background: linear-gradient(135deg, #ffd700, #ffed4e);
+      color: #000;
       text-align: center;
+      font-weight: bold;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
-    .card-title {
-      font-size: 28px;
-      font-weight: 700;
-      margin: 0;
-      letter-spacing: -0.025em;
+    .main-container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.07);
     }
 
-    .card-subtitle {
-      font-size: 16px;
-      opacity: 0.9;
-      margin: 8px 0 0 0;
-      font-weight: 400;
+    h2 {
+      color: #2c3e50;
+      font-size: 2em;
+      margin-bottom: 25px;
+      border-bottom: 3px solid #3498db;
+      padding-bottom: 10px;
     }
 
-    .card-content {
-      padding: 48px;
-      overflow: visible;
-    }
-
-    .form-section {
-      margin-bottom: 40px;
-    }
-
-    .section-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--gray-700);
-      margin: 0 0 20px 0;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .employee-payout-grid {
-      display: grid;
-      grid-template-columns: 1fr 2fr;
-      gap: 32px;
-      background: var(--gray-50);
-      padding: 32px;
-      border-radius: var(--border-radius-lg);
-      border: 1px solid var(--gray-200);
+    h3 {
+      color: #34495e;
+      font-size: 1.4em;
+      margin-top: 30px;
+      margin-bottom: 15px;
     }
 
     .form-group {
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
-    .form-label {
+    label {
       display: block;
-      font-size: 14px;
       font-weight: 600;
-      color: var(--gray-700);
+      color: #2c3e50;
       margin-bottom: 8px;
     }
 
-    .form-input, .form-select {
-      width: 100%;
-      padding: 12px 16px;
-      border: 2px solid var(--gray-200);
-      border-radius: var(--border-radius);
+    input, select, button {
       font-size: 16px;
-      background: white;
-      transition: all 0.2s ease;
-      font-family: var(--font-family);
-    }
-
-    .form-input:focus, .form-select:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
-    }
-
-    .payout-options {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 16px;
-    }
-
-    .payout-option {
-      position: relative;
-      cursor: pointer;
-    }
-
-    .payout-radio {
-      position: absolute;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .payout-label {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 16px 20px;
-      background: white;
-      border: 2px solid var(--gray-200);
-      border-radius: var(--border-radius);
-      font-weight: 500;
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
-
-    .payout-option:hover .payout-label {
-      border-color: var(--accent);
-      transform: translateY(-1px);
-      box-shadow: var(--shadow);
-    }
-
-    .payout-radio:checked + .payout-label {
-      border-color: var(--accent);
-      background: var(--accent);
-      color: white;
-      box-shadow: var(--shadow);
-    }
-
-    .customer-email {
-      margin-top: 20px;
-      padding: 24px;
-      background: linear-gradient(135deg, rgba(49, 130, 206, 0.05) 0%, rgba(49, 130, 206, 0.02) 100%);
-      border: 1px solid rgba(49, 130, 206, 0.2);
-      border-radius: var(--border-radius-lg);
-      opacity: 0;
-      max-height: 0;
-      overflow: hidden;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
       transition: all 0.3s ease;
     }
 
-    .customer-email.visible {
-      opacity: 1;
-      max-height: 200px;
-    }
-
-    .cards-section {
-      background: var(--gray-50);
-      border-radius: var(--border-radius-lg);
-      border: 1px solid var(--gray-200);
-      overflow: visible;
-    }
-
-    .cards-header {
-      background: white;
-      padding: 24px 32px;
-      border-bottom: 1px solid var(--gray-200);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .cards-list {
-      padding: 24px 32px;
-      overflow: visible;
-    }
-
-    .card-row {
-      display: grid;
-      grid-template-columns: 2fr auto auto auto;
-      gap: 16px;
-      align-items: start;
-      padding: 20px;
-      background: white;
-      border-radius: var(--border-radius);
-      border: 1px solid var(--gray-200);
-      margin-bottom: 16px;
-      transition: all 0.2s ease;
-      position: relative;
-      overflow: visible;
-    }
-
-    .card-row:hover {
-      box-shadow: var(--shadow);
-      transform: translateY(-1px);
-    }
-
-    .card-input-container {
-      position: relative;
-      z-index: 1000;
-    }
-
-    .card-input {
-      width: 100%;
-      padding: 12px 16px;
-      border: 2px solid var(--gray-200);
-      border-radius: var(--border-radius);
-      font-size: 16px;
-      transition: all 0.2s ease;
-    }
-
-    .card-input:focus {
+    input:focus, select:focus {
       outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
     }
 
-    .card-input.confirmed {
-      border-color: var(--success);
-      background: rgba(56, 161, 105, 0.05);
+    select {
+      min-width: 200px;
+      background-color: white;
+      cursor: pointer;
     }
 
-    .card-input.not-found {
-      border-color: var(--warning);
-      background: rgba(214, 158, 46, 0.05);
+    /* Employee and Payout Row */
+    .employee-payout-row {
+      display: flex;
+      gap: 30px;
+      margin-bottom: 25px;
+      align-items: flex-start;
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+      border: 2px solid #e9ecef;
     }
 
-    .search-suggestion {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
+    .employee-section {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .employee-section label {
+      margin-bottom: 8px;
+      color: #2c3e50;
+      font-weight: 600;
+    }
+
+    .employee-section select {
+      width: 100%;
+      min-width: 180px;
+      max-width: 250px;
+    }
+
+    .payout-section {
+      flex: 1.5;
+      min-width: 250px;
+    }
+
+    .payout-section > label {
+      margin-bottom: 12px;
+      color: #2c3e50;
+      font-weight: 600;
+    }
+
+    .payout-options {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .payout-option {
+      display: flex !important;
+      align-items: center;
+      gap: 8px;
       background: white;
-      border: 2px solid var(--accent);
-      border-top: none;
-      border-radius: 0 0 var(--border-radius) var(--border-radius);
-      box-shadow: var(--shadow-lg);
-      z-index: 10000;
-      animation: slideDown 0.2s ease;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 0 !important;
+      font-weight: normal !important;
+      min-width: 140px;
+    }
+
+    .payout-option:hover {
+      border-color: #3498db;
+      background: #f0f8ff;
+    }
+
+    .payout-option input[type="radio"]:checked + .payout-label {
+      color: #3498db;
+      font-weight: 600;
+    }
+
+    .payout-option:has(input[type="radio"]:checked) {
+      border-color: #3498db;
+      background: #f0f8ff;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .payout-option input[type="radio"] {
+      width: auto;
+      margin: 0;
+      accent-color: #3498db;
+    }
+
+    .payout-label {
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    /* Customer Email Section */
+    .customer-email-section {
+      margin-top: 15px;
+      padding: 15px;
+      background: #e8f4fd;
+      border: 2px solid #bee5eb;
+      border-radius: 8px;
+      display: none;
+      animation: slideDown 0.3s ease;
+    }
+
+    .customer-email-section.visible {
+      display: block;
+    }
+
+    .customer-email-section label {
+      color: #0c5460;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .customer-email-section input {
+      width: 100%;
+      max-width: 400px;
+      border: 2px solid #bee5eb;
+    }
+
+    .customer-email-section input:focus {
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .customer-email-help {
+      font-size: 0.9em;
+      color: #0c5460;
+      margin-top: 5px;
+      font-style: italic;
     }
 
     @keyframes slideDown {
       from {
         opacity: 0;
-        transform: translateY(-8px);
+        transform: translateY(-10px);
       }
       to {
         opacity: 1;
@@ -291,48 +224,135 @@
       }
     }
 
+    .search-info {
+      background: #e8f4fd;
+      border: 1px solid #bee5eb;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 15px;
+      font-size: 0.9em;
+      color: #0c5460;
+      position: relative;
+    }
+
+    .card-row {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 15px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+      position: relative;
+    }
+
+    .card-row input, .card-row select {
+      margin: 0;
+    }
+
+    .card-input-container {
+      position: relative;
+      flex: 2;
+      min-width: 200px;
+    }
+
+    .card-row input[name="cardName"] {
+      width: 100%;
+    }
+
+    .card-row input[name="cardQuantity"] {
+      width: 80px;
+      text-align: center;
+    }
+
+    .card-row select {
+      width: 100px;
+    }
+
+    /* 🆕 ENHANCED SEARCH SUGGESTION STYLES */
+    .search-suggestion {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 2px solid #3498db;
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      padding: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 1000;
+      animation: slideDown 0.2s ease;
+    }
+
+    .search-suggestion.searching {
+      background: #f8f9fa;
+      color: #666;
+      font-style: italic;
+      border-color: #f39c12;
+    }
+
+    .search-suggestion.found {
+      background: #d4edda;
+      border-color: #27ae60;
+      color: #155724;
+    }
+
+    .search-suggestion.not-found {
+      background: #f8d7da;
+      border-color: #e74c3c;
+      color: #721c24;
+    }
+
+    .search-suggestion.cached {
+      background: #e8f5e8;
+      border-color: #28a745;
+      color: #155724;
+    }
+
     .suggestion-content {
-      padding: 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 16px;
+      gap: 10px;
     }
 
     .suggestion-info {
       flex: 1;
     }
 
-    .suggestion-name {
+    .suggestion-card-name {
       font-weight: 600;
-      color: var(--gray-800);
       margin-bottom: 4px;
     }
 
-    .suggestion-details {
-      font-size: 14px;
-      color: var(--gray-500);
+    .suggestion-sku {
+      font-size: 0.9em;
+      color: #666;
+    }
+
+    /* 🆕 SEARCH PERFORMANCE INDICATOR */
+    .suggestion-performance {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 2px;
       display: flex;
-      gap: 16px;
-      align-items: center;
-      flex-wrap: wrap;
+      gap: 10px;
     }
 
-    .search-badge {
-      display: inline-flex;
+    .performance-metric {
+      display: flex;
       align-items: center;
-      gap: 4px;
-      padding: 4px 8px;
-      background: var(--accent);
-      color: white;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 500;
-      text-transform: uppercase;
+      gap: 3px;
     }
 
-    .search-badge.cached {
-      background: var(--success);
+    .performance-metric.fast {
+      color: #27ae60;
+    }
+
+    .performance-metric.slow {
+      color: #e74c3c;
     }
 
     .suggestion-actions {
@@ -341,421 +361,856 @@
     }
 
     .suggestion-btn {
-      padding: 8px 16px;
+      padding: 6px 12px;
       border: none;
-      border-radius: var(--border-radius);
-      font-size: 14px;
-      font-weight: 500;
+      border-radius: 4px;
       cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
       transition: all 0.2s ease;
+      min-width: auto;
     }
 
     .confirm-btn {
-      background: var(--success);
+      background: #27ae60;
       color: white;
     }
 
     .confirm-btn:hover {
-      background: #2f855a;
-      transform: translateY(-1px);
+      background: #219a52;
     }
 
     .reject-btn {
-      background: var(--gray-200);
-      color: var(--gray-700);
+      background: #e74c3c;
+      color: white;
     }
 
     .reject-btn:hover {
-      background: var(--gray-300);
+      background: #c0392b;
+    }
+
+    .continue-btn {
+      background: #f39c12;
+      color: white;
+    }
+
+    .continue-btn:hover {
+      background: #e67e22;
     }
 
     .remove-btn {
-      background: var(--error);
+      background: #e74c3c;
       color: white;
       border: none;
-      border-radius: var(--border-radius);
-      padding: 8px 12px;
+      padding: 10px 15px;
       cursor: pointer;
-      transition: all 0.2s ease;
-      font-size: 16px;
+      border-radius: 6px;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
     }
 
     .remove-btn:hover {
-      background: #c53030;
-      transform: scale(1.05);
+      background: #c0392b;
     }
 
-    .actions {
+    .search-method-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.75em;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-left: 8px;
+    }
+
+    .search-method-title {
+      background: #3498db;
+      color: white;
+    }
+
+    .search-method-sku {
+      background: #27ae60;
+      color: white;
+    }
+
+    .search-method-tag {
+      background: #e67e22;
+      color: white;
+    }
+
+    .search-method-none {
+      background: #e74c3c;
+      color: white;
+    }
+
+    /* 🆕 CACHE HIT BADGE */
+    .search-method-cached {
+      background: #28a745;
+      color: white;
+      animation: glow 1s ease-in-out;
+    }
+
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 5px rgba(40, 167, 69, 0.5); }
+      50% { box-shadow: 0 0 20px rgba(40, 167, 69, 0.8); }
+    }
+
+    .trade-values {
+      margin-top: 8px;
+      padding: 8px;
+      background: #f1f3f4;
+      border-radius: 4px;
+      border-left: 4px solid #17a2b8;
+    }
+
+    .suggested-value {
+      color: #3498db;
+      font-weight: 600;
+    }
+
+    .maximum-value {
+      color: #27ae60;
+      font-weight: 600;
+    }
+
+    .button-group {
       display: flex;
-      gap: 16px;
-      align-items: center;
-      margin-top: 32px;
+      gap: 15px;
+      margin: 25px 0;
       flex-wrap: wrap;
+      align-items: center;
     }
 
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
+    button {
       padding: 12px 24px;
       border: none;
-      border-radius: var(--border-radius);
-      font-size: 16px;
-      font-weight: 600;
+      border-radius: 6px;
       cursor: pointer;
-      transition: all 0.2s ease;
-      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      min-width: 120px;
+    }
+
+    #add-card {
+      background: #27ae60;
+      color: white;
+    }
+
+    #add-card:hover {
+      background: #219a52;
+    }
+
+    #estimate-trade {
+      background: #3498db;
+      color: white;
       position: relative;
-      overflow: hidden;
     }
 
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
+    #estimate-trade:hover {
+      background: #2980b9;
     }
 
-    .btn:active {
-      transform: translateY(0);
+    /* 🆕 OPTIMIZATION INDICATOR ON ESTIMATE BUTTON */
+    #estimate-trade::after {
+      content: '⚡';
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #f39c12;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      animation: bounce 2s infinite;
     }
 
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none !important;
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-10px); }
+      60% { transform: translateY(-5px); }
     }
 
-    .btn-primary {
-      background: var(--primary);
+    #submit-trade {
+      background: #e67e22;
       color: white;
     }
 
-    .btn-accent {
-      background: var(--accent);
+    #submit-trade:hover {
+      background: #d35400;
+    }
+
+    #print-labels {
+      background: #9b59b6;
       color: white;
     }
 
-    .btn-success {
-      background: var(--success);
+    #print-labels:hover {
+      background: #8e44ad;
+    }
+
+    /* Override Toggle Button */
+    #override-toggle {
+      background: #ffc107;
+      color: #856404;
+      border: 2px solid #ffc107;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    #override-toggle:hover {
+      background: #ffb300;
+      border-color: #ffb300;
+    }
+
+    #override-toggle.active {
+      background: #856404;
       color: white;
+      border-color: #856404;
     }
 
-    .btn-warning {
-      background: var(--warning);
+    /* Override Input Field */
+    .override-input-container {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-left: 10px;
+      animation: slideIn 0.3s ease;
+    }
+
+    .override-input-container.visible {
+      display: flex;
+    }
+
+    .override-input-container input {
+      width: 150px;
+      border: 2px solid #ffc107;
+      margin: 0;
+    }
+
+    .override-input-container input:focus {
+      border-color: #ffb300;
+      box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+    }
+
+    .override-cancel {
+      background: #e74c3c;
       color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      min-width: auto;
     }
 
-    .btn-secondary {
-      background: var(--gray-100);
-      color: var(--gray-700);
-      border: 1px solid var(--gray-300);
+    .override-cancel:hover {
+      background: #c0392b;
     }
 
-    .btn.appearing {
-      animation: buttonAppear 0.4s ease;
+    .override-help-text {
+      font-size: 0.8em;
+      color: #856404;
+      font-style: italic;
+      margin-left: 10px;
     }
 
-    @keyframes buttonAppear {
+    @keyframes slideIn {
       from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateX(-20px);
       }
       to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateX(0);
       }
     }
 
-    .status-bar {
-      background: white;
-      border: 1px solid var(--gray-200);
-      border-radius: var(--border-radius-lg);
-      padding: 20px 24px;
-      margin: 32px 0;
+    .override-warning {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+      padding: 12px;
+      border-radius: 6px;
+      margin: 10px 0;
+      font-weight: 600;
+    }
+
+    .store-credit-success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+      padding: 12px;
+      border-radius: 6px;
+      margin: 10px 0;
+      font-weight: 600;
+    }
+
+    /* Email notification styles */
+    .email-notification {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+      padding: 12px;
+      border-radius: 6px;
+      margin: 10px 0;
+      font-weight: 600;
+    }
+
+    .email-error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+      padding: 12px;
+      border-radius: 6px;
+      margin: 10px 0;
+      font-weight: 600;
+    }
+
+    .image-upload-section {
+      margin: 25px 0;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 2px dashed #bdc3c7;
+    }
+
+    .image-upload-section input[type="file"] {
+      border: none;
+      background: none;
+      padding: 0;
+    }
+
+    #imagePreview {
+      max-width: 200px;
+      margin-top: 15px;
+      border: 2px solid #bdc3c7;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .estimate-results {
+      margin: 20px 0;
+      padding: 15px;
+      border-radius: 8px;
+      font-weight: 600;
+      border-left: 4px solid #3498db;
+      background: #ecf0f1;
+      min-height: 50px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      box-shadow: var(--shadow);
+      display: none;
     }
 
-    .status-text {
-      font-weight: 500;
-      color: var(--gray-700);
-    }
-
-    .status-metrics {
+    #statusBar {
+      margin: 25px 0;
+      padding: 15px;
+      border-radius: 8px;
+      font-weight: 600;
+      border-left: 4px solid #3498db;
+      background: #ecf0f1;
+      min-height: 50px;
       display: flex;
-      gap: 16px;
+      align-items: center;
+      position: relative;
+    }
+
+    /* 🆕 PERFORMANCE METRICS IN STATUS BAR */
+    .status-metrics {
+      position: absolute;
+      top: 8px;
+      right: 15px;
+      font-size: 0.8em;
+      color: #666;
+      display: flex;
+      gap: 15px;
     }
 
     .metric {
       display: flex;
       align-items: center;
-      gap: 4px;
-      font-size: 14px;
-      color: var(--gray-600);
+      gap: 3px;
     }
 
     .metric.good {
-      color: var(--success);
+      color: #27ae60;
     }
 
     .metric.warning {
-      color: var(--warning);
+      color: #f39c12;
     }
 
     .metric.error {
-      color: var(--error);
+      color: #e74c3c;
     }
 
-    .spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid transparent;
-      border-top: 2px solid currentColor;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
+    .trade-log-section {
+      margin-top: 30px;
+      padding-top: 25px;
+      border-top: 2px solid #ecf0f1;
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    #tradeLog {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+    }
+
+    .log-entry {
+      padding: 10px;
+      margin: 8px 0;
+      background: white;
+      border-radius: 6px;
+      border-left: 4px solid #3498db;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* 🆕 SEARCH CACHE STATUS */
+    .cache-status {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(52, 152, 219, 0.9);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 20px;
+      font-size: 0.9em;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .cache-status:hover {
+      background: rgba(52, 152, 219, 1);
+      transform: translateY(-2px);
+    }
+
+    .cache-status.hidden {
+      transform: translateY(100px);
+      opacity: 0;
     }
 
     @media (max-width: 768px) {
       body {
-        padding: 16px;
+        padding: 10px;
       }
-
-      .card-content {
-        padding: 24px;
+      
+      .main-container {
+        padding: 20px;
       }
-
-      .employee-payout-grid {
-        grid-template-columns: 1fr;
-        gap: 24px;
-      }
-
+      
       .card-row {
-        grid-template-columns: 1fr;
-        gap: 12px;
-      }
-
-      .actions {
         flex-direction: column;
         align-items: stretch;
       }
+      
+      .card-row input, .card-row select {
+        margin-bottom: 10px;
+      }
+      
+      .employee-payout-row {
+        flex-direction: column;
+        gap: 20px;
+      }
 
-      .btn {
+      .employee-section select {
+        max-width: 100%;
+      }
+
+      .payout-options {
         justify-content: center;
+      }
+
+      .payout-option {
+        min-width: 120px;
+        justify-content: center;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+      
+      button {
+        min-width: auto;
+      }
+
+      .override-input-container {
+        margin-left: 0;
+        margin-top: 10px;
+        flex-wrap: wrap;
+      }
+
+      .customer-email-section input {
+        max-width: 100%;
+      }
+
+      .card-input-container {
+        min-width: auto;
+      }
+
+      .status-metrics {
+        position: static;
+        margin-top: 10px;
+        justify-content: center;
+      }
+
+      .cache-status {
+        bottom: 10px;
+        right: 10px;
+        font-size: 0.8em;
+        padding: 8px 12px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- Main Card -->
-    <div class="main-card">
-      <!-- Card Header -->
-      <div class="card-header">
-        <h1 class="card-title">Trade-In Processing</h1>
-        <p class="card-subtitle">Process card trades with intelligent search optimization</p>
-      </div>
+  <div class="testing-banner">
+    🚧 TESTING VERSION ACTIVE 🚧
+  </div>
 
-      <!-- Card Content -->
-      <div class="card-content">
-        <form id="trade-form">
-          <!-- Employee & Payout Section -->
-          <div class="form-section">
-            <h3 class="section-title">
-              <span>👤</span>
-              <span>Employee & Payout</span>
-            </h3>
-            
-            <div class="employee-payout-grid">
-              <div class="form-group">
-                <label class="form-label" for="employeeName">Employee</label>
-                <select class="form-select" name="employeeName" id="employeeName" required>
-                  <option value="" disabled selected>Select Employee</option>
-                  <option value="Alex">Alex</option>
-                  <option value="Jamie">Jamie</option>
-                  <option value="Morgan">Morgan</option>
-                  <option value="Taylor">Taylor</option>
-                </select>
-              </div>
+  <div class="main-container">
+    <h2>💳 Trade-In Cards</h2>
+    
+    <form id="trade-form">
+      <div class="employee-payout-row">
+        <div class="employee-section">
+          <label for="employeeName">Employee:</label>
+          <select name="employeeName" id="employeeName" required>
+            <option value="" disabled selected>Select Employee</option>
+            <option value="Alex">Alex</option>
+            <option value="Jamie">Jamie</option>
+            <option value="Morgan">Morgan</option>
+            <option value="Taylor">Taylor</option>
+          </select>
+        </div>
 
-              <div class="form-group">
-                <label class="form-label">Payout Method</label>
-                <div class="payout-options">
-                  <div class="payout-option">
-                    <input type="radio" class="payout-radio" name="payoutMethod" value="store-credit" id="store-credit" required>
-                    <label class="payout-label" for="store-credit">
-                      <span>🏪</span>
-                      <span>Store Credit</span>
-                    </label>
-                  </div>
-                  <div class="payout-option">
-                    <input type="radio" class="payout-radio" name="payoutMethod" value="gift-card" id="gift-card" required>
-                    <label class="payout-label" for="gift-card">
-                      <span>🎁</span>
-                      <span>Gift Card</span>
-                    </label>
-                  </div>
-                  <div class="payout-option">
-                    <input type="radio" class="payout-radio" name="payoutMethod" value="cash" id="cash" required>
-                    <label class="payout-label" for="cash">
-                      <span>💵</span>
-                      <span>Cash</span>
-                    </label>
-                  </div>
-                </div>
-
-                <!-- Customer Email Section -->
-                <div id="customer-email" class="customer-email">
-                  <div class="form-group">
-                    <label class="form-label" for="customerEmail">Customer Email</label>
-                    <input type="email" class="form-input" id="customerEmail" name="customerEmail" placeholder="customer@example.com">
-                    <div style="font-size: 14px; color: var(--gray-500); margin-top: 8px;">
-                      📧 Required for store credit - customer will be created if doesn't exist
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+        <div class="payout-section">
+          <label>Payout Method:</label>
+          <div class="payout-options">
+            <label class="payout-option">
+              <input type="radio" name="payoutMethod" value="store-credit" required>
+              <span class="payout-label">🏪 Store Credit</span>
+            </label>
+            <label class="payout-option">
+              <input type="radio" name="payoutMethod" value="gift-card" required>
+              <span class="payout-label">🎁 Gift Card</span>
+            </label>
+            <label class="payout-option">
+              <input type="radio" name="payoutMethod" value="cash" required>
+              <span class="payout-label">💵 Cash</span>
+            </label>
           </div>
-
-          <!-- Cards Section -->
-          <div class="form-section">
-            <div class="cards-section">
-              <div class="cards-header">
-                <h3 class="section-title">
-                  <span>🃏</span>
-                  <span>Cards to Trade</span>
-                </h3>
-                <button type="button" class="btn btn-secondary" id="add-card">
-                  <span>➕</span>
-                  <span>Add Card</span>
-                </button>
-              </div>
-              
-              <div class="cards-list" id="card-list">
-                <div class="card-row">
-                  <div class="card-input-container">
-                    <input type="text" class="card-input" name="cardName" placeholder="Enter card name, SKU, or card number" required>
-                  </div>
-                  <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
-                  <select class="form-select" name="cardCondition" required style="width: 120px;">
-                    <option value="NM">Near Mint</option>
-                    <option value="LP">Lightly Played</option>
-                    <option value="MP">Moderately Played</option>
-                  </select>
-                  <button type="button" class="remove-btn">✖</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Actions -->
-          <div class="actions">
-            <button type="button" class="btn btn-accent" id="estimate-trade">
-              <span>📊</span>
-              <span>Get Estimate</span>
-            </button>
-            
-            <button type="submit" class="btn btn-success" id="submit-trade" style="display: none;">
-              <span>✅</span>
-              <span>Process Trade</span>
-            </button>
-            
-            <button type="button" class="btn btn-primary" id="print-labels" style="display: none;">
-              <span>🏷️</span>
-              <span>Print Labels</span>
-            </button>
-          </div>
-        </form>
-
-        <!-- Status Bar -->
-        <div class="status-bar" id="status-bar">
-          <div class="status-text">Ready to process trades...</div>
-          <div class="status-metrics">
-            <div class="metric good">
-              <span>💾</span>
-              <span id="cache-rate">0%</span>
-            </div>
-            <div class="metric good">
-              <span>⚡</span>
-              <span id="avg-speed">0ms</span>
-            </div>
-            <div class="metric">
-              <span>🔍</span>
-              <span id="total-searches">0</span>
+          
+          <!-- Customer Email Section -->
+          <div id="customer-email-section" class="customer-email-section">
+            <label for="customerEmail">Customer Email:</label>
+            <input type="email" id="customerEmail" name="customerEmail" placeholder="customer@example.com" />
+            <div class="customer-email-help">
+              📧 Required for store credit - customer will be created if doesn't exist
             </div>
           </div>
         </div>
       </div>
+
+      <div class="form-group">
+        <label>Cards to Trade:</label>
+        <div class="search-info">
+          <strong>Enter card name, SKU, or card number</strong>
+        </div>
+        <div id="card-list">
+          <div class="card-row">
+            <div class="card-input-container">
+              <input type="text" name="cardName" placeholder="Card Name, SKU, or Card Number" required />
+            </div>
+            <input type="number" name="cardQuantity" placeholder="Qty" min="1" value="1" required />
+            <select name="cardCondition" required>
+              <option value="NM">NM (Near Mint)</option>
+              <option value="LP">LP (Lightly Played)</option>
+              <option value="MP">MP (Moderately Played)</option>
+            </select>
+            <button type="button" class="remove-btn" onclick="this.parentElement.remove()">✖</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="estimateResults" class="estimate-results">
+        Ready to process trades...
+      </div>
+
+      <div class="button-group">
+        <button type="button" id="add-card">➕ Add Card</button>
+        <button type="button" id="estimate-trade">📊 Estimate</button>
+        <button type="button" id="override-toggle">💰 Override</button>
+        
+        <div id="override-input-container" class="override-input-container">
+          <input type="number" id="overrideTotal" name="overrideTotal" placeholder="0.00" min="0" max="13500" step="0.01" />
+          <button type="button" class="override-cancel" id="override-cancel">✖</button>
+          <span class="override-help-text">Max: $13,500 CAD</span>
+        </div>
+        
+        <button type="submit" id="submit-trade">✅ Submit Trade</button>
+        <button type="button" id="print-labels" style="display: none;">🏷️ Print Labels</button>
+      </div>
+
+      <div class="image-upload-section">
+        <label for="cardImage"><strong>📸 Upload Card Image (optional):</strong></label>
+        <input type="file" id="cardImage" name="cardImage" accept="image/*" onchange="previewImage(event)" />
+        <div id="imagePreviewContainer">
+          <img id="imagePreview" src="" alt="Card preview" />
+        </div>
+      </div>
+    </form>
+
+    <div id="statusBar">
+      Ready to process trades...
+      <div class="status-metrics">
+        <div class="metric good" id="cacheMetric">
+          <span>💾</span>
+          <span id="cacheHitRate">0%</span>
+        </div>
+        <div class="metric good" id="speedMetric">
+          <span>⚡</span>
+          <span id="avgSpeed">0ms</span>
+        </div>
+        <div class="metric" id="searchesMetric">
+          <span>🔍</span>
+          <span id="totalSearches">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="trade-log-section">
+      <h3>📋 Trade Log</h3>
+      <div id="tradeLog">
+        <p><em>Trade results will appear here...</em></p>
+      </div>
     </div>
   </div>
 
+  <!-- 🆕 CACHE STATUS INDICATOR -->
+  <div id="cacheStatus" class="cache-status hidden">
+    💾 Cache: <span id="cacheCount">0</span> items
+  </div>
+
   <script>
-    // Simple search client for your real API
-    class SearchClient {
+    // 🆕 ENHANCED SEARCH CLIENT WITH OPTIMIZATION
+    class OptimizedSearchClient {
       constructor() {
-        this.apiUrl = '/api/buybackstep4'; // Change this to your actual API URL
         this.searchCache = new Map();
-        this.stats = { totalSearches: 0, cacheHits: 0 };
+        this.searchStats = {
+          totalSearches: 0,
+          cacheHits: 0,
+          totalTime: 0,
+          searches: []
+        };
+        this.pendingSearches = new Map();
+        this.cacheTimeout = 300000; // 5 minutes
+        this.maxCacheSize = 100; // Client-side cache limit
       }
 
+      // Get cache key for search
+      getCacheKey(query) {
+        return query.toLowerCase().trim();
+      }
+
+      // Check if result is cached and valid
+      isCached(query) {
+        const key = this.getCacheKey(query);
+        if (this.searchCache.has(key)) {
+          const cached = this.searchCache.get(key);
+          return Date.now() - cached.timestamp < this.cacheTimeout;
+        }
+        return false;
+      }
+
+      // Get cached result
+      getCached(query) {
+        const key = this.getCacheKey(query);
+        if (this.isCached(query)) {
+          this.searchStats.cacheHits++;
+          console.log('🎯 Client cache hit for:', query);
+          return this.searchCache.get(key).result;
+        }
+        return null;
+      }
+
+      // Cache a search result
+      cacheResult(query, result, searchTime) {
+        const key = this.getCacheKey(query);
+        
+        // Implement LRU behavior
+        if (this.searchCache.size >= this.maxCacheSize) {
+          const oldestKey = this.searchCache.keys().next().value;
+          this.searchCache.delete(oldestKey);
+        }
+
+        this.searchCache.set(key, {
+          result,
+          timestamp: Date.now(),
+          searchTime
+        });
+
+        this.updateCacheStatus();
+      }
+
+      // Update cache status display
+      updateCacheStatus() {
+        const cacheStatus = document.getElementById('cacheStatus');
+        const cacheCount = document.getElementById('cacheCount');
+        
+        if (cacheCount) {
+          cacheCount.textContent = this.searchCache.size;
+        }
+
+        if (this.searchCache.size > 0) {
+          cacheStatus.classList.remove('hidden');
+        } else {
+          cacheStatus.classList.add('hidden');
+        }
+      }
+
+      // Update performance metrics
+      updateMetrics() {
+        const cacheHitRate = this.searchStats.totalSearches > 0 ? 
+          Math.round((this.searchStats.cacheHits / this.searchStats.totalSearches) * 100) : 0;
+        const avgSpeed = this.searchStats.searches.length > 0 ?
+          Math.round(this.searchStats.totalTime / this.searchStats.searches.length) : 0;
+
+        document.getElementById('cacheHitRate').textContent = `${cacheHitRate}%`;
+        document.getElementById('avgSpeed').textContent = `${avgSpeed}ms`;
+        document.getElementById('totalSearches').textContent = this.searchStats.totalSearches;
+
+        // Update metric colors based on performance
+        const cacheMetric = document.getElementById('cacheMetric');
+        const speedMetric = document.getElementById('speedMetric');
+
+        // Cache hit rate coloring
+        cacheMetric.className = 'metric ' + (cacheHitRate >= 30 ? 'good' : cacheHitRate >= 15 ? 'warning' : 'error');
+        
+        // Speed coloring
+        speedMetric.className = 'metric ' + (avgSpeed <= 1000 ? 'good' : avgSpeed <= 3000 ? 'warning' : 'error');
+      }
+
+      // Main optimized search method
       async searchCard(query) {
-        this.stats.totalSearches++;
-        console.log('🔍 Searching for:', query);
+        this.searchStats.totalSearches++;
+        const startTime = Date.now();
+
+        // Check client-side cache first
+        const cached = this.getCached(query);
+        if (cached) {
+          this.updateMetrics();
+          return { ...cached, fromCache: true, searchTime: 0 };
+        }
+
+        // Check if search is already pending
+        const key = this.getCacheKey(query);
+        if (this.pendingSearches.has(key)) {
+          console.log('⏳ Waiting for pending search:', query);
+          return this.pendingSearches.get(key);
+        }
+
+        // Start new search
+        const searchPromise = this.performAPISearch(query);
+        this.pendingSearches.set(key, searchPromise);
 
         try {
-          const response = await fetch(this.apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              cards: [{ cardName: query, sku: null, quantity: 1 }],
-              employeeName: 'Preview',
-              payoutMethod: 'cash'
-            })
+          const result = await searchPromise;
+          const searchTime = Date.now() - startTime;
+          
+          this.searchStats.totalTime += searchTime;
+          this.searchStats.searches.push({
+            query,
+            time: searchTime,
+            found: result.found,
+            fromCache: false
           });
 
-          const data = await response.json();
-          console.log('📥 API Response:', data);
+          // Cache the result
+          this.cacheResult(query, result, searchTime);
+          this.updateMetrics();
 
+          return { ...result, fromCache: false, searchTime };
+        } finally {
+          this.pendingSearches.delete(key);
+        }
+      }
+
+      // Perform actual API search
+      async performAPISearch(query) {
+        try {
+          const response = await fetch(`/api/buybackstep4`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              cards: [{ 
+                cardName: query, 
+                sku: null, 
+                quantity: 1 
+              }],
+              employeeName: 'Preview',
+              payoutMethod: 'cash'
+            }),
+            signal: AbortSignal.timeout(30000)
+          });
+
+          if (!response.ok) {
+            console.error('API Error:', response.status, response.statusText);
+            throw new Error(`API Error: ${response.status}`);
+          }
+
+          const data = await response.json();
+          
           if (data.success && data.results && data.results.length > 0) {
             const result = data.results[0];
+            
             return {
-              found: !!result.match,
               name: result.match || result.cardName,
               sku: result.sku || 'NOT-FOUND',
+              cardNumber: this.extractCardNumber(result.sku) || 'N/A',
               retailPrice: parseFloat(result.retailPrice) || 0,
               suggestedTrade: parseFloat(result.suggestedTradeValue) || 0,
               maxTrade: parseFloat(result.maximumTradeValue) || 0,
-              searchMethod: result.searchMethod || 'none'
+              searchMethod: result.searchMethod || 'none',
+              found: !!result.match,
+              optimizationUsed: data.searchPerformance?.optimizationUsed || false,
+              serverCacheHit: data.searchPerformance?.cacheHitRate !== '0%'
             };
           } else {
             return {
-              found: false,
               name: query,
               sku: 'NOT-FOUND',
+              cardNumber: 'N/A',
               retailPrice: 0,
               suggestedTrade: 0,
               maxTrade: 0,
-              searchMethod: 'none'
+              searchMethod: 'none',
+              found: false,
+              optimizationUsed: false,
+              serverCacheHit: false
             };
           }
         } catch (error) {
           console.error('Search error:', error);
           return {
-            found: false,
             name: query,
             sku: 'ERROR',
+            cardNumber: 'N/A',
             retailPrice: 0,
             suggestedTrade: 0,
             maxTrade: 0,
             searchMethod: 'none',
-            error: error.message
+            found: false,
+            error: error.message,
+            optimizationUsed: false,
+            serverCacheHit: false
           };
         }
       }
@@ -766,498 +1221,627 @@
         const cardNumberMatch = sku.match(/#?(\d+(?:\/\d+)?)/);
         return cardNumberMatch ? `#${cardNumberMatch[1]}` : null;
       }
-    }
 
-    // Store the last trade data for label printing
-    let lastTradeData = null;
-
-    // Print inventory labels function
-    function printInventoryLabels(tradeData) {
-      if (!tradeData || !tradeData.results || tradeData.results.length === 0) {
-        alert('No cards available for label printing.');
-        return;
-      }
-
-      // Generate labels for each card (repeated by quantity)
-      const labels = [];
-      tradeData.results.forEach(card => {
-        for (let i = 0; i < card.quantity; i++) {
-          labels.push({
-            sku: card.sku || `CARD-${Date.now()}-${i}`,
-            cardName: card.cardName,
-            condition: card.condition || 'NM'
-          });
-        }
-      });
-
-      const labelHTML = generateLabelSheet(labels, tradeData);
-      const printWindow = window.open('', '_blank');
-      printWindow.document.write(labelHTML);
-      printWindow.document.close();
-      printWindow.focus();
-      printWindow.print();
-    }
-
-    // Generate the label sheet HTML
-    function generateLabelSheet(labels, tradeData) {
-      const tradeId = Date.now().toString();
-      const tradeDate = new Date().toLocaleDateString();
-      
-      return `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Inventory Labels - Trade ${tradeId}</title>
-          <style>
-            @page { 
-              margin: 0.5in; 
-              size: letter;
-            }
-            
-            body {
-              font-family: Arial, sans-serif;
-              margin: 0;
-              padding: 0;
-            }
-            
-            .header {
-              text-align: center;
-              margin-bottom: 20px;
-              font-size: 12pt;
-              border-bottom: 2px solid #000;
-              padding-bottom: 10px;
-            }
-            
-            .label-sheet {
-              display: grid;
-              grid-template-columns: repeat(3, 1fr);
-              gap: 4mm;
-              margin: 0;
-            }
-            
-            .inventory-label {
-              width: 60mm;
-              height: 25mm;
-              border: 1px solid #000;
-              padding: 2mm;
-              box-sizing: border-box;
-              page-break-inside: avoid;
-              display: flex;
-              flex-direction: column;
-              justify-content: space-between;
-            }
-            
-            .barcode-container {
-              text-align: center;
-              flex-grow: 1;
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-            }
-            
-            .barcode {
-              height: 12mm;
-              width: 100%;
-              background: repeating-linear-gradient(
-                to right,
-                #000 0px,
-                #000 1px,
-                #fff 1px,
-                #fff 2px
-              );
-              margin: 2mm 0;
-            }
-            
-            .sku-text {
-              font-size: 8pt;
-              font-weight: bold;
-              text-align: center;
-              font-family: 'Courier New', monospace;
-            }
-            
-            .card-info {
-              font-size: 6pt;
-              text-align: center;
-              margin-top: 1mm;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-            }
-            
-            @media print {
-              .header { color: #000; }
-              .inventory-label { border: 1px solid #000; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <strong>INVENTORY LABELS</strong><br>
-            Trade ID: ${tradeId} | Date: ${tradeDate} | Employee: ${tradeData.employeeName || 'N/A'}<br>
-            Total Labels: ${labels.length}
-          </div>
-          
-          <div class="label-sheet">
-            ${labels.map(label => `
-              <div class="inventory-label">
-                <div class="barcode-container">
-                  <div class="barcode"></div>
-                  <div class="sku-text">${label.sku}</div>
-                </div>
-                <div class="card-info">${label.cardName.substring(0, 20)}${label.cardName.length > 20 ? '...' : ''} (${label.condition})</div>
-              </div>
-            `).join('')}
-          </div>
-        </body>
-        </html>
-      `;
-    }
-
-    // Initialize search client
-    const searchClient = new SearchClient();
-
-    // Store the last trade data for label printing
-    let lastTradeData = null;
-
-    // Print inventory labels function
-    function printInventoryLabels(tradeData) {
-      if (!tradeData || !tradeData.results || tradeData.results.length === 0) {
-        alert('No cards available for label printing.');
-        return;
-      }
-
-      // Generate labels for each card (repeated by quantity)
-      const labels = [];
-      tradeData.results.forEach(card => {
-        for (let i = 0; i < card.quantity; i++) {
-          labels.push({
-            sku: card.sku || `CARD-${Date.now()}-${i}`,
-            cardName: card.cardName,
-            condition: card.condition || 'NM'
-          });
-        }
-      });
-
-      const labelHTML = generateLabelSheet(labels, tradeData);
-      const printWindow = window.open('', '_blank');
-      printWindow.document.write(labelHTML);
-      printWindow.document.close();
-      printWindow.focus();
-      printWindow.print();
-    }
-
-    // Generate the label sheet HTML
-    function generateLabelSheet(labels, tradeData) {
-      const tradeId = Date.now().toString();
-      const tradeDate = new Date().toLocaleDateString();
-      
-      return `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Inventory Labels - Trade ${tradeId}</title>
-          <style>
-            @page { 
-              margin: 0.5in; 
-              size: letter;
-            }
-            
-            body {
-              font-family: Arial, sans-serif;
-              margin: 0;
-              padding: 0;
-            }
-            
-            .header {
-              text-align: center;
-              margin-bottom: 20px;
-              font-size: 12pt;
-              border-bottom: 2px solid #000;
-              padding-bottom: 10px;
-            }
-            
-            .label-sheet {
-              display: grid;
-              grid-template-columns: repeat(3, 1fr);
-              gap: 4mm;
-              margin: 0;
-            }
-            
-            .inventory-label {
-              width: 60mm;
-              height: 25mm;
-              border: 1px solid #000;
-              padding: 2mm;
-              box-sizing: border-box;
-              page-break-inside: avoid;
-              display: flex;
-              flex-direction: column;
-              justify-content: space-between;
-            }
-            
-            .barcode-container {
-              text-align: center;
-              flex-grow: 1;
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-            }
-            
-            .barcode {
-              height: 12mm;
-              width: 100%;
-              background: repeating-linear-gradient(
-                to right,
-                #000 0px,
-                #000 1px,
-                #fff 1px,
-                #fff 2px
-              );
-              margin: 2mm 0;
-            }
-            
-            .sku-text {
-              font-size: 8pt;
-              font-weight: bold;
-              text-align: center;
-              font-family: 'Courier New', monospace;
-            }
-            
-            .card-info {
-              font-size: 6pt;
-              text-align: center;
-              margin-top: 1mm;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-            }
-            
-            @media print {
-              .header { color: #000; }
-              .inventory-label { border: 1px solid #000; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <strong>INVENTORY LABELS</strong><br>
-            Trade ID: ${tradeId} | Date: ${tradeDate} | Employee: ${tradeData.employeeName || 'N/A'}<br>
-            Total Labels: ${labels.length}
-          </div>
-          
-          <div class="label-sheet">
-            ${labels.map(label => `
-              <div class="inventory-label">
-                <div class="barcode-container">
-                  <div class="barcode"></div>
-                  <div class="sku-text">${label.sku}</div>
-                </div>
-                <div class="card-info">${label.cardName.substring(0, 20)}${label.cardName.length > 20 ? '...' : ''} (${label.condition})</div>
-              </div>
-            `).join('')}
-          </div>
-        </body>
-        </html>
-      `;
-    }
-
-    // Search functionality
-    function setupCardSearch(input) {
-      let searchTimeout;
-
-      input.addEventListener('input', function() {
-        const query = this.value.trim();
-        if (query.length < 3) return;
-
-        clearTimeout(searchTimeout);
-        const container = this.closest('.card-input-container');
-        
-        // Remove existing suggestion
-        const existing = container.querySelector('.search-suggestion');
-        if (existing) existing.remove();
-
-        // Show searching indicator
-        const searching = document.createElement('div');
-        searching.className = 'search-suggestion';
-        searching.innerHTML = `
-          <div class="suggestion-content">
-            <div class="suggestion-info">
-              <div class="suggestion-name">🔍 Searching...</div>
-            </div>
-          </div>
-        `;
-        container.appendChild(searching);
-
-        searchTimeout = setTimeout(async () => {
-          try {
-            const result = await searchClient.searchCard(query);
-            searching.remove();
-            showSearchResult(container, input, result, query);
-          } catch (error) {
-            searching.remove();
-            console.error('Search failed:', error);
+      // Clear expired cache entries
+      clearExpiredCache() {
+        const now = Date.now();
+        for (const [key, value] of this.searchCache.entries()) {
+          if (now - value.timestamp > this.cacheTimeout) {
+            this.searchCache.delete(key);
           }
-        }, 1000);
-      });
+        }
+        this.updateCacheStatus();
+      }
     }
 
-    function showSearchResult(container, input, result, query) {
-      const suggestion = document.createElement('div');
-      suggestion.className = 'search-suggestion';
+    // Initialize optimized search client
+    const searchClient = new OptimizedSearchClient();
+
+    // Store the last trade data for label printing
+    let lastTradeData = null;
+
+    // Debounce timer for search
+    const searchTimers = new Map();
+
+    // API Configuration
+    const API_BASE_URL = '/api/buybackstep4';
+
+    // 🆕 ENHANCED SEARCH FUNCTION WITH OPTIMIZATION
+    async function searchCard(query) {
+      return await searchClient.searchCard(query);
+    }
+
+    // 🆕 ENHANCED SEARCH SUGGESTION DISPLAY
+    function showSearchSuggestion(container, inputElement, result, originalQuery) {
+      const suggestionDiv = document.createElement('div');
       
       if (result.found) {
-        suggestion.innerHTML = `
+        const suggestionClass = result.fromCache ? 'search-suggestion cached' : 'search-suggestion found';
+        suggestionDiv.className = suggestionClass;
+        
+        const performanceInfo = result.fromCache ? 
+          '💾 From cache' : 
+          `⚡ ${result.searchTime}ms${result.serverCacheHit ? ' (server cache)' : ''}`;
+
+        suggestionDiv.innerHTML = `
           <div class="suggestion-content">
             <div class="suggestion-info">
-              <div class="suggestion-name">✅ ${result.name}</div>
-              <div class="suggestion-details">
-                <span>SKU: ${result.sku}</span>
-                <span class="search-badge">${result.searchMethod.toUpperCase()}</span>
-                <span>Retail: $${result.retailPrice.toFixed(2)}</span>
-                <span>Trade: $${result.suggestedTrade.toFixed(2)}</span>
+              <div class="suggestion-card-name">✅ ${result.name}</div>
+              <div class="suggestion-sku">SKU: ${result.sku} ${result.cardNumber !== 'N/A' ? '| ' + result.cardNumber : ''}</div>
+              <div class="suggestion-performance">
+                <div class="performance-metric ${result.searchTime < 1000 ? 'fast' : 'slow'}">
+                  ${performanceInfo}
+                </div>
+                ${result.optimizationUsed ? '<div class="performance-metric fast">🚀 Optimized</div>' : ''}
               </div>
             </div>
             <div class="suggestion-actions">
+              <button type="button" class="suggestion-btn confirm-btn">✅ Confirm</button>
+              <button type="button" class="suggestion-btn reject-btn">❌ Reject</button>
             </div>
           </div>
         `;
+        
+        // Confirm button handler
+        const confirmBtn = suggestionDiv.querySelector('.confirm-btn');
+        confirmBtn.addEventListener('click', () => {
+          inputElement.value = result.name;
+          inputElement.dataset.confirmedSku = result.sku;
+          inputElement.dataset.confirmedResult = JSON.stringify(result);
+          suggestionDiv.remove();
+          inputElement.style.borderColor = '#27ae60';
+          inputElement.style.backgroundColor = '#d4edda';
+        });
+        
+        // Reject button handler
+        const rejectBtn = suggestionDiv.querySelector('.reject-btn');
+        rejectBtn.addEventListener('click', () => {
+          suggestionDiv.remove();
+          inputElement.focus();
+        });
+        
       } else {
-        suggestion.innerHTML = `
+        suggestionDiv.className = 'search-suggestion not-found';
+        suggestionDiv.innerHTML = `
           <div class="suggestion-content">
             <div class="suggestion-info">
-              <div class="suggestion-name">❌ "${query}" not found</div>
-              <div class="suggestion-details">
-                <span>Not in your Shopify inventory</span>
+              <div class="suggestion-card-name">❌ "${originalQuery}" not found in inventory</div>
+              <div class="suggestion-sku">This card is not in your Shopify store</div>
+              <div class="suggestion-performance">
+                <div class="performance-metric">
+                  ⚡ ${result.searchTime}ms${result.fromCache ? ' (cached)' : ''}
+                </div>
               </div>
             </div>
             <div class="suggestion-actions">
-              <button type="button" class="suggestion-btn" style="background: var(--warning); color: white;">⚠️ Continue</button>
+              <button type="button" class="suggestion-btn continue-btn">⚠️ Continue Anyway</button>
               <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
             </div>
           </div>
         `;
+        
+        // Continue anyway button handler
+        const continueBtn = suggestionDiv.querySelector('.continue-btn');
+        continueBtn.addEventListener('click', () => {
+          inputElement.dataset.confirmedResult = JSON.stringify(result);
+          suggestionDiv.remove();
+          inputElement.style.borderColor = '#f39c12';
+          inputElement.style.backgroundColor = '#fff3cd';
+        });
+        
+        // Cancel button handler
+        const rejectBtn = suggestionDiv.querySelector('.reject-btn');
+        rejectBtn.addEventListener('click', () => {
+          inputElement.value = '';
+          suggestionDiv.remove();
+          inputElement.focus();
+        });
       }
-
-      container.appendChild(suggestion);
-
-      // Handle confirm
-      suggestion.querySelector('.confirm-btn, .suggestion-btn')?.addEventListener('click', function() {
-        input.value = result.name;
-        input.dataset.confirmedResult = JSON.stringify(result);
-        input.classList.add(result.found ? 'confirmed' : 'not-found');
-        suggestion.remove();
-      });
-
-      // Handle reject
-      suggestion.querySelector('.reject-btn').addEventListener('click', function() {
-        suggestion.remove();
-        input.focus();
-      });
-
-      // Auto-remove
-      setTimeout(() => {
-        if (suggestion.parentNode) suggestion.remove();
-      }, 10000);
+      
+      container.appendChild(suggestionDiv);
     }
 
-    // Initialize page
-    document.addEventListener('DOMContentLoaded', function() {
-      // Setup search for existing inputs
-      document.querySelectorAll('.card-input').forEach(setupCardSearch);
+    // Debounced search function with optimization
+    function setupCardSearch(inputElement) {
+      const container = inputElement.closest('.card-input-container');
+      
+      inputElement.addEventListener('input', function() {
+        const query = this.value.trim();
+        const timerId = searchTimers.get(this) || null;
+        
+        // Clear existing timer
+        if (timerId) {
+          clearTimeout(timerId);
+        }
+        
+        // Remove existing suggestion
+        const existingSuggestion = container.querySelector('.search-suggestion');
+        if (existingSuggestion) {
+          existingSuggestion.remove();
+        }
+        
+        // Reset input styling
+        this.style.borderColor = '';
+        this.style.backgroundColor = '';
+        delete this.dataset.confirmedSku;
+        delete this.dataset.confirmedResult;
+        
+        // If query is too short, don't search
+        if (query.length < 2) {
+          return;
+        }
 
-      // Show/hide customer email
+        // Check for immediate cache hit
+        if (searchClient.isCached(query)) {
+          const result = searchClient.getCached(query);
+          showSearchSuggestion(container, inputElement, { ...result, fromCache: true, searchTime: 0 }, query);
+          return;
+        }
+        
+        // Show searching indicator
+        const searchingDiv = document.createElement('div');
+        searchingDiv.className = 'search-suggestion searching';
+        searchingDiv.innerHTML = '🔍 Searching...';
+        container.appendChild(searchingDiv);
+        
+        // Set new timer with shorter delay for cached results
+        const delay = searchClient.isCached(query) ? 300 : 1200; // Faster for potential cache hits
+        const newTimerId = setTimeout(async () => {
+          try {
+            const result = await searchCard(query);
+            
+            // Remove searching indicator
+            const currentSearching = container.querySelector('.search-suggestion.searching');
+            if (currentSearching) {
+              currentSearching.remove();
+            }
+            
+            // Show suggestion based on result
+            showSearchSuggestion(container, inputElement, result, query);
+            
+          } catch (error) {
+            console.error('Search error:', error);
+            const currentSearching = container.querySelector('.search-suggestion.searching');
+            if (currentSearching) {
+              currentSearching.remove();
+            }
+          }
+          
+          searchTimers.delete(this);
+        }, delay);
+        
+        searchTimers.set(this, newTimerId);
+      });
+      
+      // Hide suggestion when input loses focus (with a small delay)
+      inputElement.addEventListener('blur', function() {
+        setTimeout(() => {
+          const suggestion = container.querySelector('.search-suggestion');
+          if (suggestion && !suggestion.matches(':hover')) {
+            suggestion.remove();
+          }
+        }, 200);
+      });
+    }
+
+    // Email function with proper number parsing
+    function sendTradeEmail(tradeData) {
+      const tradeId = tradeData.tradeId || Date.now().toString();
+      const tradeDate = new Date().toLocaleDateString();
+      
+      let cardsSummary = '';
+      if (tradeData.results && tradeData.results.length > 0) {
+        cardsSummary = tradeData.results.map(result => {
+          const found = result.searchMethod !== 'none' ? '✅' : '❌';
+          return `${found} ${result.cardName} ${result.sku ? `(SKU: ${result.sku})` : ''} x${result.quantity} - ${parseFloat(result.retailPrice || 0).toFixed(2)}`;
+        }).join('\n');
+      }
+
+      const foundCards = tradeData.results.filter(r => r.searchMethod !== 'none').length;
+      const totalCards = tradeData.results.length;
+
+      const subject = `Trade Confirmation - ${tradeId}`;
+      const body = `TRADE CONFIRMATION
+
+Trade Details:
+- Trade ID: ${tradeId}
+- Date: ${tradeDate}
+- Employee: ${tradeData.employeeName || 'N/A'}
+- Payout Method: ${tradeData.payoutMethod?.replace('-', ' ').toUpperCase() || 'N/A'}
+
+Cards Processed (${foundCards}/${totalCards} found in Shopify):
+${cardsSummary}
+
+Trade Values:
+- Total Retail Value: ${parseFloat(tradeData.totalRetailValue || 0).toFixed(2)}
+- Suggested Trade Value: ${parseFloat(tradeData.suggestedTotal || 0).toFixed(2)}
+- Maximum Trade Value: ${parseFloat(tradeData.maximumTotal || 0).toFixed(2)}
+- Final Payout: ${parseFloat(tradeData.finalPayout || 0).toFixed(2)}
+
+${tradeData.overrideUsed ? `OVERRIDE APPLIED:
+- Override Amount: ${parseFloat(tradeData.overrideAmount || 0).toFixed(2)}
+- Difference: ${tradeData.overrideDifference >= 0 ? '+' : ''}${parseFloat(tradeData.overrideDifference || 0).toFixed(2)}
+
+` : ''}${tradeData.customer?.email ? `STORE CREDIT:
+- Customer Email: ${tradeData.customer.email}
+- Customer ID: ${tradeData.customer.id || 'N/A'}
+- Transaction ID: ${tradeData.storeCreditTransaction?.id || 'N/A'}
+
+` : ''}${tradeData.giftCardCode ? `GIFT CARD:
+- Gift Card Code: ${tradeData.giftCardCode}
+
+` : ''}---
+Generated by Optimized Buyback Portal (Connected to Shopify)`;
+
+      // Create mailto link
+      const mailtoLink = `mailto:ea.collectibles.service@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      
+      // Try to copy to clipboard first, then open email
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(body).then(() => {
+          showEmailNotification('✅ Trade details copied to clipboard! Opening email...', 'success');
+          setTimeout(() => {
+            window.open(mailtoLink);
+          }, 500);
+        }).catch(() => {
+          showEmailNotification('📧 Opening email client with trade details...', 'success');
+          window.open(mailtoLink);
+        });
+      } else {
+        showEmailNotification('📧 Opening email client with trade details...', 'success');
+        window.open(mailtoLink);
+      }
+    }
+
+    // Print inventory labels function
+    function printInventoryLabels(tradeData) {
+      if (!tradeData || !tradeData.results || tradeData.results.length === 0) {
+        alert('No cards available for label printing.');
+        return;
+      }
+
+      // Generate labels for each card (repeated by quantity)
+      const labels = [];
+      tradeData.results.forEach(card => {
+        for (let i = 0; i < card.quantity; i++) {
+          labels.push({
+            sku: card.sku || `CARD-${Date.now()}-${i}`,
+            cardName: card.cardName,
+            condition: card.condition || 'NM'
+          });
+        }
+      });
+
+      const labelHTML = generateLabelSheet(labels, tradeData);
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(labelHTML);
+      printWindow.focus();
+      printWindow.print();
+    }
+
+    // Generate the label sheet HTML
+    function generateLabelSheet(labels, tradeData) {
+      const tradeId = Date.now().toString();
+      const tradeDate = new Date().toLocaleDateString();
+      
+      return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Inventory Labels - Trade ${tradeId}</title>
+          <style>
+            @page { 
+              margin: 0.5in; 
+              size: letter;
+            }
+            
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 0;
+            }
+            
+            .header {
+              text-align: center;
+              margin-bottom: 20px;
+              font-size: 12pt;
+              border-bottom: 2px solid #000;
+              padding-bottom: 10px;
+            }
+            
+            .label-sheet {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 4mm;
+              margin: 0;
+            }
+            
+            .inventory-label {
+              width: 60mm;
+              height: 25mm;
+              border: 1px solid #000;
+              padding: 2mm;
+              box-sizing: border-box;
+              page-break-inside: avoid;
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+            }
+            
+            .barcode-container {
+              text-align: center;
+              flex-grow: 1;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+            }
+            
+            .barcode {
+              height: 12mm;
+              width: 100%;
+              background: repeating-linear-gradient(
+                to right,
+                #000 0px,
+                #000 1px,
+                #fff 1px,
+                #fff 2px
+              );
+              margin: 2mm 0;
+            }
+            
+            .sku-text {
+              font-size: 8pt;
+              font-weight: bold;
+              text-align: center;
+              font-family: 'Courier New', monospace;
+            }
+            
+            .card-info {
+              font-size: 6pt;
+              text-align: center;
+              margin-top: 1mm;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+            
+            @media print {
+              .header { color: #000; }
+              .inventory-label { border: 1px solid #000; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <strong>INVENTORY LABELS</strong><br>
+            Trade ID: ${tradeId} | Date: ${tradeDate} | Employee: ${tradeData.employeeName || 'N/A'}<br>
+            Total Labels: ${labels.length}
+          </div>
+          
+          <div class="label-sheet">
+            ${labels.map(label => `
+              <div class="inventory-label">
+                <div class="barcode-container">
+                  <div class="barcode"></div>
+                  <div class="sku-text">${label.sku}</div>
+                </div>
+                <div class="card-info">${label.cardName.substring(0, 20)}${label.cardName.length > 20 ? '...' : ''} (${label.condition})</div>
+              </div>
+            `).join('')}
+          </div>
+        </body>
+        </html>
+      `;
+    }
+
+    // Show email notification
+    function showEmailNotification(message, type) {
+      const tradeLog = document.getElementById('tradeLog');
+      const notification = document.createElement('div');
+      notification.className = type === 'success' ? 'email-notification' : 'email-error';
+      notification.innerHTML = `📧 ${message}`;
+      tradeLog.insertBefore(notification, tradeLog.firstChild);
+    }
+
+    function previewImage(event) {
+      const file = event.target.files[0];
+      const preview = document.getElementById('imagePreview');
+      
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+      } else {
+        preview.style.display = 'none';
+      }
+    }
+
+    function getSearchMethodBadge(method, fromCache = false) {
+      if (fromCache) {
+        return '<span class="search-method-badge search-method-cached">Cached</span>';
+      }
+      
+      const badges = {
+        'title': '<span class="search-method-badge search-method-title">Title</span>',
+        'sku': '<span class="search-method-badge search-method-sku">SKU</span>',
+        'tag': '<span class="search-method-badge search-method-tag">Card #</span>',
+        'none': '<span class="search-method-badge search-method-none">Not Found</span>'
+      };
+      return badges[method] || '';
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const form = document.getElementById('trade-form');
+      const statusBar = document.getElementById('statusBar');
+      const estimateResults = document.getElementById('estimateResults');
+      const addCardButton = document.getElementById('add-card');
+      const cardList = document.getElementById('card-list');
+      const estimateButton = document.getElementById('estimate-trade');
+      const submitButton = document.getElementById('submit-trade');
+      const printLabelsButton = document.getElementById('print-labels');
+      const overrideToggle = document.getElementById('override-toggle');
+      const overrideContainer = document.getElementById('override-input-container');
+      const overrideCancel = document.getElementById('override-cancel');
+      const customerEmailSection = document.getElementById('customer-email-section');
+      const cacheStatus = document.getElementById('cacheStatus');
+
+      // Setup search for existing card inputs
+      document.querySelectorAll('input[name="cardName"]').forEach(setupCardSearch);
+
+      // Handle payout method changes
       document.querySelectorAll('input[name="payoutMethod"]').forEach(radio => {
         radio.addEventListener('change', function() {
-          const emailSection = document.getElementById('customer-email');
           if (this.value === 'store-credit') {
-            emailSection.classList.add('visible');
+            customerEmailSection.classList.add('visible');
+            document.getElementById('customerEmail').required = true;
           } else {
-            emailSection.classList.remove('visible');
+            customerEmailSection.classList.remove('visible');
+            document.getElementById('customerEmail').required = false;
           }
         });
       });
 
-      // Add card functionality
-      document.getElementById('add-card').addEventListener('click', function() {
-        const cardList = document.getElementById('card-list');
+      // Add new card row
+      addCardButton.addEventListener('click', function() {
         const newRow = document.createElement('div');
         newRow.className = 'card-row';
         newRow.innerHTML = `
           <div class="card-input-container">
-            <input type="text" class="card-input" name="cardName" placeholder="Enter card name, SKU, or card number" required>
+            <input type="text" name="cardName" placeholder="Card Name, SKU, or Card Number" required />
           </div>
-          <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
-          <select class="form-select" name="cardCondition" required style="width: 120px;">
-            <option value="NM">Near Mint</option>
-            <option value="LP">Lightly Played</option>
-            <option value="MP">Moderately Played</option>
+          <input type="number" name="cardQuantity" placeholder="Qty" min="1" value="1" required />
+          <select name="cardCondition" required>
+            <option value="NM">NM (Near Mint)</option>
+            <option value="LP">LP (Lightly Played)</option>
+            <option value="MP">MP (Moderately Played)</option>
           </select>
-          <button type="button" class="remove-btn">✖</button>
+          <button type="button" class="remove-btn" onclick="this.parentElement.remove()">✖</button>
         `;
         cardList.appendChild(newRow);
-
-        // Setup search for new input
-        setupCardSearch(newRow.querySelector('.card-input'));
-
-        // Setup remove button
-        newRow.querySelector('.remove-btn').addEventListener('click', function() {
-          newRow.remove();
-        });
-      });
-
-      // Remove button for existing cards
-      document.querySelectorAll('.remove-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-          btn.closest('.card-row').remove();
-        });
-      });
-
-      // Print labels button handler
-      document.getElementById('print-labels').addEventListener('click', function() {
-        console.log('🏷️ Print button clicked');
-        console.log('📄 Trade data available:', !!lastTradeData);
         
-        if (lastTradeData) {
-          console.log('📄 Printing labels for trade:', lastTradeData);
-          printInventoryLabels(lastTradeData);
+        // Setup search for the new input
+        const newInput = newRow.querySelector('input[name="cardName"]');
+        setupCardSearch(newInput);
+      });
+
+      // Handle override toggle
+      overrideToggle.addEventListener('click', function() {
+        this.classList.toggle('active');
+        overrideContainer.classList.toggle('visible');
+        
+        if (this.classList.contains('active')) {
+          this.textContent = '💰 Override Active';
         } else {
-          alert('No trade data available for label printing. Please complete a trade first.');
+          this.textContent = '💰 Override';
+          document.getElementById('overrideTotal').value = '';
         }
       });
 
-      // Estimate button
-      document.getElementById('estimate-trade').addEventListener('click', function() {
-        const cards = document.querySelectorAll('.card-row');
-        const confirmedCards = Array.from(cards).filter(row => {
-          const input = row.querySelector('.card-input');
-          return input.dataset.confirmedResult;
-        });
+      // Handle override cancel
+      overrideCancel.addEventListener('click', function() {
+        overrideToggle.classList.remove('active');
+        overrideContainer.classList.remove('visible');
+        overrideToggle.textContent = '💰 Override';
+        document.getElementById('overrideTotal').value = '';
+      });
 
-        if (confirmedCards.length === 0) {
-          alert('Please search and confirm at least one card before estimating.');
+      // 🆕 OPTIMIZED ESTIMATE FUNCTION
+      estimateButton.addEventListener('click', async function() {
+        const cards = getCardData();
+        if (cards.length === 0) {
+          alert('Please add at least one card to estimate.');
           return;
         }
 
-        if (confirmedCards.length !== cards.length) {
-          alert('Please confirm all card searches before estimating.');
+        // Check if all cards have been confirmed
+        const unconfirmedCards = cards.filter(card => !card.confirmed);
+        if (unconfirmedCards.length > 0) {
+          alert(`Please confirm the search results for all cards before estimating. ${unconfirmedCards.length} card(s) need confirmation.`);
           return;
         }
 
-        // Show submit button after estimate
-        document.getElementById('submit-trade').style.display = 'inline-flex';
+        statusBar.innerHTML = `
+          🔍 Calculating trade estimates...
+          <div class="status-metrics">
+            <div class="metric">⚡ Using optimized search</div>
+          </div>
+        `;
+        estimateButton.disabled = true;
         
-        const statusText = document.querySelector('.status-text');
-        statusText.textContent = `Estimate complete! ${confirmedCards.length} cards confirmed.`;
-        statusText.style.color = 'var(--success)';
+        try {
+          // Use confirmed results for estimation
+          const results = cards.map(card => {
+            const result = card.confirmedResult;
+            return {
+              cardName: result.name,
+              sku: result.sku,
+              cardNumber: result.cardNumber,
+              condition: card.condition,
+              quantity: card.quantity,
+              retailPrice: result.retailPrice,
+              suggestedPrice: result.suggestedTrade,
+              maxPrice: result.maxTrade,
+              searchMethod: result.searchMethod,
+              fromCache: result.fromCache
+            };
+          });
+
+          const totalRetail = results.reduce((sum, r) => sum + (r.retailPrice * r.quantity), 0);
+          const totalSuggested = results.reduce((sum, r) => sum + (r.suggestedPrice * r.quantity), 0);
+          const totalMaximum = results.reduce((sum, r) => sum + (r.maxPrice * r.quantity), 0);
+
+          displayEstimateResults(results, totalRetail, totalSuggested, totalMaximum);
+          
+          const foundCards = results.filter(r => r.searchMethod !== 'none').length;
+          const cachedCards = results.filter(r => r.fromCache).length;
+          
+          statusBar.innerHTML = `
+            ✅ Estimate complete! Using ${foundCards}/${results.length} confirmed cards.
+            <div class="status-metrics">
+              <div class="metric good">💾 ${cachedCards} cached</div>
+              <div class="metric good">⚡ Optimized</div>
+            </div>
+          `;
+        } catch (error) {
+          console.error('Estimation error:', error);
+          statusBar.innerHTML = `
+            ❌ Error getting estimates. Please try again.
+            <div class="status-metrics">
+              <div class="metric error">❌ ${error.message}</div>
+            </div>
+          `;
+          alert('Error getting estimates: ' + error.message);
+        } finally {
+          estimateButton.disabled = false;
+        }
       });
 
-      // Form submission
-      document.getElementById('trade-form').addEventListener('submit', async function(e) {
+      // Handle form submission
+      form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        const employeeName = document.getElementById('employeeName').value;
-        const payoutMethod = document.querySelector('input[name="payoutMethod"]:checked')?.value;
-        const customerEmail = document.getElementById('customerEmail').value;
+        const formData = new FormData(form);
+        const cards = getCardData();
+        
+        if (cards.length === 0) {
+          alert('Please add at least one card to trade.');
+          return;
+        }
+
+        // Check if all cards have been confirmed
+        const unconfirmedCards = cards.filter(card => !card.confirmed);
+        if (unconfirmedCards.length > 0) {
+          alert(`Please confirm the search results for all cards before submitting. ${unconfirmedCards.length} card(s) need confirmation.`);
+          return;
+        }
+
+        const employeeName = formData.get('employeeName');
+        const payoutMethod = formData.get('payoutMethod');
+        const customerEmail = formData.get('customerEmail');
+        const overrideAmount = document.getElementById('overrideTotal').value;
 
         if (!employeeName || !payoutMethod) {
           alert('Please select an employee and payout method.');
@@ -1269,112 +1853,287 @@
           return;
         }
 
-        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
-          const input = row.querySelector('.card-input');
-          const quantity = parseInt(row.querySelector('[name="cardQuantity"]').value) || 1;
-          const result = JSON.parse(input.dataset.confirmedResult || '{}');
-          
-          return {
-            cardName: result.name || input.value,
-            sku: result.sku || null,
-            quantity: quantity
-          };
-        });
-
-        const submitBtn = document.getElementById('submit-trade');
-        submitBtn.innerHTML = '<span class="spinner"></span><span>Processing...</span>';
-        submitBtn.disabled = true;
-
+        statusBar.innerHTML = `
+          ⏳ Processing trade through Shopify...
+          <div class="status-metrics">
+            <div class="metric">🚀 Optimized processing</div>
+          </div>
+        `;
+        submitButton.disabled = true;
+        
         try {
-          const response = await fetch(searchClient.apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              cards: cards,
-              employeeName: employeeName,
-              payoutMethod: payoutMethod,
-              customerEmail: customerEmail || undefined
-            })
-          });
-
-          if (!response.ok) {
-            throw new Error(`API Error: ${response.status}`);
-          }
-
-          const data = await response.json();
-          console.log('📥 Trade Response:', data);
-
-          if (data.success) {
-            submitBtn.innerHTML = '<span>✅</span><span>Trade Complete</span>';
-            submitBtn.disabled = false;
-            
-            // Store trade data for label printing
-            lastTradeData = {
-              tradeId: Date.now().toString(),
-              employeeName: employeeName,
-              payoutMethod: payoutMethod,
-              results: cards.map((card, index) => ({
-                cardName: card.cardName,
-                sku: card.sku,
-                quantity: card.quantity,
-                condition: Array.from(document.querySelectorAll('.card-row'))[index]?.querySelector('[name="cardCondition"]')?.value || 'NM'
-              }))
-            };
-            
-            // Show print labels button
-            document.getElementById('print-labels').style.display = 'inline-flex';
-            console.log('🏷️ Print button should now be visible');
-            
-            const statusText = document.querySelector('.status-text');
-            statusText.textContent = 'Trade completed successfully! Print labels available.';
-            statusText.style.color = 'var(--success)';
-
-            // Show success details
-            let successMessage = `Trade completed!\n\nFinal Payout: ${data.finalPayout || 'N/A'}\nPayout Method: ${(data.payoutMethod || payoutMethod).replace('-', ' ').toUpperCase()}`;
-            
-            if (data.giftCardCode) {
-              successMessage += `\nGift Card Code: ${data.giftCardCode}`;
-            }
-            
-            if (data.customer?.email) {
-              successMessage += `\nStore Credit issued to: ${data.customer.email}`;
-            }
-
-            successMessage += `\n\nYou can now print inventory labels for the traded cards.`;
-
-            alert(successMessage);
-
-            // Don't auto-reset the form so print button stays visible
-
-          } else {
-            throw new Error(data.error || 'Trade processing failed');
-          }
-
+          await processTrade(cards, employeeName, payoutMethod, customerEmail, overrideAmount);
         } catch (error) {
-          console.error('Trade error:', error);
-          submitBtn.innerHTML = '<span>✅</span><span>Process Trade</span>';
-          submitBtn.disabled = false;
-          
-          const statusText = document.querySelector('.status-text');
-          statusText.textContent = `Trade failed: ${error.message}`;
-          statusText.style.color = 'var(--error)';
-          
+          console.error('Trade processing error:', error);
+          statusBar.innerHTML = `
+            ❌ Trade processing failed. Please try again.
+            <div class="status-metrics">
+              <div class="metric error">❌ ${error.message}</div>
+            </div>
+          `;
           alert('Trade processing failed: ' + error.message);
+        } finally {
+          submitButton.disabled = false;
         }
       });
 
-      // Update metrics periodically
-      setInterval(() => {
-        document.getElementById('total-searches').textContent = searchClient.stats.totalSearches;
-        document.getElementById('cache-rate').textContent = 
-          searchClient.stats.totalSearches > 0 ? 
-          Math.round((searchClient.stats.cacheHits / searchClient.stats.totalSearches) * 100) + '%' : 
-          '0%';
-      }, 1000);
+      // 🆕 CACHE STATUS CLICK HANDLER
+      cacheStatus.addEventListener('click', function() {
+        const details = Array.from(searchClient.searchCache.entries()).map(([key, value]) => {
+          const age = Math.round((Date.now() - value.timestamp) / 1000);
+          return `${key}: ${age}s ago (${value.searchTime}ms)`;
+        }).join('\n');
+        
+        alert(`Cache Contents (${searchClient.searchCache.size} items):\n\n${details || 'Cache is empty'}\n\nCache hit rate: ${document.getElementById('cacheHitRate').textContent}`);
+      });
 
-      console.log('🚀 Trade-In Portal initialized - connecting to real API');
-      console.log('🔗 API URL:', searchClient.apiUrl);
+      // 🆕 PERIODIC CACHE CLEANUP
+      setInterval(() => {
+        searchClient.clearExpiredCache();
+      }, 60000); // Clean every minute
+
+      function getCardData() {
+        const cardRows = document.querySelectorAll('.card-row');
+        const cards = [];
+        
+        cardRows.forEach(row => {
+          const input = row.querySelector('input[name="cardName"]');
+          const name = input.value.trim();
+          const quantity = parseInt(row.querySelector('input[name="cardQuantity"]').value) || 1;
+          const condition = row.querySelector('select[name="cardCondition"]').value;
+          const confirmedResult = input.dataset.confirmedResult;
+          
+          if (name && confirmedResult) {
+            cards.push({ 
+              name, 
+              quantity, 
+              condition,
+              confirmed: true,
+              confirmedResult: JSON.parse(confirmedResult)
+            });
+          } else if (name) {
+            cards.push({ 
+              name, 
+              quantity, 
+              condition,
+              confirmed: false
+            });
+          }
+        });
+        
+        return cards;
+      }
+
+      function displayEstimateResults(results, totalRetail, totalSuggested, totalMaximum) {
+        let html = `
+          <div style="margin-bottom: 15px;">
+            <strong>📊 Optimized Trade Estimate Results</strong>
+          </div>
+        `;
+
+        results.forEach(result => {
+          const cacheIndicator = result.fromCache ? '💾 ' : '';
+          html += `
+            <div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 6px; border-left: 4px solid #3498db;">
+              <strong>${cacheIndicator}${result.cardName}</strong> ${getSearchMethodBadge(result.searchMethod, result.fromCache)}
+              <br>
+              <small>SKU: ${result.sku} | Condition: ${result.condition} | Quantity: ${result.quantity}</small>
+              <div class="trade-values">
+                Retail: ${result.retailPrice.toFixed(2)} | 
+                <span class="suggested-value">Trade: ${result.suggestedPrice.toFixed(2)}</span> | 
+                <span class="maximum-value">Max: ${result.maxPrice.toFixed(2)}</span>
+              </div>
+            </div>
+          `;
+        });
+
+        const cachedCount = results.filter(r => r.fromCache).length;
+        html += `
+          <div style="margin-top: 15px; padding: 15px; background: #e8f4fd; border-radius: 8px; border-left: 4px solid #17a2b8;">
+            <strong>💰 Total Values:</strong><br>
+            Retail Value: ${totalRetail.toFixed(2)}<br>
+            <span class="suggested-value">Suggested Trade: ${totalSuggested.toFixed(2)}</span><br>
+            <span class="maximum-value">Maximum Trade: ${totalMaximum.toFixed(2)}</span>
+            ${cachedCount > 0 ? `<br><small>💾 ${cachedCount} results from cache</small>` : ''}
+          </div>
+        `;
+
+        estimateResults.innerHTML = html;
+        estimateResults.style.display = 'block';
+      }
+
+      async function processTrade(cards, employeeName, payoutMethod, customerEmail, overrideAmount) {
+        try {
+          // Prepare the trade data using confirmed results
+          const tradeData = {
+            cards: cards.map(card => ({
+              cardName: card.confirmedResult.name,
+              sku: card.confirmedResult.sku,
+              quantity: card.quantity
+            })),
+            employeeName,
+            payoutMethod,
+            customerEmail,
+            overrideTotal: overrideAmount && parseFloat(overrideAmount) > 0 ? parseFloat(overrideAmount) : null
+          };
+
+          console.log('Sending optimized trade data to backend:', tradeData);
+
+          const response = await fetch(`${API_BASE_URL}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(tradeData)
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `API Error: ${response.status}`);
+          }
+
+          const data = await response.json();
+          
+          if (data.success) {
+            // Process the response from your optimized backend
+            const tradeResults = {
+              tradeId: Date.now().toString(),
+              employeeName: data.employeeName,
+              payoutMethod: data.payoutMethod,
+              results: data.results.map(result => ({
+                cardName: result.match || result.cardName,
+                sku: result.sku,
+                cardNumber: searchClient.extractCardNumber(result.sku) || 'N/A',
+                condition: 'NM', // Default condition
+                quantity: result.quantity,
+                retailPrice: result.retailPrice,
+                suggestedPrice: result.suggestedTradeValue,
+                maxPrice: result.maximumTradeValue,
+                searchMethod: result.searchMethod
+              })),
+              totalRetailValue: parseFloat(data.totalRetailValue),
+              suggestedTotal: parseFloat(data.suggestedTotal),
+              maximumTotal: parseFloat(data.maximumTotal),
+              finalPayout: parseFloat(data.finalPayout),
+              overrideUsed: data.overrideUsed,
+              overrideAmount: data.overrideAmount ? parseFloat(data.overrideAmount) : null,
+              overrideDifference: data.overrideDifference ? parseFloat(data.overrideDifference) : null,
+              customer: data.customer,
+              storeCreditTransaction: data.storeCreditTransaction,
+              giftCardCode: data.giftCardCode,
+              // 🆕 Include optimization metrics
+              searchPerformance: data.searchPerformance
+            };
+
+            // Store for label printing
+            lastTradeData = tradeResults;
+
+            // Display results with optimization info
+            displayTradeResults(tradeResults);
+            
+            // Send email
+            sendTradeEmail(tradeResults);
+            
+            // Show print labels button
+            printLabelsButton.style.display = 'inline-block';
+            
+            // 🆕 Enhanced success message with optimization metrics
+            const optimizationInfo = data.searchPerformance?.optimizationUsed ? 
+              ` (⚡ ${data.searchPerformance.totalSearchTime}ms, ${data.searchPerformance.cacheHitRate} cache hits)` : '';
+            
+            statusBar.innerHTML = `
+              ✅ Trade completed successfully!${optimizationInfo}
+              <div class="status-metrics">
+                <div class="metric good">🚀 Optimized</div>
+                ${data.searchPerformance?.fastResponse ? '<div class="metric good">⚡ Fast</div>' : ''}
+              </div>
+            `;
+
+            // Clear the form for next trade
+            form.reset();
+            const cardRows = document.querySelectorAll('.card-row');
+            cardRows.forEach((row, index) => {
+              if (index > 0) row.remove(); // Keep first row, remove others
+            });
+            
+            // Reset the first row
+            const firstInput = document.querySelector('input[name="cardName"]');
+            if (firstInput) {
+              firstInput.style.borderColor = '';
+              firstInput.style.backgroundColor = '';
+              delete firstInput.dataset.confirmedSku;
+              delete firstInput.dataset.confirmedResult;
+            }
+            
+            // Reset override button
+            overrideToggle.classList.remove('active');
+            overrideContainer.classList.remove('visible');
+            overrideToggle.textContent = '💰 Override';
+            
+          } else {
+            throw new Error(data.error || 'Trade processing failed');
+          }
+        } catch (error) {
+          console.error('Trade processing error:', error);
+          throw error; // Re-throw to be caught by the form handler
+        }
+      }
+
+      function displayTradeResults(tradeData) {
+        const tradeLog = document.getElementById('tradeLog');
+        
+        const optimizationInfo = tradeData.searchPerformance ? 
+          `<br><small>⚡ Optimized: ${tradeData.searchPerformance.totalSearchTime}ms total, ${tradeData.searchPerformance.cacheHitRate} cache hits</small>` : '';
+        
+        let resultHtml = `
+          <div class="log-entry" style="border-left-color: #27ae60;">
+            <strong>✅ TRADE COMPLETED</strong><br>
+            Trade ID: ${tradeData.tradeId}<br>
+            Employee: ${tradeData.employeeName}<br>
+            Payout Method: ${tradeData.payoutMethod.replace('-', ' ').toUpperCase()}<br>
+            Final Payout: ${tradeData.finalPayout.toFixed(2)}${optimizationInfo}
+        `;
+
+        if (tradeData.overrideUsed) {
+          resultHtml += `<br><strong style="color: #e67e22;">Override Applied: ${tradeData.overrideAmount.toFixed(2)} (${tradeData.overrideDifference >= 0 ? '+' : ''}${tradeData.overrideDifference.toFixed(2)})</strong>`;
+        }
+
+        if (tradeData.customer?.email) {
+          resultHtml += `<br><strong style="color: #3498db;">Store Credit: ${tradeData.customer.email}</strong>`;
+        }
+
+        if (tradeData.giftCardCode) {
+          resultHtml += `<br><strong style="color: #9b59b6;">Gift Card: ${tradeData.giftCardCode}</strong>`;
+        }
+
+        resultHtml += `</div>`;
+
+        tradeLog.innerHTML = resultHtml + tradeLog.innerHTML;
+      }
+
+      // Print labels button handler
+      printLabelsButton.addEventListener('click', function() {
+        if (lastTradeData) {
+          printInventoryLabels(lastTradeData);
+        } else {
+          alert('No trade data available for label printing.');
+        }
+      });
+
+      // 🆕 Initialize optimization features
+      console.log('🚀 Optimized Buyback Portal initialized');
+      console.log('💾 Client-side caching enabled');
+      console.log('⚡ Smart search strategies active');
+      console.log('🔄 Search deduplication enabled');
+      
+      // Show initial cache status
+      searchClient.updateCacheStatus();
+      searchClient.updateMetrics();
     });
   </script>
 </body>
 </html>
+
+
+
+
