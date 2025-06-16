@@ -3,47 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buyback Portal</title>
+  <title>Trade-In Processing</title>
   
   <style>
     :root {
-      /* Sophisticated color palette */
       --primary: #1a365d;
       --primary-light: #2c5282;
-      --primary-dark: #153e52;
       --accent: #3182ce;
-      --accent-light: #63b3ed;
       --success: #38a169;
       --warning: #d69e2e;
       --error: #e53e3e;
-      
-      /* Neutral grays */
       --gray-50: #f7fafc;
       --gray-100: #edf2f7;
       --gray-200: #e2e8f0;
       --gray-300: #cbd5e0;
-      --gray-400: #a0aec0;
       --gray-500: #718096;
       --gray-600: #4a5568;
       --gray-700: #2d3748;
       --gray-800: #1a202c;
-      --gray-900: #171923;
-      
-      /* Typography */
       --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-      
-      /* Shadows */
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
       --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-      
-      /* Borders */
       --border-radius: 8px;
       --border-radius-lg: 12px;
-      --border-radius-xl: 16px;
     }
 
     * {
@@ -65,59 +47,40 @@
       margin: 0 auto;
     }
 
-    /* Header */
-    .header {
-      margin-bottom: 48px;
+    .main-card {
+      background: white;
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--gray-200);
+      overflow: visible;
     }
 
-    .logo {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      background: var(--primary);
+    .card-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
       color: white;
-      padding: 16px 32px;
-      border-radius: var(--border-radius-xl);
-      box-shadow: var(--shadow-lg);
-      font-size: 24px;
+      padding: 32px;
+      text-align: center;
+    }
+
+    .card-title {
+      font-size: 28px;
       font-weight: 700;
+      margin: 0;
       letter-spacing: -0.025em;
     }
 
-    .logo-icon {
-      font-size: 28px;
-    }
-
-    /* Main card container - ensure it doesn't clip suggestions */
-    .main-card {
-      background: white;
-      border-radius: var(--border-radius-xl);
-      box-shadow: var(--shadow-xl);
-      border: 1px solid var(--gray-200);
-      overflow: visible; /* Changed from hidden to visible */
-      position: relative;
+    .card-subtitle {
+      font-size: 16px;
+      opacity: 0.9;
+      margin: 8px 0 0 0;
+      font-weight: 400;
     }
 
     .card-content {
       padding: 48px;
-      overflow: visible; /* Ensure suggestions can extend outside */
-      position: relative;
-    }
-
-    /* Ensure form doesn't clip suggestions */
-    #trade-form {
-      overflow: visible;
-      position: relative;
-    }
-
-    /* Container should also allow overflow */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
       overflow: visible;
     }
 
-    /* Form sections */
     .form-section {
       margin-bottom: 40px;
     }
@@ -132,7 +95,6 @@
       gap: 8px;
     }
 
-    /* Employee and payout section */
     .employee-payout-grid {
       display: grid;
       grid-template-columns: 1fr 2fr;
@@ -143,7 +105,6 @@
       border: 1px solid var(--gray-200);
     }
 
-    /* Form controls */
     .form-group {
       margin-bottom: 24px;
     }
@@ -173,7 +134,6 @@
       box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
     }
 
-    /* Payout method radio buttons */
     .payout-options {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -208,17 +168,16 @@
     .payout-option:hover .payout-label {
       border-color: var(--accent);
       transform: translateY(-1px);
-      box-shadow: var(--shadow-md);
+      box-shadow: var(--shadow);
     }
 
     .payout-radio:checked + .payout-label {
       border-color: var(--accent);
       background: var(--accent);
       color: white;
-      box-shadow: var(--shadow-md);
+      box-shadow: var(--shadow);
     }
 
-    /* Customer email section */
     .customer-email {
       margin-top: 20px;
       padding: 24px;
@@ -236,17 +195,25 @@
       max-height: 200px;
     }
 
-    /* Cards section - fix overflow for search suggestions */
     .cards-section {
       background: var(--gray-50);
       border-radius: var(--border-radius-lg);
       border: 1px solid var(--gray-200);
-      overflow: visible; /* Changed from hidden to visible */
+      overflow: visible;
+    }
+
+    .cards-header {
+      background: white;
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .cards-list {
       padding: 24px 32px;
-      overflow: visible; /* Ensure suggestions can extend outside */
+      overflow: visible;
     }
 
     .card-row {
@@ -261,12 +228,17 @@
       margin-bottom: 16px;
       transition: all 0.2s ease;
       position: relative;
-      overflow: visible; /* Allow suggestions to extend outside */
+      overflow: visible;
+    }
+
+    .card-row:hover {
+      box-shadow: var(--shadow);
+      transform: translateY(-1px);
     }
 
     .card-input-container {
       position: relative;
-      z-index: 1000; /* Ensure suggestions appear above other elements */
+      z-index: 1000;
     }
 
     .card-input {
@@ -294,21 +266,6 @@
       background: rgba(214, 158, 46, 0.05);
     }
 
-    .cards-header {
-      background: white;
-      padding: 24px 32px;
-      border-bottom: 1px solid var(--gray-200);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .card-row:hover {
-      box-shadow: var(--shadow-md);
-      transform: translateY(-1px);
-    }
-
-    /* Search suggestions - enhanced for multiple results with proper scrolling */
     .search-suggestion {
       position: absolute;
       top: 100%;
@@ -318,272 +275,100 @@
       border: 2px solid var(--accent);
       border-top: none;
       border-radius: 0 0 var(--border-radius) var(--border-radius);
-      box-shadow: var(--shadow-xl);
-      z-index: 10000; /* Much higher z-index to ensure it's above everything */
+      box-shadow: var(--shadow-lg);
+      z-index: 10000;
       animation: slideDown 0.2s ease;
-      max-height: 60vh; /* Use viewport height instead of fixed pixels */
-      overflow-y: auto;
-      overflow-x: hidden;
-      /* Ensure smooth scrolling */
-      scrollbar-width: thin;
-      scrollbar-color: var(--gray-400) var(--gray-100);
     }
 
-    /* Custom scrollbar for webkit browsers */
-    .search-suggestion::-webkit-scrollbar {
-      width: 8px;
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
-    .search-suggestion::-webkit-scrollbar-track {
-      background: var(--gray-100);
-      border-radius: 4px;
-    }
-
-    .search-suggestion::-webkit-scrollbar-thumb {
-      background: var(--gray-400);
-      border-radius: 4px;
-    }
-
-    .search-suggestion::-webkit-scrollbar-thumb:hover {
-      background: var(--gray-500);
-    }
-
-    .search-suggestion.multiple-results {
-      border-color: var(--warning);
-      max-height: 70vh; /* Slightly taller for multiple results */
-    }
-
-    .card-header {
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-      color: white;
-      padding: 32px;
-      text-align: center;
-    }
-
-    .card-title {
-      font-size: 28px;
-      font-weight: 700;
-      margin: 0;
-      letter-spacing: -0.025em;
-    }
-
-    .card-subtitle {
-      font-size: 16px;
-      opacity: 0.9;
-      margin: 8px 0 0 0;
-      font-weight: 400;
-    }
-
-    /* Add scroll indicator for multiple results */
-    .scroll-indicator {
-      position: sticky;
-      bottom: 0;
-      background: linear-gradient(to top, rgba(255,255,255,0.9) 0%, transparent 100%);
-      text-align: center;
-      padding: 8px;
-      font-size: 12px;
-      color: var(--gray-500);
-      pointer-events: none;
-    }
-
-    .scroll-indicator.visible {
-      display: block;
-    }
-      background: var(--gray-50);
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--gray-200);
-      font-weight: 600;
-      color: var(--gray-700);
+    .suggestion-content {
+      padding: 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-    }
-
-    .suggestion-header.multiple {
-      background: rgba(214, 158, 46, 0.1);
-      border-bottom-color: rgba(214, 158, 46, 0.3);
-      color: var(--warning);
-    }
-
-    .result-count {
-      font-size: 14px;
-      color: var(--gray-500);
-    }
-
-    .suggestion-item {
-      padding: 20px; /* Increased padding for better touch targets */
-      border-bottom: 1px solid var(--gray-100);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      /* Ensure items don't get cut off */
-      min-height: 120px;
-      display: flex;
-      align-items: center;
-    }
-
-    .suggestion-item:hover {
-      background: var(--gray-50);
-      transform: translateX(4px); /* Subtle hover animation */
-    }
-
-    .suggestion-item:last-child {
-      border-bottom: none;
-      margin-bottom: 0; /* Remove any bottom margin */
-    }
-
-    .suggestion-item.selected {
-      background: rgba(49, 130, 206, 0.1);
-      border-left: 4px solid var(--accent);
-      transform: translateX(4px);
-    }
-
-    .card-details {
-      display: grid;
-      grid-template-columns: 1fr auto;
       gap: 16px;
-      align-items: center;
-      width: 100%; /* Ensure full width usage */
     }
 
-    .card-info {
+    .suggestion-info {
       flex: 1;
     }
 
-    .card-name {
+    .suggestion-name {
       font-weight: 600;
       color: var(--gray-800);
       margin-bottom: 4px;
     }
 
-    .card-meta {
-      display: flex;
-      gap: 16px;
+    .suggestion-details {
       font-size: 14px;
       color: var(--gray-500);
-      margin-bottom: 8px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
       flex-wrap: wrap;
     }
 
-    .card-pricing {
-      display: flex;
-      gap: 12px;
-      font-size: 13px;
-    }
-
-    .price-item {
-      background: var(--gray-100);
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-weight: 500;
-    }
-
-    .price-retail {
-      color: var(--gray-700);
-    }
-
-    .price-trade {
-      color: var(--accent);
-    }
-
-    .price-max {
-      color: var(--success);
-    }
-
-    .card-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      min-width: 100px;
-    }
-
-    .select-btn {
-      padding: 8px 16px;
-      border: none;
-      border-radius: var(--border-radius);
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      background: var(--accent);
-      color: white;
-    }
-
-    .select-btn:hover {
-      background: var(--primary);
-      transform: translateY(-1px);
-    }
-
-    .disambiguation-actions {
-      background: var(--gray-50);
-      padding: 16px 20px;
-      border-top: 1px solid var(--gray-200);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      position: sticky; /* Make actions sticky at bottom */
-      bottom: 0;
-      z-index: 10;
-    }
-
-    .refine-search {
-      background: var(--gray-200);
-      color: var(--gray-700);
-      border: none;
-      padding: 8px 16px;
-      border-radius: var(--border-radius);
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .refine-search:hover {
-      background: var(--gray-300);
-    }
-
-    .cancel-search {
-      background: var(--error);
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: var(--border-radius);
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .cancel-search:hover {
-      background: #c53030;
-    }
-
-    /* Set indicators */
-    .set-badge {
+    .search-badge {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      padding: 3px 8px;
-      background: var(--primary);
+      padding: 4px 8px;
+      background: var(--accent);
       color: white;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-
-    .rarity-badge {
-      padding: 2px 6px;
       border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
+      font-size: 12px;
+      font-weight: 500;
       text-transform: uppercase;
     }
 
-    .rarity-common { background: #718096; color: white; }
-    .rarity-uncommon { background: #38a169; color: white; }
-    .rarity-rare { background: #d69e2e; color: white; }
-    .rarity-mythic { background: #e53e3e; color: white; }
+    .search-badge.cached {
+      background: var(--success);
+    }
 
-    /* Remove button */
+    .suggestion-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .suggestion-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .confirm-btn {
+      background: var(--success);
+      color: white;
+    }
+
+    .confirm-btn:hover {
+      background: #2f855a;
+      transform: translateY(-1px);
+    }
+
+    .reject-btn {
+      background: var(--gray-200);
+      color: var(--gray-700);
+    }
+
+    .reject-btn:hover {
+      background: var(--gray-300);
+    }
+
     .remove-btn {
       background: var(--error);
       color: white;
@@ -600,7 +385,6 @@
       transform: scale(1.05);
     }
 
-    /* Action buttons */
     .actions {
       display: flex;
       gap: 16px;
@@ -634,6 +418,12 @@
       transform: translateY(0);
     }
 
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
     .btn-primary {
       background: var(--primary);
       color: white;
@@ -660,80 +450,6 @@
       border: 1px solid var(--gray-300);
     }
 
-    /* Estimate results */
-    .estimate-results {
-      background: linear-gradient(135deg, rgba(49, 130, 206, 0.05) 0%, rgba(49, 130, 206, 0.02) 100%);
-      border: 1px solid rgba(49, 130, 206, 0.2);
-      border-radius: var(--border-radius-lg);
-      padding: 32px;
-      margin: 32px 0;
-      opacity: 0;
-      max-height: 0;
-      overflow: hidden;
-      transition: all 0.3s ease;
-    }
-
-    .estimate-results.visible {
-      opacity: 1;
-      max-height: 1000px;
-    }
-
-    .estimate-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-
-    .estimate-title {
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--gray-800);
-    }
-
-    .estimate-card {
-      background: white;
-      border-radius: var(--border-radius);
-      padding: 20px;
-      margin-bottom: 16px;
-      border: 1px solid var(--gray-200);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .estimate-totals {
-      background: white;
-      border-radius: var(--border-radius-lg);
-      padding: 24px;
-      border: 2px solid var(--accent);
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 20px;
-      text-align: center;
-    }
-
-    .total-item {
-      padding: 16px;
-      border-radius: var(--border-radius);
-      background: var(--gray-50);
-    }
-
-    .total-label {
-      font-size: 14px;
-      color: var(--gray-600);
-      margin-bottom: 4px;
-    }
-
-    .total-value {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--gray-800);
-    }
-
-    .total-value.primary {
-      color: var(--accent);
-    }
-
-    /* Status bar */
     .status-bar {
       background: white;
       border: 1px solid var(--gray-200);
@@ -743,7 +459,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: var(--shadow-sm);
+      box-shadow: var(--shadow);
     }
 
     .status-text {
@@ -776,99 +492,21 @@
       color: var(--error);
     }
 
-    /* Performance indicator */
-    .performance-badge {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: var(--primary);
-      color: white;
-      padding: 12px 20px;
-      border-radius: 50px;
-      box-shadow: var(--shadow-xl);
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(10px);
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid transparent;
+      border-top: 2px solid currentColor;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
     }
 
-    .performance-badge:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
-    /* Override section */
-    .override-section {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .override-input-container {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      background: rgba(214, 158, 46, 0.1);
-      border: 1px solid rgba(214, 158, 46, 0.3);
-      border-radius: var(--border-radius);
-      animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateX(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    .override-warning {
-      background: rgba(214, 158, 46, 0.1);
-      border: 1px solid rgba(214, 158, 46, 0.3);
-      color: var(--warning);
-      padding: 16px;
-      border-radius: var(--border-radius);
-      margin: 16px 0;
-      font-weight: 500;
-      display: none;
-    }
-
-    .override-warning.visible {
-      display: block;
-      animation: slideDown 0.3s ease;
-    }
-
-    /* Button states */
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none !important;
-    }
-
-    .btn.hidden {
-      display: none;
-    }
-
-    .btn.appearing {
-      animation: buttonAppear 0.4s ease;
-    }
-
-    @keyframes buttonAppear {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
     @media (max-width: 768px) {
       body {
         padding: 16px;
@@ -896,62 +534,11 @@
       .btn {
         justify-content: center;
       }
-
-      .estimate-totals {
-        grid-template-columns: 1fr;
-      }
-
-      .performance-badge {
-        bottom: 16px;
-        right: 16px;
-      }
-    }
-
-    /* Loading states */
-    .loading {
-      opacity: 0.7;
-      pointer-events: none;
-    }
-
-    .spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid transparent;
-      border-top: 2px solid currentColor;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* Micro-interactions */
-    .btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: left 0.5s;
-    }
-
-    .btn:hover::before {
-      left: 100%;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Header -->
-    <div class="header">
-      <!-- Header removed - title now only in card header -->
-    </div>
-
     <!-- Main Card -->
     <div class="main-card">
       <!-- Card Header -->
@@ -1053,33 +640,6 @@
             </div>
           </div>
 
-          <!-- Estimate Results -->
-          <div id="estimate-results" class="estimate-results">
-            <div class="estimate-header">
-              <div class="estimate-title">📊 Trade Estimate</div>
-              <div class="metric good">⚡ Optimized Search</div>
-            </div>
-            
-            <div id="estimate-cards">
-              <!-- Estimate cards will be inserted here -->
-            </div>
-
-            <div class="estimate-totals">
-              <div class="total-item">
-                <div class="total-label">Retail Value</div>
-                <div class="total-value" id="total-retail">$0.00</div>
-              </div>
-              <div class="total-item">
-                <div class="total-label">Suggested Trade</div>
-                <div class="total-value primary" id="total-suggested">$0.00</div>
-              </div>
-              <div class="total-item">
-                <div class="total-label">Maximum Trade</div>
-                <div class="total-value" id="total-maximum">$0.00</div>
-              </div>
-            </div>
-          </div>
-
           <!-- Actions -->
           <div class="actions">
             <button type="button" class="btn btn-accent" id="estimate-trade">
@@ -1087,30 +647,9 @@
               <span>Get Estimate</span>
             </button>
             
-            <!-- Override section - hidden by default -->
-            <div id="override-section" class="override-section" style="display: none;">
-              <button type="button" class="btn btn-warning" id="override-toggle">
-                <span>💰</span>
-                <span>Override Amount</span>
-              </button>
-              
-              <div id="override-input-container" class="override-input-container" style="display: none;">
-                <input type="number" class="form-input" id="overrideTotal" name="overrideTotal" placeholder="0.00" min="0" max="13500" step="0.01" style="width: 150px;">
-                <button type="button" class="btn btn-secondary" id="override-cancel" style="padding: 8px 12px;">✖</button>
-                <span style="font-size: 14px; color: var(--gray-500);">Max: $13,500 CAD</span>
-              </div>
-            </div>
-            
-            <!-- Submit button - hidden by default -->
             <button type="submit" class="btn btn-success" id="submit-trade" style="display: none;">
               <span>✅</span>
               <span>Process Trade</span>
-            </button>
-            
-            <!-- Print labels button - only after successful trade -->
-            <button type="button" class="btn btn-primary" id="print-labels" style="display: none;">
-              <span>🏷️</span>
-              <span>Print Labels</span>
             </button>
           </div>
         </form>
@@ -1137,297 +676,195 @@
     </div>
   </div>
 
-  <!-- Performance Badge -->
-  <div class="performance-badge" id="performance-badge">
-    💾 Cache: <span id="cache-count">0</span> items
-  </div>
-
-      <script>
-    // 🆕 ENHANCED SEARCH CLIENT WITH REAL SHOPIFY INTEGRATION
-    class OptimizedSearchClient {
+  <script>
+    // Simple search client for your real API
+    class SearchClient {
       constructor() {
+        this.apiUrl = '/api/buybackstep4'; // Change this to your actual API URL
         this.searchCache = new Map();
-        this.searchStats = {
-          totalSearches: 0,
-          cacheHits: 0,
-          totalTime: 0,
-          searches: []
-        };
-        this.pendingSearches = new Map();
-        this.cacheTimeout = 300000; // 5 minutes
-        this.maxCacheSize = 100; // Client-side cache limit
-        this.apiBaseUrl = '/api/buybackstep4'; // Your actual API endpoint
+        this.stats = { totalSearches: 0, cacheHits: 0 };
       }
 
-      // Get cache key for search
-      getCacheKey(query) {
-        return query.toLowerCase().trim();
-      }
-
-      // Check if result is cached and valid
-      isCached(query) {
-        const key = this.getCacheKey(query);
-        if (this.searchCache.has(key)) {
-          const cached = this.searchCache.get(key);
-          return Date.now() - cached.timestamp < this.cacheTimeout;
-        }
-        return false;
-      }
-
-      // Get cached result
-      getCached(query) {
-        const key = this.getCacheKey(query);
-        if (this.isCached(query)) {
-          this.searchStats.cacheHits++;
-          console.log('🎯 Client cache hit for:', query);
-          return this.searchCache.get(key).result;
-        }
-        return null;
-      }
-
-      // Cache a search result
-      cacheResult(query, result, searchTime) {
-        const key = this.getCacheKey(query);
-        
-        // Implement LRU behavior
-        if (this.searchCache.size >= this.maxCacheSize) {
-          const oldestKey = this.searchCache.keys().next().value;
-          this.searchCache.delete(oldestKey);
-        }
-
-        this.searchCache.set(key, {
-          result,
-          timestamp: Date.now(),
-          searchTime
-        });
-
-        this.updateCacheStatus();
-      }
-
-      // Update cache status display
-      updateCacheStatus() {
-        const cacheStatus = document.getElementById('performance-badge');
-        const cacheCount = document.getElementById('cache-count');
-        
-        if (cacheCount) {
-          cacheCount.textContent = this.searchCache.size;
-        }
-      }
-
-      // Update performance metrics
-      updateMetrics() {
-        const cacheHitRate = this.searchStats.totalSearches > 0 ? 
-          Math.round((this.searchStats.cacheHits / this.searchStats.totalSearches) * 100) : 0;
-        const avgSpeed = this.searchStats.searches.length > 0 ?
-          Math.round(this.searchStats.totalTime / this.searchStats.searches.length) : 0;
-
-        document.getElementById('cache-rate').textContent = `${cacheHitRate}%`;
-        document.getElementById('avg-speed').textContent = `${avgSpeed}ms`;
-        document.getElementById('total-searches').textContent = this.searchStats.totalSearches;
-
-        // Update metric colors based on performance
-        const cacheMetric = document.querySelector('.status-metrics .metric:first-child');
-        const speedMetric = document.querySelector('.status-metrics .metric:nth-child(2)');
-
-        // Cache hit rate coloring
-        cacheMetric.className = 'metric ' + (cacheHitRate >= 30 ? 'good' : cacheHitRate >= 15 ? 'warning' : 'error');
-        
-        // Speed coloring
-        speedMetric.className = 'metric ' + (avgSpeed <= 1000 ? 'good' : avgSpeed <= 3000 ? 'warning' : 'error');
-      }
-
-      // Main optimized search method - REAL API INTEGRATION
       async searchCard(query) {
-        this.searchStats.totalSearches++;
-        const startTime = Date.now();
-
-        // Check client-side cache first
-        const cached = this.getCached(query);
-        if (cached) {
-          this.updateMetrics();
-          return { ...cached, fromCache: true, searchTime: 0 };
-        }
-
-        // Check if search is already pending
-        const key = this.getCacheKey(query);
-        if (this.pendingSearches.has(key)) {
-          console.log('⏳ Waiting for pending search:', query);
-          return this.pendingSearches.get(key);
-        }
-
-        // Start new search
-        const searchPromise = this.performRealAPISearch(query);
-        this.pendingSearches.set(key, searchPromise);
+        this.stats.totalSearches++;
+        console.log('🔍 Searching for:', query);
 
         try {
-          const result = await searchPromise;
-          const searchTime = Date.now() - startTime;
-          
-          this.searchStats.totalTime += searchTime;
-          this.searchStats.searches.push({
-            query,
-            time: searchTime,
-            found: result.found,
-            fromCache: false
-          });
-
-          // Cache the result
-          this.cacheResult(query, result, searchTime);
-          this.updateMetrics();
-
-          return { ...result, fromCache: false, searchTime };
-        } finally {
-          this.pendingSearches.delete(key);
-        }
-      }
-
-      // 🔗 REAL SHOPIFY API INTEGRATION - MATCHES YOUR BACKEND EXACTLY
-      async performRealAPISearch(query) {
-        try {
-          console.log('🔍 Real API search for:', query);
-          
-          const response = await fetch(this.apiBaseUrl, {
+          const response = await fetch(this.apiUrl, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              cards: [{ 
-                cardName: query, 
-                sku: null, 
-                quantity: 1 
-              }],
-              employeeName: 'Preview', // Triggers search preview mode in your backend
+              cards: [{ cardName: query, sku: null, quantity: 1 }],
+              employeeName: 'Preview',
               payoutMethod: 'cash'
-            }),
-            signal: AbortSignal.timeout(30000)
+            })
           });
-
-          if (!response.ok) {
-            console.error('API Error:', response.status, response.statusText);
-            throw new Error(`API Error: ${response.status}`);
-          }
 
           const data = await response.json();
-          console.log('📥 Real API Response:', data);
-          
-          // Your backend returns this structure for successful searches
+          console.log('📥 API Response:', data);
+
           if (data.success && data.results && data.results.length > 0) {
             const result = data.results[0];
-            
-            // Format according to your actual backend response structure
             return {
-              found: !!result.match, // Your backend uses 'match' field for found cards
+              found: !!result.match,
               name: result.match || result.cardName,
               sku: result.sku || 'NOT-FOUND',
-              cardNumber: this.extractCardNumber(result.sku) || 'N/A',
-              set: this.extractSetFromSku(result.sku) || 'Unknown',
               retailPrice: parseFloat(result.retailPrice) || 0,
               suggestedTrade: parseFloat(result.suggestedTradeValue) || 0,
               maxTrade: parseFloat(result.maximumTradeValue) || 0,
-              searchMethod: result.searchMethod || 'none',
-              // Your backend provides these optimization metrics
-              optimizationUsed: data.searchPerformance?.optimizationUsed || false,
-              serverCacheHit: data.searchPerformance?.cacheHitRate !== '0%',
-              totalSearchTime: data.searchPerformance?.totalSearchTime || 0,
-              fastResponse: data.searchPerformance?.fastResponse || false
+              searchMethod: result.searchMethod || 'none'
             };
           } else {
-            return this.formatNotFoundResult(query);
+            return {
+              found: false,
+              name: query,
+              sku: 'NOT-FOUND',
+              retailPrice: 0,
+              suggestedTrade: 0,
+              maxTrade: 0,
+              searchMethod: 'none'
+            };
           }
         } catch (error) {
-          console.error('🚨 Search error:', error);
-          return this.formatErrorResult(query, error);
+          console.error('Search error:', error);
+          return {
+            found: false,
+            name: query,
+            sku: 'ERROR',
+            retailPrice: 0,
+            suggestedTrade: 0,
+            maxTrade: 0,
+            searchMethod: 'none',
+            error: error.message
+          };
         }
-      }
-
-      // Format not found result
-      formatNotFoundResult(query) {
-        return {
-          found: false,
-          multiple: false,
-          name: query,
-          sku: 'NOT-FOUND',
-          cardNumber: 'N/A',
-          set: 'Unknown',
-          retailPrice: 0,
-          suggestedTrade: 0,
-          maxTrade: 0,
-          searchMethod: 'none',
-          optimizationUsed: false,
-          serverCacheHit: false
-        };
-      }
-
-      // Format error result
-      formatErrorResult(query, error) {
-        return {
-          found: false,
-          multiple: false,
-          name: query,
-          sku: 'ERROR',
-          cardNumber: 'N/A',
-          set: 'Unknown',
-          retailPrice: 0,
-          suggestedTrade: 0,
-          maxTrade: 0,
-          searchMethod: 'none',
-          error: error.message,
-          optimizationUsed: false,
-          serverCacheHit: false
-        };
-      }
-
-      // Helper function to extract card number from SKU
-      extractCardNumber(sku) {
-        if (!sku) return null;
-        const cardNumberMatch = sku.match(/#?(\d+(?:\/\d+)?)/);
-        return cardNumberMatch ? `#${cardNumberMatch[1]}` : null;
-      }
-
-      // Helper function to extract set code from SKU
-      extractSetFromSku(sku) {
-        if (!sku) return 'Unknown';
-        // Common MTG set patterns in SKUs
-        const setMatch = sku.match(/[A-Z]{3,4}(?=\d|\-|$)/);
-        return setMatch ? setMatch[0] : 'Unknown';
-      }
-
-      // Clear expired cache entries
-      clearExpiredCache() {
-        const now = Date.now();
-        for (const [key, value] of this.searchCache.entries()) {
-          if (now - value.timestamp > this.cacheTimeout) {
-            this.searchCache.delete(key);
-          }
-        }
-        this.updateCacheStatus();
       }
     }
 
-    // Initialize optimized search client with real API
-    const searchClient = new OptimizedSearchClient();
-    document.addEventListener('DOMContentLoaded', function() {
-      const storeCreditRadio = document.getElementById('store-credit');
-      const customerEmail = document.getElementById('customer-email');
-      const addCardBtn = document.getElementById('add-card');
-      const cardList = document.getElementById('card-list');
-      const estimateBtn = document.getElementById('estimate-trade');
-      const estimateResults = document.getElementById('estimate-results');
+    // Initialize search client
+    const searchClient = new SearchClient();
 
-      // Show/hide customer email section
+    // Search functionality
+    function setupCardSearch(input) {
+      let searchTimeout;
+
+      input.addEventListener('input', function() {
+        const query = this.value.trim();
+        if (query.length < 3) return;
+
+        clearTimeout(searchTimeout);
+        const container = this.closest('.card-input-container');
+        
+        // Remove existing suggestion
+        const existing = container.querySelector('.search-suggestion');
+        if (existing) existing.remove();
+
+        // Show searching indicator
+        const searching = document.createElement('div');
+        searching.className = 'search-suggestion';
+        searching.innerHTML = `
+          <div class="suggestion-content">
+            <div class="suggestion-info">
+              <div class="suggestion-name">🔍 Searching...</div>
+            </div>
+          </div>
+        `;
+        container.appendChild(searching);
+
+        searchTimeout = setTimeout(async () => {
+          try {
+            const result = await searchClient.searchCard(query);
+            searching.remove();
+            showSearchResult(container, input, result, query);
+          } catch (error) {
+            searching.remove();
+            console.error('Search failed:', error);
+          }
+        }, 1000);
+      });
+    }
+
+    function showSearchResult(container, input, result, query) {
+      const suggestion = document.createElement('div');
+      suggestion.className = 'search-suggestion';
+      
+      if (result.found) {
+        suggestion.innerHTML = `
+          <div class="suggestion-content">
+            <div class="suggestion-info">
+              <div class="suggestion-name">✅ ${result.name}</div>
+              <div class="suggestion-details">
+                <span>SKU: ${result.sku}</span>
+                <span class="search-badge">${result.searchMethod.toUpperCase()}</span>
+                <span>Retail: $${result.retailPrice.toFixed(2)}</span>
+                <span>Trade: $${result.suggestedTrade.toFixed(2)}</span>
+              </div>
+            </div>
+            <div class="suggestion-actions">
+              <button type="button" class="suggestion-btn confirm-btn">✅ Confirm</button>
+              <button type="button" class="suggestion-btn reject-btn">❌ Reject</button>
+            </div>
+          </div>
+        `;
+      } else {
+        suggestion.innerHTML = `
+          <div class="suggestion-content">
+            <div class="suggestion-info">
+              <div class="suggestion-name">❌ "${query}" not found</div>
+              <div class="suggestion-details">
+                <span>Not in your Shopify inventory</span>
+              </div>
+            </div>
+            <div class="suggestion-actions">
+              <button type="button" class="suggestion-btn" style="background: var(--warning); color: white;">⚠️ Continue</button>
+              <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
+            </div>
+          </div>
+        `;
+      }
+
+      container.appendChild(suggestion);
+
+      // Handle confirm
+      suggestion.querySelector('.confirm-btn, .suggestion-btn')?.addEventListener('click', function() {
+        input.value = result.name;
+        input.dataset.confirmedResult = JSON.stringify(result);
+        input.classList.add(result.found ? 'confirmed' : 'not-found');
+        suggestion.remove();
+      });
+
+      // Handle reject
+      suggestion.querySelector('.reject-btn').addEventListener('click', function() {
+        suggestion.remove();
+        input.focus();
+      });
+
+      // Auto-remove
+      setTimeout(() => {
+        if (suggestion.parentNode) suggestion.remove();
+      }, 10000);
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      // Setup search for existing inputs
+      document.querySelectorAll('.card-input').forEach(setupCardSearch);
+
+      // Show/hide customer email
       document.querySelectorAll('input[name="payoutMethod"]').forEach(radio => {
         radio.addEventListener('change', function() {
+          const emailSection = document.getElementById('customer-email');
           if (this.value === 'store-credit') {
-            customerEmail.classList.add('visible');
+            emailSection.classList.add('visible');
           } else {
-            customerEmail.classList.remove('visible');
+            emailSection.classList.remove('visible');
           }
         });
       });
 
       // Add card functionality
-      addCardBtn.addEventListener('click', function() {
+      document.getElementById('add-card').addEventListener('click', function() {
+        const cardList = document.getElementById('card-list');
         const newRow = document.createElement('div');
         newRow.className = 'card-row';
         newRow.innerHTML = `
@@ -1444,588 +881,152 @@
         `;
         cardList.appendChild(newRow);
 
-        // Setup remove functionality
+        // Setup search for new input
+        setupCardSearch(newRow.querySelector('.card-input'));
+
+        // Setup remove button
         newRow.querySelector('.remove-btn').addEventListener('click', function() {
           newRow.remove();
         });
-
-        // Setup search suggestion demo
-        setupSearchDemo(newRow.querySelector('.card-input'));
       });
 
-      // Setup remove functionality for existing cards
+      // Remove button for existing cards
       document.querySelectorAll('.remove-btn').forEach(btn => {
         btn.addEventListener('click', function() {
           btn.closest('.card-row').remove();
         });
       });
 
-      // Setup search demo for existing inputs
-      document.querySelectorAll('.card-input').forEach(setupSearchDemo);
-
-      // Demo search functionality
-      function setupSearchDemo(input) {
-        input.addEventListener('input', function() {
-          const query = this.value.trim();
-          if (query.length < 3) return;
-
-          // Remove existing suggestion
-          const container = this.closest('.card-input-container');
-          const existing = container.querySelector('.search-suggestion');
-          if (existing) existing.remove();
-
-          // Simulate search delay
-          setTimeout(() => {
-            showSearchSuggestion(container, this, query);
-          }, 800);
-        });
-      }
-
-      function showSearchSuggestion(container, input, query) {
-        // Simulate multiple results for demonstration
-        const hasMultipleResults = Math.random() > 0.4; // 60% chance of multiple results
-        
-        if (hasMultipleResults) {
-          showMultipleResults(container, input, query);
-        } else {
-          showSingleResult(container, input, query);
-        }
-      }
-
-      function showSingleResult(container, input, query) {
-        // Original single result logic
-        const isFound = Math.random() > 0.3;
-        const isCached = Math.random() > 0.6;
-
-        const suggestion = document.createElement('div');
-        suggestion.className = 'search-suggestion';
-        
-        if (isFound) {
-          suggestion.innerHTML = `
-            <div class="suggestion-content">
-              <div class="suggestion-info">
-                <div class="suggestion-name">✅ ${query} - Premium Edition</div>
-                <div class="suggestion-details">
-                  <span>SKU: MTG-${Math.floor(Math.random() * 10000)}</span>
-                  <span class="search-badge ${isCached ? 'cached' : ''}">
-                    ${isCached ? '💾 Cache' : '⚡ ' + Math.floor(Math.random() * 500 + 200) + 'ms'}
-                  </span>
-                </div>
-              </div>
-              <div class="suggestion-actions">
-                <button type="button" class="suggestion-btn confirm-btn">✅ Confirm</button>
-                <button type="button" class="suggestion-btn reject-btn">❌ Reject</button>
-              </div>
-            </div>
-          `;
-        } else {
-          suggestion.innerHTML = `
-            <div class="suggestion-content">
-              <div class="suggestion-info">
-                <div class="suggestion-name">❌ "${query}" not found in inventory</div>
-                <div class="suggestion-details">
-                  <span>This card is not in your Shopify store</span>
-                  <span class="search-badge">⚡ ${Math.floor(Math.random() * 300 + 100)}ms</span>
-                </div>
-              </div>
-              <div class="suggestion-actions">
-                <button type="button" class="suggestion-btn" style="background: var(--warning); color: white;">⚠️ Continue</button>
-                <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
-              </div>
-            </div>
-          `;
-        }
-
-        container.appendChild(suggestion);
-
-        // Handle single result actions
-        suggestion.querySelector('.confirm-btn, .suggestion-btn')?.addEventListener('click', function() {
-          if (isFound) {
-            input.classList.add('confirmed');
-            input.value = `${query} - Premium Edition`;
-          } else {
-            input.classList.add('not-found');
-          }
-          suggestion.remove();
-        });
-
-        suggestion.querySelector('.reject-btn')?.addEventListener('click', function() {
-          suggestion.remove();
-          input.focus();
-        });
-
-        setTimeout(() => {
-          if (suggestion.parentNode) suggestion.remove();
-        }, 10000);
-      }
-
-      function showMultipleResults(container, input, query) {
-        const suggestion = document.createElement('div');
-        suggestion.className = 'search-suggestion multiple-results';
-        
-        // Generate sample conflicting results
-        const results = generateConflictingResults(query);
-        
-        suggestion.innerHTML = `
-          <div class="suggestion-header multiple">
-            <span>⚠️ Multiple matches found</span>
-            <span class="result-count">${results.length} results</span>
-          </div>
-          
-          ${results.map((result, index) => `
-            <div class="suggestion-item" data-result-index="${index}">
-              <div class="card-details">
-                <div class="card-info">
-                  <div class="card-name">${result.name}</div>
-                  <div class="card-meta">
-                    <span>SKU: ${result.sku}</span>
-                    <span class="set-badge">${result.set}</span>
-                    <span class="rarity-badge rarity-${result.rarity}">${result.rarity}</span>
-                    <span>${result.cardNumber}</span>
-                  </div>
-                  <div class="card-pricing">
-                    <span class="price-item price-retail">Retail: ${result.retail}</span>
-                    <span class="price-item price-trade">Trade: ${result.trade}</span>
-                    <span class="price-item price-max">Max: ${result.max}</span>
-                  </div>
-                </div>
-                <div class="card-actions">
-                  <button type="button" class="select-btn" data-result-index="${index}">
-                    Select This
-                  </button>
-                </div>
-              </div>
-            </div>
-          `).join('')}
-          
-          <div class="disambiguation-actions">
-            <button type="button" class="refine-search">🔍 Refine Search</button>
-            <span style="font-size: 14px; color: var(--gray-500);">Choose the correct card variant</span>
-            <button type="button" class="cancel-search">❌ Cancel</button>
-          </div>
-        `;
-
-        container.appendChild(suggestion);
-
-        // Handle result selection
-        suggestion.querySelectorAll('.select-btn').forEach(btn => {
-          btn.addEventListener('click', function() {
-            const resultIndex = parseInt(this.dataset.resultIndex);
-            const selectedResult = results[resultIndex];
-            
-            // Highlight selection
-            suggestion.querySelectorAll('.suggestion-item').forEach(item => {
-              item.classList.remove('selected');
-            });
-            this.closest('.suggestion-item').classList.add('selected');
-            
-            // Confirm selection after short delay
-            setTimeout(() => {
-              input.classList.add('confirmed');
-              input.value = selectedResult.name;
-              input.dataset.selectedSku = selectedResult.sku;
-              input.dataset.selectedResult = JSON.stringify(selectedResult);
-              suggestion.remove();
-              
-              // Show brief confirmation
-              showSelectionConfirmation(container, selectedResult);
-            }, 300);
-          });
-        });
-
-        // Handle refine search
-        suggestion.querySelector('.refine-search').addEventListener('click', function() {
-          suggestion.remove();
-          input.focus();
-          // Could trigger more specific search interface
-          showRefineSearchPrompt(input);
-        });
-
-        // Handle cancel
-        suggestion.querySelector('.cancel-search').addEventListener('click', function() {
-          suggestion.remove();
-          input.value = '';
-          input.focus();
-        });
-
-        // Hover effects for better UX
-        suggestion.querySelectorAll('.suggestion-item').forEach(item => {
-          item.addEventListener('mouseenter', function() {
-            this.style.background = 'var(--gray-50)';
-          });
-          item.addEventListener('mouseleave', function() {
-            if (!this.classList.contains('selected')) {
-              this.style.background = '';
-            }
-          });
-        });
-      }
-
-      function generateConflictingResults(query) {
-        // Generate realistic conflicting card results
-        const sets = ['M21', 'ZNR', 'KHM', 'STX', 'AFR', 'MID'];
-        const rarities = ['common', 'uncommon', 'rare', 'mythic'];
-        
-        return [
-          {
-            name: `${query} (Regular)`,
-            sku: `MTG-${Math.floor(Math.random() * 10000)}`,
-            set: sets[Math.floor(Math.random() * sets.length)],
-            rarity: rarities[Math.floor(Math.random() * rarities.length)],
-            cardNumber: `${Math.floor(Math.random() * 300 + 1)}/${Math.floor(Math.random() * 100 + 200)}`,
-            retail: (Math.random() * 20 + 5).toFixed(2),
-            trade: (Math.random() * 10 + 2).toFixed(2),
-            max: (Math.random() * 15 + 3).toFixed(2)
-          },
-          {
-            name: `${query} (Foil)`,
-            sku: `MTG-${Math.floor(Math.random() * 10000)}-F`,
-            set: sets[Math.floor(Math.random() * sets.length)],
-            rarity: rarities[Math.floor(Math.random() * rarities.length)],
-            cardNumber: `${Math.floor(Math.random() * 300 + 1)}/${Math.floor(Math.random() * 100 + 200)}`,
-            retail: (Math.random() * 40 + 15).toFixed(2),
-            trade: (Math.random() * 20 + 8).toFixed(2),
-            max: (Math.random() * 30 + 12).toFixed(2)
-          },
-          {
-            name: `${query} (Extended Art)`,
-            sku: `MTG-${Math.floor(Math.random() * 10000)}-EA`,
-            set: sets[Math.floor(Math.random() * sets.length)],
-            rarity: rarities[Math.floor(Math.random() * rarities.length)],
-            cardNumber: `${Math.floor(Math.random() * 50 + 300)}/${Math.floor(Math.random() * 100 + 200)}`,
-            retail: (Math.random() * 60 + 25).toFixed(2),
-            trade: (Math.random() * 30 + 15).toFixed(2),
-            max: (Math.random() * 45 + 20).toFixed(2)
-          }
-        ];
-      }
-
-      function showSelectionConfirmation(container, result) {
-        const confirmation = document.createElement('div');
-        confirmation.style.cssText = `
-          position: absolute;
-          top: 100%;
-          left: 0;
-          right: 0;
-          background: var(--success);
-          color: white;
-          padding: 12px 16px;
-          border-radius: 0 0 var(--border-radius) var(--border-radius);
-          font-weight: 500;
-          z-index: 1001;
-          animation: slideDown 0.3s ease;
-        `;
-        confirmation.innerHTML = `✅ Selected: ${result.name} (${result.sku})`;
-        
-        container.appendChild(confirmation);
-        
-        setTimeout(() => {
-          if (confirmation.parentNode) {
-            confirmation.style.animation = 'slideDown 0.3s ease reverse';
-            setTimeout(() => confirmation.remove(), 300);
-          }
-        }, 2000);
-      }
-
-      function showRefineSearchPrompt(input) {
-        const prompt = document.createElement('div');
-        prompt.style.cssText = `
-          position: absolute;
-          top: 100%;
-          left: 0;
-          right: 0;
-          background: rgba(214, 158, 46, 0.1);
-          border: 1px solid rgba(214, 158, 46, 0.3);
-          color: var(--warning);
-          padding: 16px;
-          border-radius: 0 0 var(--border-radius) var(--border-radius);
-          font-size: 14px;
-          z-index: 1000;
-        `;
-        prompt.innerHTML = `
-          💡 <strong>Search Tips:</strong><br>
-          • Include set code (e.g. "Lightning Bolt M21")<br>
-          • Specify variant (e.g. "foil", "extended art")<br>
-          • Use full card number (e.g. "001/182")
-        `;
-        
-        input.closest('.card-input-container').appendChild(prompt);
-        
-        setTimeout(() => {
-          if (prompt.parentNode) prompt.remove();
-        }, 5000);
-      }
-
-      // Estimate functionality with real API integration
-      estimateBtn.addEventListener('click', function() {
+      // Estimate button
+      document.getElementById('estimate-trade').addEventListener('click', function() {
         const cards = document.querySelectorAll('.card-row');
-        if (cards.length === 0) {
-          alert('Please add at least one card to estimate.');
-          return;
-        }
-
-        // Check if all cards are confirmed with real search results
-        const confirmedCards = Array.from(cards).filter(card => {
-          const input = card.querySelector('.card-input');
+        const confirmedCards = Array.from(cards).filter(row => {
+          const input = row.querySelector('.card-input');
           return input.dataset.confirmedResult;
         });
 
-        if (confirmedCards.length !== cards.length) {
-          alert('Please confirm all card searches before estimating.');
-          updateStatus('All cards must be searched and confirmed first.', 'warning');
+        if (confirmedCards.length === 0) {
+          alert('Please search and confirm at least one card before estimating.');
           return;
         }
 
-        // Show loading state
-        estimateBtn.innerHTML = '<span class="spinner"></span><span>Calculating...</span>';
-        estimateBtn.disabled = true;
-
-        // Use real confirmed results for estimate
-        try {
-          const { results, totalRetail, totalSuggested, totalMaximum } = getEstimateFromConfirmedCards();
-          
-          displayEstimateResults(results, totalRetail, totalSuggested, totalMaximum);
-          estimateBtn.innerHTML = '<span>📊</span><span>Get Estimate</span>';
-          estimateBtn.disabled = false;
-          
-          // Show override and submit buttons after estimate
-          showButton('override-section');
-          showButton('submit-trade');
-          
-          // Update status with real data
-          const foundCards = results.filter(r => r.searchMethod !== 'none').length;
-          const cachedCards = results.filter(r => r.fromCache).length;
-          updateStatus(`Estimate complete! ${foundCards}/${results.length} cards found. ${cachedCards} from cache.`, 'success');
-          
-          // Update metrics
-          searchClient.updateMetrics();
-        } catch (error) {
-          console.error('Estimation error:', error);
-          estimateBtn.innerHTML = '<span>📊</span><span>Get Estimate</span>';
-          estimateBtn.disabled = false;
-          updateStatus('Error calculating estimate. Please try again.', 'error');
-          alert('Error calculating estimate: ' + error.message);
+        if (confirmedCards.length !== cards.length) {
+          alert('Please confirm all card searches before estimating.');
+          return;
         }
-      });
 
-      function showButton(buttonId) {
-        const button = document.getElementById(buttonId);
-        if (button) {
-          button.style.display = button.tagName === 'DIV' ? 'flex' : 'inline-flex';
-          button.classList.add('appearing');
-          setTimeout(() => button.classList.remove('appearing'), 400);
-        }
-      }
-
-      function hideButton(buttonId) {
-        const button = document.getElementById(buttonId);
-        if (button) {
-          button.style.display = 'none';
-        }
-      }
-
-      function updateStatus(message, type = 'info') {
+        // Show submit button after estimate
+        document.getElementById('submit-trade').style.display = 'inline-flex';
+        
         const statusText = document.querySelector('.status-text');
-        statusText.textContent = message;
-        
-        // Reset all status colors
-        statusText.style.color = '';
-        statusText.className = 'status-text';
-        
-        // Apply new status color
-        switch(type) {
-          case 'success':
-            statusText.style.color = 'var(--success)';
-            break;
-          case 'warning':
-            statusText.style.color = 'var(--warning)';
-            break;
-          case 'error':
-            statusText.style.color = 'var(--error)';
-            break;
-          default:
-            statusText.style.color = 'var(--gray-700)';
-        }
-      }
-
-      function showEstimateResults() {
-        const cards = document.querySelectorAll('.card-row');
-        const estimateCards = document.getElementById('estimate-cards');
-        
-        // Clear previous results
-        estimateCards.innerHTML = '';
-        
-        let totalRetail = 0;
-        let totalSuggested = 0;
-        let totalMaximum = 0;
-
-        cards.forEach((card, index) => {
-          const name = card.querySelector('[name="cardName"]').value || `Card ${index + 1}`;
-          const quantity = parseInt(card.querySelector('[name="cardQuantity"]').value) || 1;
-          const condition = card.querySelector('[name="cardCondition"]').value;
-          
-          // Generate random but realistic values
-          const retail = Math.floor(Math.random() * 50 + 10);
-          const suggested = Math.floor(retail * 0.6);
-          const maximum = Math.floor(retail * 0.8);
-          
-          totalRetail += retail * quantity;
-          totalSuggested += suggested * quantity;
-          totalMaximum += maximum * quantity;
-
-          const cardElement = document.createElement('div');
-          cardElement.className = 'estimate-card';
-          cardElement.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <div>
-                <div style="font-weight: 600; color: var(--gray-800);">${name}</div>
-                <div style="font-size: 14px; color: var(--gray-500);">
-                  ${condition} • Quantity: ${quantity}
-                  <span class="search-badge">SKU</span>
-                </div>
-              </div>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center;">
-              <div>
-                <div style="font-size: 12px; color: var(--gray-500);">Retail</div>
-                <div style="font-weight: 600;">${retail.toFixed(2)}</div>
-              </div>
-              <div>
-                <div style="font-size: 12px; color: var(--gray-500);">Suggested</div>
-                <div style="font-weight: 600; color: var(--accent);">${suggested.toFixed(2)}</div>
-              </div>
-              <div>
-                <div style="font-size: 12px; color: var(--gray-500);">Maximum</div>
-                <div style="font-weight: 600; color: var(--success);">${maximum.toFixed(2)}</div>
-              </div>
-            </div>
-          `;
-          estimateCards.appendChild(cardElement);
-        });
-
-        // Update totals
-        document.getElementById('total-retail').textContent = `${totalRetail.toFixed(2)}`;
-        document.getElementById('total-suggested').textContent = `${totalSuggested.toFixed(2)}`;
-        document.getElementById('total-maximum').textContent = `${totalMaximum.toFixed(2)}`;
-
-        // Show results
-        estimateResults.classList.add('visible');
-
-        // Update metrics
-        updateMetrics();
-      }
-
-      // Demo metrics updates
-      function updateMetrics() {
-        const cacheRate = Math.floor(Math.random() * 60 + 20);
-        const avgSpeed = Math.floor(Math.random() * 400 + 200);
-        const totalSearches = Math.floor(Math.random() * 50 + 10);
-        const cacheCount = Math.floor(Math.random() * 20 + 5);
-
-        document.getElementById('cache-rate').textContent = `${cacheRate}%`;
-        document.getElementById('avg-speed').textContent = `${avgSpeed}ms`;
-        document.getElementById('total-searches').textContent = totalSearches;
-        document.getElementById('cache-count').textContent = cacheCount;
-
-        // Update metric colors
-        const cacheMetric = document.querySelector('.status-metrics .metric:first-child');
-        const speedMetric = document.querySelector('.status-metrics .metric:nth-child(2)');
-        
-        cacheMetric.className = `metric ${cacheRate >= 40 ? 'good' : cacheRate >= 20 ? 'warning' : 'error'}`;
-        speedMetric.className = `metric ${avgSpeed <= 300 ? 'good' : avgSpeed <= 500 ? 'warning' : 'error'}`;
-      }
-
-      // Override functionality
-      const overrideToggle = document.getElementById('override-toggle');
-      const overrideContainer = document.getElementById('override-input-container');
-      const overrideCancel = document.getElementById('override-cancel');
-      const overrideTotal = document.getElementById('overrideTotal');
-
-      overrideToggle.addEventListener('click', function() {
-        if (overrideContainer.style.display === 'none') {
-          overrideContainer.style.display = 'flex';
-          this.innerHTML = '<span>💰</span><span>Override Active</span>';
-          this.classList.add('btn-error');
-          this.classList.remove('btn-warning');
-          overrideTotal.focus();
-          
-          // Show warning
-          showOverrideWarning();
-        } else {
-          hideOverride();
-        }
+        statusText.textContent = `Estimate complete! ${confirmedCards.length} cards confirmed.`;
+        statusText.style.color = 'var(--success)';
       });
 
-      overrideCancel.addEventListener('click', function() {
-        hideOverride();
-      });
-
-      function hideOverride() {
-        overrideContainer.style.display = 'none';
-        overrideToggle.innerHTML = '<span>💰</span><span>Override Amount</span>';
-        overrideToggle.classList.remove('btn-error');
-        overrideToggle.classList.add('btn-warning');
-        overrideTotal.value = '';
-        hideOverrideWarning();
-      }
-
-      function showOverrideWarning() {
-        let warning = document.querySelector('.override-warning');
-        if (!warning) {
-          warning = document.createElement('div');
-          warning.className = 'override-warning';
-          warning.innerHTML = '⚠️ <strong>Override Active:</strong> This will bypass the calculated trade value. Ensure amount is authorized.';
-          overrideContainer.parentNode.insertBefore(warning, overrideContainer.nextSibling);
-        }
-        warning.classList.add('visible');
-      }
-
-      function hideOverrideWarning() {
-        const warning = document.querySelector('.override-warning');
-        if (warning) {
-          warning.classList.remove('visible');
-        }
-      }
-      document.getElementById('trade-form').addEventListener('submit', function(e) {
+      // Form submission
+      document.getElementById('trade-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         
+        const employeeName = document.getElementById('employeeName').value;
+        const payoutMethod = document.querySelector('input[name="payoutMethod"]:checked')?.value;
+        const customerEmail = document.getElementById('customerEmail').value;
+
+        if (!employeeName || !payoutMethod) {
+          alert('Please select an employee and payout method.');
+          return;
+        }
+
+        if (payoutMethod === 'store-credit' && !customerEmail) {
+          alert('Customer email is required for store credit.');
+          return;
+        }
+
+        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
+          const input = row.querySelector('.card-input');
+          const quantity = parseInt(row.querySelector('[name="cardQuantity"]').value) || 1;
+          const result = JSON.parse(input.dataset.confirmedResult || '{}');
+          
+          return {
+            cardName: result.name || input.value,
+            sku: result.sku || null,
+            quantity: quantity
+          };
+        });
+
         const submitBtn = document.getElementById('submit-trade');
         submitBtn.innerHTML = '<span class="spinner"></span><span>Processing...</span>';
         submitBtn.disabled = true;
 
-        // Simulate processing
-        setTimeout(() => {
-          alert('Trade processed successfully! 🎉');
+        try {
+          const response = await fetch(searchClient.apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              cards: cards,
+              employeeName: employeeName,
+              payoutMethod: payoutMethod,
+              customerEmail: customerEmail || undefined
+            })
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            submitBtn.innerHTML = '<span>✅</span><span>Trade Complete</span>';
+            submitBtn.disabled = false;
+            
+            const statusText = document.querySelector('.status-text');
+            statusText.textContent = 'Trade completed successfully! 🎉';
+            statusText.style.color = 'var(--success)';
+
+            // Show success details
+            let successMessage = `Trade completed!\n\nFinal Payout: ${data.finalPayout}\nPayout Method: ${data.payoutMethod.replace('-', ' ').toUpperCase()}`;
+            
+            if (data.giftCardCode) {
+              successMessage += `\nGift Card Code: ${data.giftCardCode}`;
+            }
+            
+            if (data.customer?.email) {
+              successMessage += `\nStore Credit issued to: ${data.customer.email}`;
+            }
+
+            alert(successMessage);
+
+            // Reset form after success
+            setTimeout(() => {
+              if (confirm('Reset form for next trade?')) {
+                location.reload();
+              }
+            }, 2000);
+
+          } else {
+            throw new Error(data.error || 'Trade processing failed');
+          }
+
+        } catch (error) {
+          console.error('Trade error:', error);
           submitBtn.innerHTML = '<span>✅</span><span>Process Trade</span>';
           submitBtn.disabled = false;
           
-          // Update status
-          document.querySelector('.status-text').textContent = 'Trade completed successfully!';
-          document.querySelector('.status-text').style.color = 'var(--success)';
-        }, 2000);
+          const statusText = document.querySelector('.status-text');
+          statusText.textContent = `Trade failed: ${error.message}`;
+          statusText.style.color = 'var(--error)';
+          
+          alert('Trade processing failed: ' + error.message);
+        }
       });
 
-      // Override toggle demo
-      // (Removed - now handled by actual override functionality above)
+      // Update metrics periodically
+      setInterval(() => {
+        document.getElementById('total-searches').textContent = searchClient.stats.totalSearches;
+        document.getElementById('cache-rate').textContent = 
+          searchClient.stats.totalSearches > 0 ? 
+          Math.round((searchClient.stats.cacheHits / searchClient.stats.totalSearches) * 100) + '%' : 
+          '0%';
+      }, 1000);
 
-      // Print labels functionality
-      document.getElementById('print-labels').addEventListener('click', function() {
-        updateStatus('Generating inventory labels...', 'info');
-        
-        // Simulate label generation
-        setTimeout(() => {
-          alert('Labels sent to printer! 🖨️');
-          updateStatus('Labels printed successfully.', 'success');
-        }, 1000);
-      });
-
-      // Performance badge click
-      document.getElementById('performance-badge').addEventListener('click', function() {
-        alert('Cache details:\n\n• 15 cached searches\n• 65% hit rate\n• Average 250ms response\n• 2.3x faster than uncached');
-      });
-
-      // Initialize metrics on load
-      setTimeout(updateMetrics, 1000);
+      console.log('🚀 Trade-In Portal initialized - connecting to real API');
+      console.log('🔗 API URL:', searchClient.apiUrl);
     });
   </script>
 </body>
