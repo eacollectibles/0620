@@ -1,4 +1,31 @@
-<!DOCTYPE html>
+@media (max-width: 768px) {
+      body {
+        padding: 16px;
+      }
+
+      .card-content {
+        padding: 24px;
+      }
+
+      .employee-payout-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      .card-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .btn {
+        justify-content: center;
+      }
+    }<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -507,7 +534,20 @@
       100% { transform: rotate(360deg); }
     }
 
-    @media (max-width: 768px) {
+    .btn.appearing {
+      animation: buttonAppear 0.4s ease;
+    }
+
+    @keyframes buttonAppear {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
       body {
         padding: 16px;
       }
