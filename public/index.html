@@ -385,6 +385,180 @@
       transform: scale(1.05);
     }
 
+    /* Trade Estimate Section Styles */
+    .trade-estimate {
+      background: linear-gradient(135deg, rgba(56, 161, 105, 0.05) 0%, rgba(56, 161, 105, 0.02) 100%);
+      border: 2px solid var(--success);
+      border-radius: var(--border-radius-lg);
+      margin: 32px 0;
+      overflow: hidden;
+      opacity: 0;
+      max-height: 0;
+      transition: all 0.4s ease;
+    }
+
+    .trade-estimate.visible {
+      opacity: 1;
+      max-height: 1000px;
+    }
+
+    .estimate-header {
+      background: var(--success);
+      color: white;
+      padding: 20px 32px;
+      font-weight: 600;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .estimate-content {
+      padding: 32px;
+    }
+
+    .estimate-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 32px;
+    }
+
+    .card-breakdown {
+      background: white;
+      border-radius: var(--border-radius);
+      border: 1px solid var(--gray-200);
+      overflow: hidden;
+    }
+
+    .breakdown-header {
+      background: var(--gray-100);
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--gray-200);
+      font-weight: 600;
+      color: var(--gray-700);
+    }
+
+    .breakdown-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .breakdown-item {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--gray-100);
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .breakdown-item:last-child {
+      border-bottom: none;
+    }
+
+    .breakdown-item:hover {
+      background: var(--gray-50);
+    }
+
+    .card-name {
+      font-weight: 500;
+      color: var(--gray-800);
+    }
+
+    .card-details {
+      font-size: 12px;
+      color: var(--gray-500);
+      margin-top: 2px;
+    }
+
+    .value-pill {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      text-align: center;
+      min-width: 60px;
+    }
+
+    .retail-value {
+      background: rgba(49, 130, 206, 0.1);
+      color: var(--accent);
+    }
+
+    .trade-value {
+      background: rgba(56, 161, 105, 0.1);
+      color: var(--success);
+    }
+
+    .quantity-badge {
+      background: var(--gray-200);
+      color: var(--gray-700);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      min-width: 30px;
+      text-align: center;
+    }
+
+    .payout-summary {
+      background: white;
+      border-radius: var(--border-radius);
+      border: 1px solid var(--gray-200);
+      height: fit-content;
+    }
+
+    .summary-header {
+      background: var(--primary);
+      color: white;
+      padding: 16px 20px;
+      font-weight: 600;
+    }
+
+    .summary-content {
+      padding: 24px 20px;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .summary-row:last-child {
+      border-bottom: none;
+      font-weight: 600;
+      font-size: 18px;
+      color: var(--success);
+      padding-top: 16px;
+      border-top: 2px solid var(--gray-200);
+    }
+
+    .summary-label {
+      color: var(--gray-600);
+      font-size: 14px;
+    }
+
+    .summary-value {
+      font-weight: 500;
+      color: var(--gray-800);
+    }
+
+    .bonus-info {
+      background: linear-gradient(135deg, rgba(214, 158, 46, 0.05) 0%, rgba(214, 158, 46, 0.02) 100%);
+      border: 1px solid var(--warning);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--warning);
+    }
+
     .actions {
       display: flex;
       gap: 16px;
@@ -526,6 +700,17 @@
         gap: 12px;
       }
 
+      .estimate-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      .breakdown-item {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        text-align: left;
+      }
+
       .actions {
         flex-direction: column;
         align-items: stretch;
@@ -640,6 +825,51 @@
             </div>
           </div>
 
+          <!-- Trade Estimate Section (Hidden by default) -->
+          <div class="trade-estimate" id="trade-estimate">
+            <div class="estimate-header">
+              <span>💰</span>
+              <span>Trade Estimate</span>
+            </div>
+            <div class="estimate-content">
+              <div class="estimate-grid">
+                <div class="card-breakdown">
+                  <div class="breakdown-header">Card Breakdown</div>
+                  <div class="breakdown-list" id="breakdown-list">
+                    <!-- Cards will be populated here -->
+                  </div>
+                </div>
+                
+                <div class="payout-summary">
+                  <div class="summary-header">Payout Summary</div>
+                  <div class="summary-content">
+                    <div class="summary-row">
+                      <span class="summary-label">Total Retail Value:</span>
+                      <span class="summary-value" id="total-retail">$0.00</span>
+                    </div>
+                    <div class="summary-row">
+                      <span class="summary-label">Base Trade Value:</span>
+                      <span class="summary-value" id="base-trade">$0.00</span>
+                    </div>
+                    <div class="summary-row">
+                      <span class="summary-label">Payout Method:</span>
+                      <span class="summary-value" id="payout-method-display">--</span>
+                    </div>
+                    <div class="summary-row">
+                      <span class="summary-label">Final Payout:</span>
+                      <span class="summary-value" id="final-payout">$0.00</span>
+                    </div>
+                    
+                    <div class="bonus-info" id="bonus-info" style="display: none;">
+                      <span>⚡</span>
+                      <span>Store credit includes 25% bonus!</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Actions -->
           <div class="actions">
             <button type="button" class="btn btn-accent" id="estimate-trade">
@@ -717,16 +947,6 @@
               retailPrice: parseFloat(result.retailPrice) || 0,
               suggestedTrade: parseFloat(result.suggestedTradeValue) || 0,
               maxTrade: parseFloat(result.maximumTradeValue) || 0,
-              searchMethod: result.searchMethod || 'none'
-            };
-          } else {
-            return {
-              found: false,
-              name: query,
-              sku: 'NOT-FOUND',
-              retailPrice: 0,
-              suggestedTrade: 0,
-              maxTrade: 0,
               searchMethod: 'none'
             };
           }
@@ -755,6 +975,9 @@
 
     // Store the last trade data for label printing
     let lastTradeData = null;
+
+    // Store estimate data globally
+    let currentEstimate = null;
 
     // Print inventory labels function
     function printInventoryLabels(tradeData) {
@@ -898,6 +1121,90 @@
       `;
     }
 
+    // Calculate payout bonus based on method
+    function calculatePayoutBonus(baseValue, method) {
+      switch (method) {
+        case 'store-credit':
+          return baseValue * 0.25; // 25% bonus for store credit
+        case 'gift-card':
+          return baseValue * 0.10; // 10% bonus for gift card
+        case 'cash':
+        default:
+          return 0; // No bonus for cash
+      }
+    }
+
+    // Display trade estimate
+    function displayTradeEstimate(cards, payoutMethod) {
+      const estimateSection = document.getElementById('trade-estimate');
+      const breakdownList = document.getElementById('breakdown-list');
+      const bonusInfo = document.getElementById('bonus-info');
+
+      // Clear existing breakdown
+      breakdownList.innerHTML = '';
+
+      let totalRetail = 0;
+      let totalTrade = 0;
+
+      // Populate card breakdown
+      cards.forEach(cardData => {
+        const { result, quantity, condition } = cardData;
+        const itemRetail = result.retailPrice * quantity;
+        const itemTrade = result.suggestedTrade * quantity;
+        
+        totalRetail += itemRetail;
+        totalTrade += itemTrade;
+
+        const breakdownItem = document.createElement('div');
+        breakdownItem.className = 'breakdown-item';
+        breakdownItem.innerHTML = `
+          <div>
+            <div class="card-name">${result.name}</div>
+            <div class="card-details">SKU: ${result.sku} • Condition: ${condition}</div>
+          </div>
+          <div class="quantity-badge">×${quantity}</div>
+          <div class="value-pill retail-value">${itemRetail.toFixed(2)}</div>
+          <div class="value-pill trade-value">${itemTrade.toFixed(2)}</div>
+        `;
+        breakdownList.appendChild(breakdownItem);
+      });
+
+      // Calculate bonus and final payout
+      const bonus = calculatePayoutBonus(totalTrade, payoutMethod);
+      const finalPayout = totalTrade + bonus;
+
+      // Update summary
+      document.getElementById('total-retail').textContent = `${totalRetail.toFixed(2)}`;
+      document.getElementById('base-trade').textContent = `${totalTrade.toFixed(2)}`;
+      document.getElementById('payout-method-display').textContent = payoutMethod.replace('-', ' ').toUpperCase();
+      document.getElementById('final-payout').textContent = `${finalPayout.toFixed(2)}`;
+
+      // Show bonus info if applicable
+      if (bonus > 0) {
+        bonusInfo.style.display = 'flex';
+        const bonusPercent = Math.round((bonus / totalTrade) * 100);
+        bonusInfo.innerHTML = `
+          <span>⚡</span>
+          <span>${payoutMethod.replace('-', ' ')} includes ${bonusPercent}% bonus (+${bonus.toFixed(2)})!</span>
+        `;
+      } else {
+        bonusInfo.style.display = 'none';
+      }
+
+      // Store estimate data
+      currentEstimate = {
+        cards: cards,
+        totalRetail: totalRetail,
+        totalTrade: totalTrade,
+        bonus: bonus,
+        finalPayout: finalPayout,
+        payoutMethod: payoutMethod
+      };
+
+      // Show the estimate section
+      estimateSection.classList.add('visible');
+    }
+
     // Initialize search client
     const searchClient = new SearchClient();
 
@@ -953,8 +1260,8 @@
               <div class="suggestion-details">
                 <span>SKU: ${result.sku}</span>
                 <span class="search-badge">${result.searchMethod.toUpperCase()}</span>
-                <span>Retail: $${result.retailPrice.toFixed(2)}</span>
-                <span>Trade: $${result.suggestedTrade.toFixed(2)}</span>
+                <span>Retail: ${result.retailPrice.toFixed(2)}</span>
+                <span>Trade: ${result.suggestedTrade.toFixed(2)}</span>
               </div>
             </div>
             <div class="suggestion-actions">
@@ -1066,6 +1373,13 @@
       // Estimate button
       document.getElementById('estimate-trade').addEventListener('click', function() {
         const cards = document.querySelectorAll('.card-row');
+        const payoutMethod = document.querySelector('input[name="payoutMethod"]:checked')?.value;
+
+        if (!payoutMethod) {
+          alert('Please select a payout method before estimating.');
+          return;
+        }
+
         const confirmedCards = Array.from(cards).filter(row => {
           const input = row.querySelector('.card-input');
           return input.dataset.confirmedResult;
@@ -1080,6 +1394,19 @@
           alert('Please confirm all card searches before estimating.');
           return;
         }
+
+        // Prepare card data for estimate
+        const cardData = confirmedCards.map(row => {
+          const input = row.querySelector('.card-input');
+          const quantity = parseInt(row.querySelector('[name="cardQuantity"]').value) || 1;
+          const condition = row.querySelector('[name="cardCondition"]').value;
+          const result = JSON.parse(input.dataset.confirmedResult);
+          
+          return { result, quantity, condition };
+        });
+
+        // Display the estimate
+        displayTradeEstimate(cardData, payoutMethod);
 
         // Show submit button after estimate
         document.getElementById('submit-trade').style.display = 'inline-flex';
@@ -1110,12 +1437,14 @@
         const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
           const input = row.querySelector('.card-input');
           const quantity = parseInt(row.querySelector('[name="cardQuantity"]').value) || 1;
+          const condition = row.querySelector('[name="cardCondition"]').value;
           const result = JSON.parse(input.dataset.confirmedResult || '{}');
           
           return {
             cardName: result.name || input.value,
             sku: result.sku || null,
-            quantity: quantity
+            quantity: quantity,
+            condition: condition
           };
         });
 
@@ -1138,8 +1467,13 @@
           const data = await response.json();
 
           if (data.success) {
+            lastTradeData = data; // Store for label printing
+            
             submitBtn.innerHTML = '<span>✅</span><span>Trade Complete</span>';
             submitBtn.disabled = false;
+            
+            // Show print labels button
+            document.getElementById('print-labels').style.display = 'inline-flex';
             
             const statusText = document.querySelector('.status-text');
             statusText.textContent = 'Trade completed successfully! 🎉';
@@ -1196,4 +1530,14 @@
     });
   </script>
 </body>
-</html>
+</html>result.searchMethod || 'none'
+            };
+          } else {
+            return {
+              found: false,
+              name: query,
+              sku: 'NOT-FOUND',
+              retailPrice: 0,
+              suggestedTrade: 0,
+              maxTrade: 0,
+              searchMethod:
