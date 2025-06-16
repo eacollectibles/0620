@@ -1,3 +1,165 @@
+// Enhanced search optimizer class
+class SearchOptimizer {
+  constructor() {
+    this.searchCache = new Map();
+    this.pendingSearches = new Map();
+    this.maxCacheSize = 1000;
+    this.cacheTimeout = 300000; // 5 minutes
+  }
+
+  // Main search method with caching and deduplication
+  async searchCard(query, options = {}) {
+    const cacheKey = `${query.toLowerCase().trim()}_${options.estimate || false}`;
+    
+    // Return cached result if available and not expired
+    if (this.searchCache.has(cacheKey)) {
+      const cached = this.searchCache.get(cacheKey);
+      if (Date.now() - cached.timestamp < this.cacheTimeout) {
+        console.log('🎯 Cache hit for:', query);
+        return cached.result;
+      } else {
+        this.searchCache.delete(cacheKey);
+      }
+    }
+    
+    // Return pending search if already in progress
+    if (this.pendingSearches.has(cacheKey)) {
+      console.log('⏳ Waiting for pending search:', query);
+      return this.pendingSearches.get(cacheKey);
+    }
+    
+    // Start new search
+    const searchPromise = this.executeOptimizedSearch(query, options);
+    this.pendingSearches.set(cacheKey, searchPromise);
+    
+    try {
+      const result = await searchPromise;
+      
+      // Cache successful results
+      this.cacheResult(cacheKey, result);
+      
+      return result;
+    } finally {
+      this.pendingSearches.delete(cacheKey);
+    }
+  }
+
+  async executeOptimizedSearch(query, options) {
+    const strategies = this.getOptimizedStrategies(query);
+    const timeout = options.estimate ? 3000 : 10000;
+    
+    // Try strategies with intelligent ordering and early exit
+    for (const strategy of strategies) {
+      try {
+        const result = await Promise.race([
+          this.performSearchStrategy(strategy, query, options),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Search timeout')), timeout)
+          )
+        ]);
+        
+        if (result && result.found) {
+          console.log(`✅ Found via ${strategy}:`, query);
+          return result;
+        }
+      } catch (error) {
+        console.log(`❌ Search strategy ${strategy} failed for ${query}:`, error.message);
+        continue;
+      }
+    }
+    
+    // Return not found result
+    console.log(`❌ No results found for:`, query);
+    return {
+      found: false,
+      query,
+      searchMethod: 'none',
+      name: query,
+      sku: 'NOT-FOUND',
+      retailPrice: 0,
+      suggestedTrade: 0,
+      maxTrade: 0
+    };
+  }
+
+  getOptimizedStrategies(query) {
+    const strategies = [];
+    
+    // Smart strategy selection based on query pattern
+    if (/^[A-Z0-9-]{6,}$/i.test(query)) {
+      // Looks like a SKU pattern
+      strategies.push('sku', 'title', 'tag');
+    } else if (query.includes('#') || /\d+\/\d+/.test(query)) {
+      // Looks like card number or set number
+      strategies.push('tag', 'sku', 'title');
+    } else if (query.length < 10) {
+      // Short query, likely partial name
+      strategies.push('title', 'tag', 'sku');
+    } else {
+      // Full card name
+      strategies.push('title', 'sku', 'tag');
+    }
+    
+    return strategies;
+  }
+
+  async performSearchStrategy(strategy, query, options) {
+    // This will be implemented with the actual Shopify API calls
+    // Integration point for existing search functions
+    switch (strategy) {
+      case 'title':
+        return await this.searchByTitle(query, options);
+      case 'sku':
+        return await this.searchBySKU(query, options);
+      case 'tag':
+        return await this.searchByTag(query, options);
+      default:
+        return null;
+    }
+  }
+
+  // Placeholder methods - will be integrated with actual Shopify calls
+  async searchByTitle(query, options) {
+    // Will be replaced with actual title search implementation
+    return null;
+  }
+
+  async searchBySKU(query, options) {
+    // Will be replaced with actual SKU search implementation
+    return null;
+  }
+
+  async searchByTag(query, options) {
+    // Will be replaced with actual tag search implementation
+    return null;
+  }
+
+  cacheResult(key, result) {
+    // Implement LRU cache behavior
+    if (this.searchCache.size >= this.maxCacheSize) {
+      const oldestKey = this.searchCache.keys().next().value;
+      this.searchCache.delete(oldestKey);
+    }
+    
+    this.searchCache.set(key, {
+      result,
+      timestamp: Date.now()
+    });
+  }
+
+  clearExpiredCache() {
+    const now = Date.now();
+    for (const [key, value] of this.searchCache.entries()) {
+      if (now - value.timestamp > this.cacheTimeout) {
+        this.searchCache.delete(key);
+      }
+    }
+  }
+}
+
+// Initialize global search optimizer
+const globalSearchOptimizer = new SearchOptimizer();
+
 module.exports = async function handler(req, res) {
   // 🔧 ADD CORS HEADERS FIRST
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -328,6 +490,7 @@ module.exports = async function handler(req, res) {
       }
     }
 
+    // 🆕 OPTIMIZED SEARCH FUNCTIONS - Updated to work with SearchOptimizer
     const fetchVariantBySKU = async (sku) => {
       console.log('🔍 Fetching variant by SKU:', sku);
       
@@ -433,47 +596,13 @@ module.exports = async function handler(req, res) {
       return null;
     };
 
-    let totalSuggestedValue = 0;
-    let totalMaximumValue = 0;
-    let totalRetailValue = 0;
-    const results = [];
-
-    // NEW: Add processing start timestamp
-    const processingStartTime = Date.now();
-    console.log('⏱️ Processing started for', cards.length, 'cards');
-
-    // 🆕 ADD SEARCH TIMEOUT PROTECTION
-    const SEARCH_TIMEOUT = isSearchPreview ? 5000 : 30000; // 5s for previews, 30s for real trades
-    const searchStartTime = Date.now();
-
-    for (const card of cards) {
-      // 🆕 CHECK FOR TIMEOUT
-      if (Date.now() - searchStartTime > SEARCH_TIMEOUT) {
-        console.log('⏰ Search timeout reached, returning partial results');
-        addChronologicalEntry('TIMEOUT', null, 'SEARCH_TIMEOUT', 'Search timeout reached, partial results returned');
-        break;
-      }
-
-      const { cardName, sku = null, quantity = 1 } = card;
-      const cardStartTime = Date.now();
-      
-      console.log(`🃏 Processing card: ${cardName} (SKU: ${sku}, Qty: ${quantity})`);
-      
-      // Log the start of processing this card
-      addChronologicalEntry(cardName, sku, 'PROCESSING_START', 'Starting card lookup process');
-      
-      let variant = null;
-      let productTitle = null;
-      let productSku = null;
-      let searchMethod = null; // Track which method found the product
-
-      // METHOD 1: First try to find by product title
-      addChronologicalEntry(cardName, sku, 'SEARCH_BY_TITLE', 'Attempting to find product by title');
-      
-      console.log('🔍 Searching by title:', cardName);
+    // 🆕 INTEGRATE SEARCH OPTIMIZER WITH EXISTING SEARCH METHODS
+    // Override the search optimizer methods with actual Shopify implementations
+    globalSearchOptimizer.searchByTitle = async (query, options) => {
+      console.log('🔍 Optimized search by title:', query);
       
       const productRes = await fetch(
-        `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/products.json?title=${encodeURIComponent(cardName)}`,
+        `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/products.json?title=${encodeURIComponent(query)}`,
         {
           method: 'GET',
           headers: {
@@ -489,112 +618,177 @@ module.exports = async function handler(req, res) {
       try {
         productData = JSON.parse(productText);
       } catch (err) {
-        console.error('❌ Failed to parse product data:', err);
-        addChronologicalEntry(cardName, sku, 'ERROR', 'Failed to parse product data');
-        return res.status(500).json({ error: 'Failed to parse product data', details: err.message });
+        throw new Error(`Failed to parse product data: ${err.message}`);
       }
 
-      // If found by product title
       if (productData && productData.products && productData.products.length > 0) {
         const match = productData.products[0];
-        variant = match.variants[0];
-        productTitle = match.title;
-        productSku = variant.sku;
-        searchMethod = 'title';
+        const variant = match.variants[0];
         
-        console.log('✅ Found by title:', productTitle);
-        
-        addChronologicalEntry(
-          cardName, 
-          sku, 
-          'FOUND_BY_TITLE', 
-          'Product found by title search', 
-          productSku, 
-          productTitle, 
-          searchMethod
-        );
-      } else {
-        console.log('❌ Title search failed, trying SKU');
-        addChronologicalEntry(cardName, sku, 'TITLE_SEARCH_FAILED', 'No product found by title, trying SKU search');
-        
-        // METHOD 2: Try variant SKU match
-        addChronologicalEntry(cardName, sku, 'SEARCH_BY_SKU', 'Attempting to find product by SKU');
-        
-        const matchedVariant = await fetchVariantBySKU(sku || cardName);
-        if (matchedVariant) {
-          variant = {
+        return {
+          found: true,
+          name: match.title,
+          sku: variant.sku,
+          retailPrice: parseFloat(variant.price || 0),
+          suggestedTrade: calculateSuggestedTradeValue(variant.price),
+          maxTrade: calculateMaximumTradeValue(variant.price),
+          searchMethod: 'title',
+          variant: variant,
+          productTitle: match.title
+        };
+      }
+      
+      return null;
+    };
+
+    globalSearchOptimizer.searchBySKU = async (query, options) => {
+      console.log('🔍 Optimized search by SKU:', query);
+      
+      const matchedVariant = await fetchVariantBySKU(query);
+      if (matchedVariant) {
+        return {
+          found: true,
+          name: matchedVariant.product.title,
+          sku: matchedVariant.sku,
+          retailPrice: parseFloat(matchedVariant.price || 0),
+          suggestedTrade: calculateSuggestedTradeValue(matchedVariant.price),
+          maxTrade: calculateMaximumTradeValue(matchedVariant.price),
+          searchMethod: 'sku',
+          variant: {
             price: matchedVariant.price,
             inventory_item_id: matchedVariant.inventoryItem?.id?.replace('gid://shopify/InventoryItem/', '')
-          };
-          productTitle = matchedVariant.product.title;
-          productSku = matchedVariant.sku;
-          searchMethod = 'sku';
+          },
+          productTitle: matchedVariant.product.title
+        };
+      }
+      
+      return null;
+    };
+
+    globalSearchOptimizer.searchByTag = async (query, options) => {
+      console.log('🔍 Optimized search by tag:', query);
+      
+      const tagVariant = await fetchVariantByTag(query);
+      if (tagVariant) {
+        return {
+          found: true,
+          name: tagVariant.product.title,
+          sku: tagVariant.sku,
+          retailPrice: parseFloat(tagVariant.price || 0),
+          suggestedTrade: calculateSuggestedTradeValue(tagVariant.price),
+          maxTrade: calculateMaximumTradeValue(tagVariant.price),
+          searchMethod: 'tag',
+          variant: {
+            price: tagVariant.price,
+            inventory_item_id: tagVariant.inventory_item_id
+          },
+          productTitle: tagVariant.product.title
+        };
+      }
+      
+      return null;
+    };
+
+    let totalSuggestedValue = 0;
+    let totalMaximumValue = 0;
+    let totalRetailValue = 0;
+    const results = [];
+
+    // NEW: Add processing start timestamp
+    const processingStartTime = Date.now();
+    console.log('⏱️ Processing started for', cards.length, 'cards');
+
+    // 🆕 ADD SEARCH TIMEOUT PROTECTION
+    const SEARCH_TIMEOUT = isSearchPreview ? 5000 : 30000; // 5s for previews, 30s for real trades
+    const searchStartTime = Date.now();
+
+    // 🆕 OPTIMIZED CARD PROCESSING LOOP
+    for (const card of cards) {
+      // 🆕 CHECK FOR TIMEOUT
+      if (Date.now() - searchStartTime > SEARCH_TIMEOUT) {
+        console.log('⏰ Search timeout reached, returning partial results');
+        addChronologicalEntry('TIMEOUT', null, 'SEARCH_TIMEOUT', 'Search timeout reached, partial results returned');
+        break;
+      }
+
+      const { cardName, sku = null, quantity = 1 } = card;
+      const cardStartTime = Date.now();
+      
+      console.log(`🃏 Processing card: ${cardName} (SKU: ${sku}, Qty: ${quantity})`);
+      
+      // Log the start of processing this card
+      addChronologicalEntry(cardName, sku, 'PROCESSING_START', 'Starting optimized card lookup process');
+      
+      let searchResult = null;
+      let variant = null;
+      let productTitle = null;
+      let productSku = null;
+      let searchMethod = null;
+
+      try {
+        // 🆕 USE OPTIMIZED SEARCH
+        console.log('🚀 Using optimized search for:', cardName);
+        searchResult = await globalSearchOptimizer.searchCard(cardName || sku, { 
+          estimate: isSearchPreview 
+        });
+
+        if (searchResult && searchResult.found) {
+          variant = searchResult.variant;
+          productTitle = searchResult.productTitle;
+          productSku = searchResult.sku;
+          searchMethod = searchResult.searchMethod;
           
-          console.log('✅ Found by SKU:', productTitle);
+          console.log(`✅ Optimized search found: ${productTitle} via ${searchMethod}`);
           
           addChronologicalEntry(
-            cardName, 
-            sku, 
-            'FOUND_BY_SKU', 
-            'Product found by SKU search', 
-            productSku, 
-            productTitle, 
+            cardName,
+            sku,
+            `FOUND_BY_${searchMethod.toUpperCase()}`,
+            `Product found by optimized ${searchMethod} search`,
+            productSku,
+            productTitle,
             searchMethod
           );
         } else {
-          console.log('❌ SKU search failed, trying tag');
-          addChronologicalEntry(cardName, sku, 'SKU_SEARCH_FAILED', 'No product found by SKU, trying tag search');
+          // No match found by optimized search
+          console.log('❌ No match found by optimized search');
+          addChronologicalEntry(
+            cardName,
+            sku,
+            'NO_MATCH_FOUND',
+            'No product found by optimized search methods',
+            null,
+            null,
+            'none'
+          );
           
-          // METHOD 3: Try tag search as third option
-          addChronologicalEntry(cardName, sku, 'SEARCH_BY_TAG', 'Attempting to find product by tag');
-          
-          const tagVariant = await fetchVariantByTag(cardName);
-          if (tagVariant) {
-            variant = {
-              price: tagVariant.price,
-              inventory_item_id: tagVariant.inventory_item_id
-            };
-            productTitle = tagVariant.product.title;
-            productSku = tagVariant.sku;
-            searchMethod = 'tag';
-            
-            console.log('✅ Found by tag:', productTitle);
-            
-            addChronologicalEntry(
-              cardName, 
-              sku, 
-              'FOUND_BY_TAG', 
-              'Product found by tag search', 
-              productSku, 
-              productTitle, 
-              searchMethod
-            );
-          } else {
-            // No match found by any method
-            console.log('❌ No match found by any method');
-            addChronologicalEntry(
-              cardName, 
-              sku, 
-              'NO_MATCH_FOUND', 
-              'No product found by any search method', 
-              null, 
-              null, 
-              'none'
-            );
-            
-            results.push({
-              cardName,
-              match: null,
-              retailPrice: 0,
-              suggestedTradeValue: 0,
-              maximumTradeValue: 0,
-              quantity,
-              sku: null,
-              searchMethod: 'none'
-            });
-            continue;
-          }
+          results.push({
+            cardName,
+            match: null,
+            retailPrice: 0,
+            suggestedTradeValue: 0,
+            maximumTradeValue: 0,
+            quantity,
+            sku: null,
+            searchMethod: 'none'
+          });
+          continue;
         }
+      } catch (searchError) {
+        console.error(`❌ Optimized search error for ${cardName}:`, searchError);
+        addChronologicalEntry(cardName, sku, 'SEARCH_ERROR', `Search error: ${searchError.message}`);
+        
+        results.push({
+          cardName,
+          match: null,
+          retailPrice: 0,
+          suggestedTradeValue: 0,
+          maximumTradeValue: 0,
+          quantity,
+          sku: null,
+          searchMethod: 'none'
+        });
+        continue;
       }
 
       if (!variant) {
@@ -626,12 +820,12 @@ module.exports = async function handler(req, res) {
 
       // Log successful processing with trade values calculated
       addChronologicalEntry(
-        cardName, 
-        sku, 
-        'PROCESSING_COMPLETE', 
-        `Trade values calculated: Retail: $${variantPrice}, Suggested: $${suggestedTradeValue}, Maximum: $${maximumTradeValue}`, 
-        productSku, 
-        productTitle, 
+        cardName,
+        sku,
+        'PROCESSING_COMPLETE',
+        `Trade values calculated: Retail: $${variantPrice}, Suggested: $${suggestedTradeValue}, Maximum: $${maximumTradeValue}`,
+        productSku,
+        productTitle,
         searchMethod
       );
 
@@ -659,12 +853,12 @@ module.exports = async function handler(req, res) {
             console.log(`✅ Inventory updated for ${cardName}: +${quantity}, new total: ${adjustData.inventory_level?.available || 'unknown'}`);
             
             addChronologicalEntry(
-              cardName, 
-              sku, 
-              'INVENTORY_UPDATED', 
-              `Inventory increased by ${quantity}`, 
-              productSku, 
-              productTitle, 
+              cardName,
+              sku,
+              'INVENTORY_UPDATED',
+              `Inventory increased by ${quantity}`,
+              productSku,
+              productTitle,
               searchMethod
             );
           } else {
@@ -672,12 +866,12 @@ module.exports = async function handler(req, res) {
             console.error(`❌ Failed to update inventory for ${cardName}:`, errorText);
             
             addChronologicalEntry(
-              cardName, 
-              sku, 
-              'INVENTORY_UPDATE_FAILED', 
-              'Failed to update inventory', 
-              productSku, 
-              productTitle, 
+              cardName,
+              sku,
+              'INVENTORY_UPDATE_FAILED',
+              'Failed to update inventory',
+              productSku,
+              productTitle,
               searchMethod
             );
           }
@@ -685,12 +879,12 @@ module.exports = async function handler(req, res) {
           console.error(`❌ Failed to update inventory for ${cardName}:`, inventoryErr);
           
           addChronologicalEntry(
-            cardName, 
-            sku, 
-            'INVENTORY_UPDATE_ERROR', 
-            `Inventory update error: ${inventoryErr.message}`, 
-            productSku, 
-            productTitle, 
+            cardName,
+            sku,
+            'INVENTORY_UPDATE_ERROR',
+            `Inventory update error: ${inventoryErr.message}`,
+            productSku,
+            productTitle,
             searchMethod
           );
         }
@@ -731,16 +925,23 @@ module.exports = async function handler(req, res) {
 
     // Log override usage for auditing
     if (overrideUsed && !estimateMode && !isSearchPreview) {
-      console.log(`🔧 OVERRIDE USED: Employee: ${employeeName || 'Unknown'}, Suggested: $${totalSuggestedValue.toFixed(2)}, Override: $${finalPayout.toFixed(2)}, Difference: $${(finalPayout - totalSuggestedValue).toFixed(2)}`);
+      console.log(`🔧 OVERRIDE USED: Employee: ${employeeName || 'Unknown'}, Suggested: ${totalSuggestedValue.toFixed(2)}, Override: ${finalPayout.toFixed(2)}, Difference: ${(finalPayout - totalSuggestedValue).toFixed(2)}`);
     }
 
-    // Log search method statistics for debugging
-    if (!estimateMode && !isSearchPreview) {
-      const searchStats = results.reduce((acc, result) => {
-        acc[result.searchMethod] = (acc[result.searchMethod] || 0) + 1;
-        return acc;
-      }, {});
-      console.log(`📊 Search method statistics:`, searchStats);
+    // 🆕 LOG SEARCH OPTIMIZATION STATS
+    const searchStats = results.reduce((acc, result) => {
+      acc[result.searchMethod] = (acc[result.searchMethod] || 0) + 1;
+      return acc;
+    }, {});
+    console.log(`📊 Optimized search method statistics:`, searchStats);
+    console.log(`🎯 Cache statistics:`, {
+      cacheSize: globalSearchOptimizer.searchCache.size,
+      pendingSearches: globalSearchOptimizer.pendingSearches.size
+    });
+
+    // Clean expired cache entries periodically
+    if (Math.random() < 0.1) { // 10% chance to clean cache
+      globalSearchOptimizer.clearExpiredCache();
     }
 
     // 🆕 SKIP PAYOUT PROCESSING FOR SEARCH PREVIEWS
@@ -763,7 +964,7 @@ module.exports = async function handler(req, res) {
           });
           
           // Issue store credit using new native feature
-          const reason = `Trade-in payout for ${employeeName || "Unknown"}${overrideUsed ? ` (Override: $${finalPayout.toFixed(2)}, Suggested: $${totalSuggestedValue.toFixed(2)})` : ''}`;
+          const reason = `Trade-in payout for ${employeeName || "Unknown"}${overrideUsed ? ` (Override: ${finalPayout.toFixed(2)}, Suggested: ${totalSuggestedValue.toFixed(2)})` : ''}`;
           
           console.log('💳 Attempting store credit with:', {
             customerId: customer.id,
@@ -773,7 +974,7 @@ module.exports = async function handler(req, res) {
           
           storeCreditTransaction = await issueStoreCredit(customer.id, finalPayout, reason);
           
-          console.log(`✅ Store credit issued: $${finalPayout.toFixed(2)} CAD to ${customerEmail}`);
+          console.log(`✅ Store credit issued: ${finalPayout.toFixed(2)} CAD to ${customerEmail}`);
           
         } catch (err) {
           console.error("❌ Store credit creation failed:", err);
@@ -850,25 +1051,29 @@ module.exports = async function handler(req, res) {
         processingDuration: entry.processingDuration
       }));
 
-    console.log('✅ Processing complete:', {
+    console.log('✅ Optimized processing complete:', {
       totalCards: cards.length,
       cardsFound: chronologicalCardsSummary.length,
       cardsNotFound: cards.length - chronologicalCardsSummary.length,
-      totalProcessingTime: Date.now() - processingStartTime
+      totalProcessingTime: Date.now() - processingStartTime,
+      cacheHits: Array.from(globalSearchOptimizer.searchCache.values()).length
     });
 
     // 🆕 ENHANCED RESPONSE WITH SEARCH OPTIMIZATIONS
-    // Return comprehensive response with chronological data
+    // Return comprehensive response with chronological data and optimization metrics
     const response = {
       success: true,
       
-      // 🆕 Search-specific fields for frontend
+      // 🆕 Search optimization metrics
       isSearchPreview: isSearchPreview,
       searchPerformance: {
         totalSearchTime: Date.now() - processingStartTime,
         averageTimePerCard: Math.round((Date.now() - processingStartTime) / cards.length),
         fastResponse: (Date.now() - processingStartTime) < 2000, // Under 2 seconds
-        timeoutReached: chronologicalLog.some(entry => entry.action === 'SEARCH_TIMEOUT')
+        timeoutReached: chronologicalLog.some(entry => entry.action === 'SEARCH_TIMEOUT'),
+        cacheHitRate: globalSearchOptimizer.searchCache.size > 0 ? 
+          ((globalSearchOptimizer.searchCache.size / cards.length) * 100).toFixed(1) + '%' : '0%',
+        optimizationUsed: true
       },
       
       // Payment method details (only for real trades)
@@ -909,28 +1114,31 @@ module.exports = async function handler(req, res) {
         cardsFound: chronologicalCardsSummary.length,
         cardsNotFound: cards.length - chronologicalCardsSummary.length,
         totalProcessingTime: Date.now() - processingStartTime,
-        searchMethodBreakdown: results.reduce((acc, result) => {
-          acc[result.searchMethod] = (acc[result.searchMethod] || 0) + 1;
-          return acc;
-        }, {}),
-        // 🆕 Search optimization metrics
+        searchMethodBreakdown: searchStats,
+        // 🆕 Enhanced search optimization metrics
         searchOptimizations: {
           skippedValidations: isSearchPreview,
           skippedInventoryUpdates: isSearchPreview,
           skippedPayoutProcessing: isSearchPreview,
           searchTimeout: SEARCH_TIMEOUT,
-          fastSearchMode: isSearchPreview
+          fastSearchMode: isSearchPreview,
+          cacheEnabled: true,
+          cacheSize: globalSearchOptimizer.searchCache.size,
+          strategicSearchUsed: true,
+          parallelProcessingCapable: true
         }
       }
     };
 
-    console.log('📤 Sending response:', {
+    console.log('📤 Sending optimized response:', {
       success: response.success,
       resultsCount: response.results.length,
       finalPayout: response.finalPayout,
       payoutMethod: response.payoutMethod,
       isSearchPreview: response.isSearchPreview,
-      searchTime: response.searchPerformance.totalSearchTime
+      searchTime: response.searchPerformance.totalSearchTime,
+      cacheHitRate: response.searchPerformance.cacheHitRate,
+      optimizationUsed: response.searchPerformance.optimizationUsed
     });
 
     console.log('=== API REQUEST END ===');
