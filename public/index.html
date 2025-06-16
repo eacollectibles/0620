@@ -1281,7 +1281,7 @@
         }
       }
 
-      // 🔗 REAL SHOPIFY API INTEGRATION
+      // 🔗 REAL SHOPIFY API INTEGRATION - MATCHES YOUR BACKEND EXACTLY
       async performRealAPISearch(query) {
         try {
           console.log('🔍 Real API search for:', query);
@@ -1297,7 +1297,7 @@
                 sku: null, 
                 quantity: 1 
               }],
-              employeeName: 'Preview', // Search preview mode
+              employeeName: 'Preview', // Triggers search preview mode in your backend
               payoutMethod: 'cash'
             }),
             signal: AbortSignal.timeout(30000)
@@ -1309,20 +1309,29 @@
           }
 
           const data = await response.json();
-          console.log('📥 API Response:', data);
+          console.log('📥 Real API Response:', data);
           
+          // Your backend returns this structure for successful searches
           if (data.success && data.results && data.results.length > 0) {
             const result = data.results[0];
             
-            // Check if this could be a multiple match scenario
-            // In real implementation, your backend would return multiple results
-            const hasMultipleVariants = this.checkForMultipleVariants(query, result);
-            
-            if (hasMultipleVariants) {
-              return this.generateMultipleResults(query, result, data);
-            } else {
-              return this.formatSingleResult(result, data);
-            }
+            // Format according to your actual backend response structure
+            return {
+              found: !!result.match, // Your backend uses 'match' field for found cards
+              name: result.match || result.cardName,
+              sku: result.sku || 'NOT-FOUND',
+              cardNumber: this.extractCardNumber(result.sku) || 'N/A',
+              set: this.extractSetFromSku(result.sku) || 'Unknown',
+              retailPrice: parseFloat(result.retailPrice) || 0,
+              suggestedTrade: parseFloat(result.suggestedTradeValue) || 0,
+              maxTrade: parseFloat(result.maximumTradeValue) || 0,
+              searchMethod: result.searchMethod || 'none',
+              // Your backend provides these optimization metrics
+              optimizationUsed: data.searchPerformance?.optimizationUsed || false,
+              serverCacheHit: data.searchPerformance?.cacheHitRate !== '0%',
+              totalSearchTime: data.searchPerformance?.totalSearchTime || 0,
+              fastResponse: data.searchPerformance?.fastResponse || false
+            };
           } else {
             return this.formatNotFoundResult(query);
           }
@@ -1330,80 +1339,6 @@
           console.error('🚨 Search error:', error);
           return this.formatErrorResult(query, error);
         }
-      }
-
-      // Check if query might have multiple variants (could be enhanced with backend logic)
-      checkForMultipleVariants(query, result) {
-        // Simple heuristic - in real implementation, backend would handle this
-        const cardName = query.toLowerCase();
-        const hasVariantKeywords = cardName.includes('foil') || 
-                                 cardName.includes('extended') || 
-                                 cardName.includes('showcase') ||
-                                 cardName.includes('borderless');
-        
-        // If no variant specified and card value is high, likely has variants
-        return !hasVariantKeywords && parseFloat(result.retailPrice) > 10;
-      }
-
-      // Generate multiple variant results (simulate what enhanced backend would return)
-      generateMultipleResults(query, baseResult, apiData) {
-        const variants = [
-          {
-            name: baseResult.match || baseResult.cardName,
-            sku: baseResult.sku,
-            set: this.extractSetFromSku(baseResult.sku),
-            rarity: 'rare', // Would come from API
-            cardNumber: this.extractCardNumber(baseResult.sku) || 'N/A',
-            retail: parseFloat(baseResult.retailPrice).toFixed(2),
-            trade: parseFloat(baseResult.suggestedTradeValue).toFixed(2),
-            max: parseFloat(baseResult.maximumTradeValue).toFixed(2),
-            searchMethod: baseResult.searchMethod,
-            variant: 'Regular'
-          }
-        ];
-
-        // Generate likely foil variant
-        if (parseFloat(baseResult.retailPrice) > 5) {
-          variants.push({
-            name: `${baseResult.match || baseResult.cardName} (Foil)`,
-            sku: `${baseResult.sku}-F`,
-            set: this.extractSetFromSku(baseResult.sku),
-            rarity: 'rare',
-            cardNumber: this.extractCardNumber(baseResult.sku) || 'N/A',
-            retail: (parseFloat(baseResult.retailPrice) * 2.5).toFixed(2),
-            trade: (parseFloat(baseResult.suggestedTradeValue) * 2.5).toFixed(2),
-            max: (parseFloat(baseResult.maximumTradeValue) * 2.5).toFixed(2),
-            searchMethod: baseResult.searchMethod,
-            variant: 'Foil'
-          });
-        }
-
-        return {
-          found: true,
-          multiple: true,
-          results: variants,
-          searchMethod: baseResult.searchMethod,
-          optimizationUsed: apiData.searchPerformance?.optimizationUsed || false,
-          serverCacheHit: apiData.searchPerformance?.cacheHitRate !== '0%'
-        };
-      }
-
-      // Format single result from API
-      formatSingleResult(result, apiData) {
-        return {
-          found: !!result.match,
-          multiple: false,
-          name: result.match || result.cardName,
-          sku: result.sku || 'NOT-FOUND',
-          cardNumber: this.extractCardNumber(result.sku) || 'N/A',
-          set: this.extractSetFromSku(result.sku) || 'Unknown',
-          retailPrice: parseFloat(result.retailPrice) || 0,
-          suggestedTrade: parseFloat(result.suggestedTradeValue) || 0,
-          maxTrade: parseFloat(result.maximumTradeValue) || 0,
-          searchMethod: result.searchMethod || 'none',
-          optimizationUsed: apiData.searchPerformance?.optimizationUsed || false,
-          serverCacheHit: apiData.searchPerformance?.cacheHitRate !== '0%'
-        };
       }
 
       // Format not found result
