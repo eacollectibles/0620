@@ -720,6 +720,299 @@
         justify-content: center;
       }
     }
+
+    /* Analytics Modal Styles */
+    .analytics-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      padding: 20px;
+    }
+
+    .analytics-modal.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .analytics-content {
+      background: white;
+      border-radius: var(--border-radius-lg);
+      width: 100%;
+      max-width: 1200px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+
+    .analytics-modal.visible .analytics-content {
+      transform: scale(1);
+    }
+
+    .analytics-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      padding: 24px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+    }
+
+    .analytics-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .close-modal {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .close-modal:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+    }
+
+    .analytics-body {
+      padding: 32px;
+    }
+
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .metric-box {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--border-radius);
+      padding: 20px;
+      text-align: center;
+    }
+
+    .metric-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .metric-number {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 8px 0;
+    }
+
+    .metric-number.positive {
+      color: var(--success);
+    }
+
+    .metric-number.negative {
+      color: var(--error);
+    }
+
+    .metric-number.warning {
+      color: var(--warning);
+    }
+
+    .metric-description {
+      font-size: 14px;
+      color: var(--gray-600);
+      margin: 0;
+    }
+
+    .metric-trend {
+      font-size: 12px;
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .metric-trend.up {
+      color: var(--success);
+    }
+
+    .metric-trend.down {
+      color: var(--error);
+    }
+
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .chart-section {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--border-radius);
+      padding: 20px;
+    }
+
+    .chart-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--gray-700);
+      margin: 0 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chart-mock {
+      height: 250px;
+      background: white;
+      border-radius: var(--border-radius);
+      border: 2px dashed var(--gray-300);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gray-500);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .top-cards {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--border-radius);
+      padding: 20px;
+    }
+
+    .card-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .card-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .card-item:last-child {
+      border-bottom: none;
+    }
+
+    .card-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-rank {
+      background: var(--primary);
+      color: white;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .card-rank.gold {
+      background: #d69e2e;
+    }
+
+    .card-rank.silver {
+      background: #718096;
+    }
+
+    .card-rank.bronze {
+      background: #c05621;
+    }
+
+    .card-name-small {
+      font-weight: 500;
+      color: var(--gray-800);
+      font-size: 14px;
+    }
+
+    .card-margin {
+      font-weight: 600;
+      color: var(--success);
+      font-size: 14px;
+    }
+
+    .loading-spinner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      color: var(--gray-500);
+    }
+
+    .spinner-large {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--gray-200);
+      border-top: 3px solid var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 12px;
+    }
+
+    @media (max-width: 768px) {
+      .analytics-modal {
+        padding: 10px;
+      }
+      
+      .analytics-header {
+        padding: 16px 20px;
+      }
+      
+      .analytics-title {
+        font-size: 20px;
+      }
+      
+      .analytics-body {
+        padding: 20px;
+      }
+      
+      .analytics-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .metrics-row {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -886,6 +1179,11 @@
               <span>🏷️</span>
               <span>Print Labels</span>
             </button>
+
+            <button type="button" class="btn btn-secondary" id="view-analytics">
+              <span>📈</span>
+              <span>View Analytics</span>
+            </button>
           </div>
         </form>
 
@@ -904,6 +1202,132 @@
             <div class="metric">
               <span>🔍</span>
               <span id="total-searches">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analytics Modal -->
+  <div class="analytics-modal" id="analytics-modal">
+    <div class="analytics-content">
+      <div class="analytics-header">
+        <h2 class="analytics-title">
+          <span>📈</span>
+          <span>Profit Margin Analytics</span>
+        </h2>
+        <button class="close-modal" id="close-analytics">✖</button>
+      </div>
+      
+      <div class="analytics-body" id="analytics-body">
+        <!-- Loading state -->
+        <div class="loading-spinner" id="analytics-loading">
+          <div class="spinner-large"></div>
+          <span>Loading analytics data...</span>
+        </div>
+        
+        <!-- Analytics content will be populated here -->
+        <div id="analytics-data" style="display: none;">
+          <!-- Key Metrics -->
+          <div class="metrics-row">
+            <div class="metric-box">
+              <div class="metric-icon">💰</div>
+              <div class="metric-number positive" id="overall-margin">67.2%</div>
+              <div class="metric-description">Overall Margin</div>
+              <div class="metric-trend up">
+                <span>↗️</span>
+                <span>+3.2% vs last month</span>
+              </div>
+            </div>
+
+            <div class="metric-box">
+              <div class="metric-icon">📈</div>
+              <div class="metric-number positive" id="monthly-profit">$12,847</div>
+              <div class="metric-description">Monthly Profit</div>
+              <div class="metric-trend up">
+                <span>↗️</span>
+                <span>+8.1% vs last month</span>
+              </div>
+            </div>
+
+            <div class="metric-box">
+              <div class="metric-icon">⏱️</div>
+              <div class="metric-number warning" id="avg-days">23.4</div>
+              <div class="metric-description">Avg Days to Sell</div>
+              <div class="metric-trend down">
+                <span>↘️</span>
+                <span>+2.1 days vs last month</span>
+              </div>
+            </div>
+
+            <div class="metric-box">
+              <div class="metric-icon">📦</div>
+              <div class="metric-number negative" id="dead-inventory">$3,245</div>
+              <div class="metric-description">Dead Inventory Cost</div>
+              <div class="metric-trend down">
+                <span>↘️</span>
+                <span>-12% vs last month</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts and Top Cards -->
+          <div class="analytics-grid">
+            <div class="chart-section">
+              <h3 class="chart-title">
+                <span>📊</span>
+                <span>Margin Trends (Last 6 Months)</span>
+              </h3>
+              <div class="chart-mock">
+                📈 Interactive margin trend chart<br>
+                (Line chart showing monthly margin %, profit $, and volume)<br>
+                <em>Chart would be rendered here with real data</em>
+              </div>
+            </div>
+
+            <div class="top-cards">
+              <h3 class="chart-title">
+                <span>🏆</span>
+                <span>Top Performing Cards</span>
+              </h3>
+              <ul class="card-list">
+                <li class="card-item">
+                  <div class="card-info">
+                    <div class="card-rank gold">1</div>
+                    <div class="card-name-small">Black Lotus (Alpha)</div>
+                  </div>
+                  <div class="card-margin">284%</div>
+                </li>
+                <li class="card-item">
+                  <div class="card-info">
+                    <div class="card-rank silver">2</div>
+                    <div class="card-name-small">Tarmogoyf</div>
+                  </div>
+                  <div class="card-margin">156%</div>
+                </li>
+                <li class="card-item">
+                  <div class="card-info">
+                    <div class="card-rank bronze">3</div>
+                    <div class="card-name-small">Force of Will</div>
+                  </div>
+                  <div class="card-margin">134%</div>
+                </li>
+                <li class="card-item">
+                  <div class="card-info">
+                    <div class="card-rank">4</div>
+                    <div class="card-name-small">Snapcaster Mage</div>
+                  </div>
+                  <div class="card-margin">89%</div>
+                </li>
+                <li class="card-item">
+                  <div class="card-info">
+                    <div class="card-rank">5</div>
+                    <div class="card-name-small">Lightning Bolt</div>
+                  </div>
+                  <div class="card-margin">76%</div>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
@@ -1370,6 +1794,29 @@
         }
       });
 
+      // Analytics modal handlers
+      document.getElementById('view-analytics').addEventListener('click', function() {
+        openAnalyticsModal();
+      });
+
+      document.getElementById('close-analytics').addEventListener('click', function() {
+        closeAnalyticsModal();
+      });
+
+      // Close modal when clicking outside
+      document.getElementById('analytics-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeAnalyticsModal();
+        }
+      });
+
+      // Close modal with Escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          closeAnalyticsModal();
+        }
+      });
+
       // Estimate button
       document.getElementById('estimate-trade').addEventListener('click', function() {
         const cards = document.querySelectorAll('.card-row');
@@ -1528,6 +1975,90 @@
       console.log('🚀 Trade-In Portal initialized - connecting to real API');
       console.log('🔗 API URL:', searchClient.apiUrl);
     });
+
+    // Analytics Modal Functions
+    async function openAnalyticsModal() {
+      const modal = document.getElementById('analytics-modal');
+      const loading = document.getElementById('analytics-loading');
+      const data = document.getElementById('analytics-data');
+      
+      // Show modal
+      modal.classList.add('visible');
+      loading.style.display = 'flex';
+      data.style.display = 'none';
+      
+      try {
+        // Simulate API call (replace with real endpoint)
+        await new Promise(resolve => setTimeout(resolve, 1500)); // Mock delay
+        
+        // In real implementation, you'd fetch from /api/margin-analytics
+        const analyticsData = await fetchAnalyticsData();
+        
+        // Update UI with real data
+        updateAnalyticsDisplay(analyticsData);
+        
+        // Show data, hide loading
+        loading.style.display = 'none';
+        data.style.display = 'block';
+        
+      } catch (error) {
+        console.error('Failed to load analytics:', error);
+        loading.innerHTML = `
+          <div style="color: var(--error); text-align: center;">
+            <div>❌ Failed to load analytics data</div>
+            <div style="font-size: 14px; margin-top: 8px;">${error.message}</div>
+          </div>
+        `;
+      }
+    }
+
+    function closeAnalyticsModal() {
+      const modal = document.getElementById('analytics-modal');
+      modal.classList.remove('visible');
+    }
+
+    // Mock function to simulate fetching analytics data
+    async function fetchAnalyticsData() {
+      // This would be replaced with actual API call:
+      // const response = await fetch('/api/margin-analytics');
+      // return response.json();
+      
+      // Mock data for demonstration
+      return {
+        overallMargin: 67.2,
+        monthlyProfit: 12847,
+        avgDaysToSell: 23.4,
+        deadInventoryCost: 3245,
+        topCards: [
+          { name: 'Black Lotus (Alpha)', margin: 284 },
+          { name: 'Tarmogoyf (Future Sight)', margin: 156 },
+          { name: 'Force of Will (Alliances)', margin: 134 },
+          { name: 'Snapcaster Mage', margin: 89 },
+          { name: 'Lightning Bolt (Beta)', margin: 76 }
+        ],
+        trends: {
+          marginTrend: '+3.2%',
+          profitTrend: '+8.1%',
+          daysTrend: '+2.1',
+          inventoryTrend: '-12%'
+        }
+      };
+    }
+
+    // Update analytics display with real data
+    function updateAnalyticsDisplay(data) {
+      // Update main metrics
+      document.getElementById('overall-margin').textContent = `${data.overallMargin}%`;
+      document.getElementById('monthly-profit').textContent = `${data.monthlyProfit.toLocaleString()}`;
+      document.getElementById('avg-days').textContent = data.avgDaysToSell;
+      document.getElementById('dead-inventory').textContent = `${data.deadInventoryCost.toLocaleString()}`;
+      
+      // In a real implementation, you'd also update:
+      // - Trend indicators
+      // - Top performing cards list
+      // - Chart data
+      // - Additional metrics
+    }
   </script>
 </body>
 </html>result.searchMethod || 'none'
