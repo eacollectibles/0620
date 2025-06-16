@@ -944,4 +944,90 @@
         const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
           const input = row.querySelector('.card-input');
           const quantity = parseInt(row.querySelector('[name="cardQuantity"]').value) || 1;
-          const result = JSON.parse
+          const result = JSON.parse(input.dataset.confirmedResult || '{}');
+          
+          return {
+            cardName: result.name || input.value,
+            sku: result.sku || null,
+            quantity: quantity
+          };
+        });
+
+        const submitBtn = document.getElementById('submit-trade');
+        submitBtn.innerHTML = '<span class="spinner"></span><span>Processing...</span>';
+        submitBtn.disabled = true;
+
+        try {
+          const response = await fetch(searchClient.apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              cards: cards,
+              employeeName: employeeName,
+              payoutMethod: payoutMethod,
+              customerEmail: customerEmail || undefined
+            })
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            submitBtn.innerHTML = '<span>✅</span><span>Trade Complete</span>';
+            submitBtn.disabled = false;
+            
+            const statusText = document.querySelector('.status-text');
+            statusText.textContent = 'Trade completed successfully! 🎉';
+            statusText.style.color = 'var(--success)';
+
+            // Show success details
+            let successMessage = `Trade completed!\n\nFinal Payout: ${data.finalPayout}\nPayout Method: ${data.payoutMethod.replace('-', ' ').toUpperCase()}`;
+            
+            if (data.giftCardCode) {
+              successMessage += `\nGift Card Code: ${data.giftCardCode}`;
+            }
+            
+            if (data.customer?.email) {
+              successMessage += `\nStore Credit issued to: ${data.customer.email}`;
+            }
+
+            alert(successMessage);
+
+            // Reset form after success
+            setTimeout(() => {
+              if (confirm('Reset form for next trade?')) {
+                location.reload();
+              }
+            }, 2000);
+
+          } else {
+            throw new Error(data.error || 'Trade processing failed');
+          }
+
+        } catch (error) {
+          console.error('Trade error:', error);
+          submitBtn.innerHTML = '<span>✅</span><span>Process Trade</span>';
+          submitBtn.disabled = false;
+          
+          const statusText = document.querySelector('.status-text');
+          statusText.textContent = `Trade failed: ${error.message}`;
+          statusText.style.color = 'var(--error)';
+          
+          alert('Trade processing failed: ' + error.message);
+        }
+      });
+
+      // Update metrics periodically
+      setInterval(() => {
+        document.getElementById('total-searches').textContent = searchClient.stats.totalSearches;
+        document.getElementById('cache-rate').textContent = 
+          searchClient.stats.totalSearches > 0 ? 
+          Math.round((searchClient.stats.cacheHits / searchClient.stats.totalSearches) * 100) + '%' : 
+          '0%';
+      }, 1000);
+
+      console.log('🚀 Trade-In Portal initialized - connecting to real API');
+      console.log('🔗 API URL:', searchClient.apiUrl);
+    });
+  </script>
+</body>
+</html>
