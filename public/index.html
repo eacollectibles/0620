@@ -88,38 +88,33 @@
       font-size: 28px;
     }
 
-    /* Main card */
+    /* Main card container - ensure it doesn't clip suggestions */
     .main-card {
       background: white;
       border-radius: var(--border-radius-xl);
       box-shadow: var(--shadow-xl);
       border: 1px solid var(--gray-200);
-      overflow: hidden;
-    }
-
-    .card-header {
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-      color: white;
-      padding: 32px;
-      text-align: center;
-    }
-
-    .card-title {
-      font-size: 28px;
-      font-weight: 700;
-      margin: 0;
-      letter-spacing: -0.025em;
-    }
-
-    .card-subtitle {
-      font-size: 16px;
-      opacity: 0.9;
-      margin: 8px 0 0 0;
-      font-weight: 400;
+      overflow: visible; /* Changed from hidden to visible */
+      position: relative;
     }
 
     .card-content {
       padding: 48px;
+      overflow: visible; /* Ensure suggestions can extend outside */
+      position: relative;
+    }
+
+    /* Ensure form doesn't clip suggestions */
+    #trade-form {
+      overflow: visible;
+      position: relative;
+    }
+
+    /* Container should also allow overflow */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      overflow: visible;
     }
 
     /* Form sections */
@@ -241,25 +236,17 @@
       max-height: 200px;
     }
 
-    /* Cards section */
+    /* Cards section - fix overflow for search suggestions */
     .cards-section {
       background: var(--gray-50);
       border-radius: var(--border-radius-lg);
       border: 1px solid var(--gray-200);
-      overflow: hidden;
-    }
-
-    .cards-header {
-      background: white;
-      padding: 24px 32px;
-      border-bottom: 1px solid var(--gray-200);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      overflow: visible; /* Changed from hidden to visible */
     }
 
     .cards-list {
       padding: 24px 32px;
+      overflow: visible; /* Ensure suggestions can extend outside */
     }
 
     .card-row {
@@ -274,15 +261,12 @@
       margin-bottom: 16px;
       transition: all 0.2s ease;
       position: relative;
-    }
-
-    .card-row:hover {
-      box-shadow: var(--shadow-md);
-      transform: translateY(-1px);
+      overflow: visible; /* Allow suggestions to extend outside */
     }
 
     .card-input-container {
       position: relative;
+      z-index: 1000; /* Ensure suggestions appear above other elements */
     }
 
     .card-input {
@@ -310,7 +294,21 @@
       background: rgba(214, 158, 46, 0.05);
     }
 
-    /* Search suggestions - enhanced for multiple results */
+    .cards-header {
+      background: white;
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-row:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    /* Search suggestions - enhanced for multiple results with proper scrolling */
     .search-suggestion {
       position: absolute;
       top: 100%;
@@ -320,18 +318,77 @@
       border: 2px solid var(--accent);
       border-top: none;
       border-radius: 0 0 var(--border-radius) var(--border-radius);
-      box-shadow: var(--shadow-lg);
-      z-index: 1000;
+      box-shadow: var(--shadow-xl);
+      z-index: 10000; /* Much higher z-index to ensure it's above everything */
       animation: slideDown 0.2s ease;
-      max-height: 400px;
+      max-height: 60vh; /* Use viewport height instead of fixed pixels */
       overflow-y: auto;
+      overflow-x: hidden;
+      /* Ensure smooth scrolling */
+      scrollbar-width: thin;
+      scrollbar-color: var(--gray-400) var(--gray-100);
+    }
+
+    /* Custom scrollbar for webkit browsers */
+    .search-suggestion::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .search-suggestion::-webkit-scrollbar-track {
+      background: var(--gray-100);
+      border-radius: 4px;
+    }
+
+    .search-suggestion::-webkit-scrollbar-thumb {
+      background: var(--gray-400);
+      border-radius: 4px;
+    }
+
+    .search-suggestion::-webkit-scrollbar-thumb:hover {
+      background: var(--gray-500);
     }
 
     .search-suggestion.multiple-results {
       border-color: var(--warning);
+      max-height: 70vh; /* Slightly taller for multiple results */
     }
 
-    .suggestion-header {
+    .card-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      padding: 32px;
+      text-align: center;
+    }
+
+    .card-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.025em;
+    }
+
+    .card-subtitle {
+      font-size: 16px;
+      opacity: 0.9;
+      margin: 8px 0 0 0;
+      font-weight: 400;
+    }
+
+    /* Add scroll indicator for multiple results */
+    .scroll-indicator {
+      position: sticky;
+      bottom: 0;
+      background: linear-gradient(to top, rgba(255,255,255,0.9) 0%, transparent 100%);
+      text-align: center;
+      padding: 8px;
+      font-size: 12px;
+      color: var(--gray-500);
+      pointer-events: none;
+    }
+
+    .scroll-indicator.visible {
+      display: block;
+    }
       background: var(--gray-50);
       padding: 16px 20px;
       border-bottom: 1px solid var(--gray-200);
@@ -354,23 +411,30 @@
     }
 
     .suggestion-item {
-      padding: 16px 20px;
+      padding: 20px; /* Increased padding for better touch targets */
       border-bottom: 1px solid var(--gray-100);
       cursor: pointer;
       transition: all 0.2s ease;
+      /* Ensure items don't get cut off */
+      min-height: 120px;
+      display: flex;
+      align-items: center;
     }
 
     .suggestion-item:hover {
       background: var(--gray-50);
+      transform: translateX(4px); /* Subtle hover animation */
     }
 
     .suggestion-item:last-child {
       border-bottom: none;
+      margin-bottom: 0; /* Remove any bottom margin */
     }
 
     .suggestion-item.selected {
       background: rgba(49, 130, 206, 0.1);
       border-left: 4px solid var(--accent);
+      transform: translateX(4px);
     }
 
     .card-details {
@@ -378,6 +442,7 @@
       grid-template-columns: 1fr auto;
       gap: 16px;
       align-items: center;
+      width: 100%; /* Ensure full width usage */
     }
 
     .card-info {
@@ -456,6 +521,9 @@
       justify-content: space-between;
       align-items: center;
       gap: 12px;
+      position: sticky; /* Make actions sticky at bottom */
+      bottom: 0;
+      z-index: 10;
     }
 
     .refine-search {
