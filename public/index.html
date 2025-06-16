@@ -231,6 +231,26 @@
       margin-bottom: 15px;
       font-size: 0.9em;
       color: #0c5460;
+      position: relative;
+    }
+
+    /* 🆕 OPTIMIZATION INDICATOR */
+    .optimization-badge {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      background: #27ae60;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.7em;
+      font-weight: bold;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
     }
 
     .card-row {
@@ -268,7 +288,7 @@
       width: 100px;
     }
 
-    /* Search suggestion styles */
+    /* 🆕 ENHANCED SEARCH SUGGESTION STYLES */
     .search-suggestion {
       position: absolute;
       top: 100%;
@@ -288,6 +308,7 @@
       background: #f8f9fa;
       color: #666;
       font-style: italic;
+      border-color: #f39c12;
     }
 
     .search-suggestion.found {
@@ -300,6 +321,12 @@
       background: #f8d7da;
       border-color: #e74c3c;
       color: #721c24;
+    }
+
+    .search-suggestion.cached {
+      background: #e8f5e8;
+      border-color: #28a745;
+      color: #155724;
     }
 
     .suggestion-content {
@@ -321,6 +348,29 @@
     .suggestion-sku {
       font-size: 0.9em;
       color: #666;
+    }
+
+    /* 🆕 SEARCH PERFORMANCE INDICATOR */
+    .suggestion-performance {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 2px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .performance-metric {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .performance-metric.fast {
+      color: #27ae60;
+    }
+
+    .performance-metric.slow {
+      color: #e74c3c;
     }
 
     .suggestion-actions {
@@ -411,6 +461,18 @@
       color: white;
     }
 
+    /* 🆕 CACHE HIT BADGE */
+    .search-method-cached {
+      background: #28a745;
+      color: white;
+      animation: glow 1s ease-in-out;
+    }
+
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 5px rgba(40, 167, 69, 0.5); }
+      50% { box-shadow: 0 0 20px rgba(40, 167, 69, 0.8); }
+    }
+
     .trade-values {
       margin-top: 8px;
       padding: 8px;
@@ -459,10 +521,35 @@
     #estimate-trade {
       background: #3498db;
       color: white;
+      position: relative;
     }
 
     #estimate-trade:hover {
       background: #2980b9;
+    }
+
+    /* 🆕 OPTIMIZATION INDICATOR ON ESTIMATE BUTTON */
+    #estimate-trade::after {
+      content: '⚡';
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #f39c12;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-10px); }
+      60% { transform: translateY(-5px); }
     }
 
     #submit-trade {
@@ -646,6 +733,36 @@
       min-height: 50px;
       display: flex;
       align-items: center;
+      position: relative;
+    }
+
+    /* 🆕 PERFORMANCE METRICS IN STATUS BAR */
+    .status-metrics {
+      position: absolute;
+      top: 8px;
+      right: 15px;
+      font-size: 0.8em;
+      color: #666;
+      display: flex;
+      gap: 15px;
+    }
+
+    .metric {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .metric.good {
+      color: #27ae60;
+    }
+
+    .metric.warning {
+      color: #f39c12;
+    }
+
+    .metric.error {
+      color: #e74c3c;
     }
 
     .trade-log-section {
@@ -668,6 +785,32 @@
       border-radius: 6px;
       border-left: 4px solid #3498db;
       font-family: 'Courier New', monospace;
+    }
+
+    /* 🆕 SEARCH CACHE STATUS */
+    .cache-status {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(52, 152, 219, 0.9);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 20px;
+      font-size: 0.9em;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .cache-status:hover {
+      background: rgba(52, 152, 219, 1);
+      transform: translateY(-2px);
+    }
+
+    .cache-status.hidden {
+      transform: translateY(100px);
+      opacity: 0;
     }
 
     @media (max-width: 768px) {
@@ -727,6 +870,19 @@
       .card-input-container {
         min-width: auto;
       }
+
+      .status-metrics {
+        position: static;
+        margin-top: 10px;
+        justify-content: center;
+      }
+
+      .cache-status {
+        bottom: 10px;
+        right: 10px;
+        font-size: 0.8em;
+        padding: 8px 12px;
+      }
     }
   </style>
 </head>
@@ -782,8 +938,10 @@
       <div class="form-group">
         <label>Cards to Trade:</label>
         <div class="search-info">
+          <div class="optimization-badge">⚡ OPTIMIZED</div>
           <strong>🔍 Smart Search:</strong> Enter card name, SKU, or card number - the system will automatically find your card and ask for confirmation!
           <br><strong>Examples:</strong> "Lightning Bolt", "MTG-123-456", "#025/151"
+          <br><strong>🚀 New:</strong> Intelligent caching, strategic search ordering, and deduplication for faster results!
         </div>
         <div id="card-list">
           <div class="card-row">
@@ -831,6 +989,20 @@
 
     <div id="statusBar">
       Ready to process trades...
+      <div class="status-metrics">
+        <div class="metric good" id="cacheMetric">
+          <span>💾</span>
+          <span id="cacheHitRate">0%</span>
+        </div>
+        <div class="metric good" id="speedMetric">
+          <span>⚡</span>
+          <span id="avgSpeed">0ms</span>
+        </div>
+        <div class="metric" id="searchesMetric">
+          <span>🔍</span>
+          <span id="totalSearches">0</span>
+        </div>
+      </div>
     </div>
 
     <div class="trade-log-section">
@@ -841,7 +1013,251 @@
     </div>
   </div>
 
+  <!-- 🆕 CACHE STATUS INDICATOR -->
+  <div id="cacheStatus" class="cache-status hidden">
+    💾 Cache: <span id="cacheCount">0</span> items
+  </div>
+
   <script>
+    // 🆕 ENHANCED SEARCH CLIENT WITH OPTIMIZATION
+    class OptimizedSearchClient {
+      constructor() {
+        this.searchCache = new Map();
+        this.searchStats = {
+          totalSearches: 0,
+          cacheHits: 0,
+          totalTime: 0,
+          searches: []
+        };
+        this.pendingSearches = new Map();
+        this.cacheTimeout = 300000; // 5 minutes
+        this.maxCacheSize = 100; // Client-side cache limit
+      }
+
+      // Get cache key for search
+      getCacheKey(query) {
+        return query.toLowerCase().trim();
+      }
+
+      // Check if result is cached and valid
+      isCached(query) {
+        const key = this.getCacheKey(query);
+        if (this.searchCache.has(key)) {
+          const cached = this.searchCache.get(key);
+          return Date.now() - cached.timestamp < this.cacheTimeout;
+        }
+        return false;
+      }
+
+      // Get cached result
+      getCached(query) {
+        const key = this.getCacheKey(query);
+        if (this.isCached(query)) {
+          this.searchStats.cacheHits++;
+          console.log('🎯 Client cache hit for:', query);
+          return this.searchCache.get(key).result;
+        }
+        return null;
+      }
+
+      // Cache a search result
+      cacheResult(query, result, searchTime) {
+        const key = this.getCacheKey(query);
+        
+        // Implement LRU behavior
+        if (this.searchCache.size >= this.maxCacheSize) {
+          const oldestKey = this.searchCache.keys().next().value;
+          this.searchCache.delete(oldestKey);
+        }
+
+        this.searchCache.set(key, {
+          result,
+          timestamp: Date.now(),
+          searchTime
+        });
+
+        this.updateCacheStatus();
+      }
+
+      // Update cache status display
+      updateCacheStatus() {
+        const cacheStatus = document.getElementById('cacheStatus');
+        const cacheCount = document.getElementById('cacheCount');
+        
+        if (cacheCount) {
+          cacheCount.textContent = this.searchCache.size;
+        }
+
+        if (this.searchCache.size > 0) {
+          cacheStatus.classList.remove('hidden');
+        } else {
+          cacheStatus.classList.add('hidden');
+        }
+      }
+
+      // Update performance metrics
+      updateMetrics() {
+        const cacheHitRate = this.searchStats.totalSearches > 0 ? 
+          Math.round((this.searchStats.cacheHits / this.searchStats.totalSearches) * 100) : 0;
+        const avgSpeed = this.searchStats.searches.length > 0 ?
+          Math.round(this.searchStats.totalTime / this.searchStats.searches.length) : 0;
+
+        document.getElementById('cacheHitRate').textContent = `${cacheHitRate}%`;
+        document.getElementById('avgSpeed').textContent = `${avgSpeed}ms`;
+        document.getElementById('totalSearches').textContent = this.searchStats.totalSearches;
+
+        // Update metric colors based on performance
+        const cacheMetric = document.getElementById('cacheMetric');
+        const speedMetric = document.getElementById('speedMetric');
+
+        // Cache hit rate coloring
+        cacheMetric.className = 'metric ' + (cacheHitRate >= 30 ? 'good' : cacheHitRate >= 15 ? 'warning' : 'error');
+        
+        // Speed coloring
+        speedMetric.className = 'metric ' + (avgSpeed <= 1000 ? 'good' : avgSpeed <= 3000 ? 'warning' : 'error');
+      }
+
+      // Main optimized search method
+      async searchCard(query) {
+        this.searchStats.totalSearches++;
+        const startTime = Date.now();
+
+        // Check client-side cache first
+        const cached = this.getCached(query);
+        if (cached) {
+          this.updateMetrics();
+          return { ...cached, fromCache: true, searchTime: 0 };
+        }
+
+        // Check if search is already pending
+        const key = this.getCacheKey(query);
+        if (this.pendingSearches.has(key)) {
+          console.log('⏳ Waiting for pending search:', query);
+          return this.pendingSearches.get(key);
+        }
+
+        // Start new search
+        const searchPromise = this.performAPISearch(query);
+        this.pendingSearches.set(key, searchPromise);
+
+        try {
+          const result = await searchPromise;
+          const searchTime = Date.now() - startTime;
+          
+          this.searchStats.totalTime += searchTime;
+          this.searchStats.searches.push({
+            query,
+            time: searchTime,
+            found: result.found,
+            fromCache: false
+          });
+
+          // Cache the result
+          this.cacheResult(query, result, searchTime);
+          this.updateMetrics();
+
+          return { ...result, fromCache: false, searchTime };
+        } finally {
+          this.pendingSearches.delete(key);
+        }
+      }
+
+      // Perform actual API search
+      async performAPISearch(query) {
+        try {
+          const response = await fetch(`/api/buybackstep4`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              cards: [{ 
+                cardName: query, 
+                sku: null, 
+                quantity: 1 
+              }],
+              employeeName: 'Preview',
+              payoutMethod: 'cash'
+            }),
+            signal: AbortSignal.timeout(30000)
+          });
+
+          if (!response.ok) {
+            console.error('API Error:', response.status, response.statusText);
+            throw new Error(`API Error: ${response.status}`);
+          }
+
+          const data = await response.json();
+          
+          if (data.success && data.results && data.results.length > 0) {
+            const result = data.results[0];
+            
+            return {
+              name: result.match || result.cardName,
+              sku: result.sku || 'NOT-FOUND',
+              cardNumber: this.extractCardNumber(result.sku) || 'N/A',
+              retailPrice: parseFloat(result.retailPrice) || 0,
+              suggestedTrade: parseFloat(result.suggestedTradeValue) || 0,
+              maxTrade: parseFloat(result.maximumTradeValue) || 0,
+              searchMethod: result.searchMethod || 'none',
+              found: !!result.match,
+              optimizationUsed: data.searchPerformance?.optimizationUsed || false,
+              serverCacheHit: data.searchPerformance?.cacheHitRate !== '0%'
+            };
+          } else {
+            return {
+              name: query,
+              sku: 'NOT-FOUND',
+              cardNumber: 'N/A',
+              retailPrice: 0,
+              suggestedTrade: 0,
+              maxTrade: 0,
+              searchMethod: 'none',
+              found: false,
+              optimizationUsed: false,
+              serverCacheHit: false
+            };
+          }
+        } catch (error) {
+          console.error('Search error:', error);
+          return {
+            name: query,
+            sku: 'ERROR',
+            cardNumber: 'N/A',
+            retailPrice: 0,
+            suggestedTrade: 0,
+            maxTrade: 0,
+            searchMethod: 'none',
+            found: false,
+            error: error.message,
+            optimizationUsed: false,
+            serverCacheHit: false
+          };
+        }
+      }
+
+      // Helper function to extract card number from SKU
+      extractCardNumber(sku) {
+        if (!sku) return null;
+        const cardNumberMatch = sku.match(/#?(\d+(?:\/\d+)?)/);
+        return cardNumberMatch ? `#${cardNumberMatch[1]}` : null;
+      }
+
+      // Clear expired cache entries
+      clearExpiredCache() {
+        const now = Date.now();
+        for (const [key, value] of this.searchCache.entries()) {
+          if (now - value.timestamp > this.cacheTimeout) {
+            this.searchCache.delete(key);
+          }
+        }
+        this.updateCacheStatus();
+      }
+    }
+
+    // Initialize optimized search client
+    const searchClient = new OptimizedSearchClient();
+
     // Store the last trade data for label printing
     let lastTradeData = null;
 
@@ -849,172 +1265,36 @@
     const searchTimers = new Map();
 
     // API Configuration
-    const API_BASE_URL = '/api/buybackstep4'; // Updated to match your actual endpoint
-    
-    // Connect to your actual backend API
+    const API_BASE_URL = '/api/buybackstep4';
+
+    // 🆕 ENHANCED SEARCH FUNCTION WITH OPTIMIZATION
     async function searchCard(query) {
-      try {
-        const response = await fetch(`${API_BASE_URL}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            cards: [{ 
-              cardName: query, 
-              sku: null, 
-              quantity: 1 
-            }],
-            employeeName: 'Preview', // Temporary for search
-            payoutMethod: 'cash' // Temporary for search
-          }),
-          // Add estimate parameter to use estimate mode
-          signal: AbortSignal.timeout(30000) // 30 second timeout
-        });
-
-        if (!response.ok) {
-          console.error('API Error:', response.status, response.statusText);
-          throw new Error(`API Error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        
-        if (data.success && data.results && data.results.length > 0) {
-          const result = data.results[0];
-          
-          return {
-            name: result.match || result.cardName,
-            sku: result.sku || 'NOT-FOUND',
-            cardNumber: extractCardNumber(result.sku) || 'N/A',
-            retailPrice: parseFloat(result.retailPrice) || 0,
-            suggestedTrade: parseFloat(result.suggestedTradeValue) || 0,
-            maxTrade: parseFloat(result.maximumTradeValue) || 0,
-            searchMethod: result.searchMethod || 'none',
-            found: !!result.match
-          };
-        } else {
-          // Card not found in your Shopify database
-          return {
-            name: query,
-            sku: 'NOT-FOUND',
-            cardNumber: 'N/A',
-            retailPrice: 0,
-            suggestedTrade: 0,
-            maxTrade: 0,
-            searchMethod: 'none',
-            found: false
-          };
-        }
-      } catch (error) {
-        console.error('Search error:', error);
-        return {
-          name: query,
-          sku: 'ERROR',
-          cardNumber: 'N/A',
-          retailPrice: 0,
-          suggestedTrade: 0,
-          maxTrade: 0,
-          searchMethod: 'none',
-          found: false,
-          error: error.message
-        };
-      }
+      return await searchClient.searchCard(query);
     }
 
-    // Helper function to extract card number from SKU or tags
-    function extractCardNumber(sku) {
-      if (!sku) return null;
-      // Look for patterns like "#123/456" or "123/456" or "#123"
-      const cardNumberMatch = sku.match(/#?(\d+(?:\/\d+)?)/);
-      return cardNumberMatch ? `#${cardNumberMatch[1]}` : null;
-    }
-
-    // Debounced search function
-    function setupCardSearch(inputElement) {
-      const container = inputElement.closest('.card-input-container');
-      
-      inputElement.addEventListener('input', function() {
-        const query = this.value.trim();
-        const timerId = searchTimers.get(this) || null;
-        
-        // Clear existing timer
-        if (timerId) {
-          clearTimeout(timerId);
-        }
-        
-        // Remove existing suggestion
-        const existingSuggestion = container.querySelector('.search-suggestion');
-        if (existingSuggestion) {
-          existingSuggestion.remove();
-        }
-        
-        // Reset input styling
-        this.style.borderColor = '';
-        this.style.backgroundColor = '';
-        delete this.dataset.confirmedSku;
-        delete this.dataset.confirmedResult;
-        
-        // If query is too short, don't search
-        if (query.length < 2) {
-          return;
-        }
-        
-        // Show searching indicator
-        const searchingDiv = document.createElement('div');
-        searchingDiv.className = 'search-suggestion searching';
-        searchingDiv.innerHTML = '🔍 Searching...';
-        container.appendChild(searchingDiv);
-        
-        // Set new timer
-        const newTimerId = setTimeout(async () => {
-          try {
-            const result = await searchCard(query);
-            
-            // Remove searching indicator
-            const currentSearching = container.querySelector('.search-suggestion.searching');
-            if (currentSearching) {
-              currentSearching.remove();
-            }
-            
-            // Show suggestion based on result
-            showSearchSuggestion(container, inputElement, result, query);
-            
-          } catch (error) {
-            console.error('Search error:', error);
-            const currentSearching = container.querySelector('.search-suggestion.searching');
-            if (currentSearching) {
-              currentSearching.remove();
-            }
-          }
-          
-          searchTimers.delete(this);
-        }, 1500); // 1.5 second delay
-        
-        searchTimers.set(this, newTimerId);
-      });
-      
-      // Hide suggestion when input loses focus (with a small delay)
-      inputElement.addEventListener('blur', function() {
-        setTimeout(() => {
-          const suggestion = container.querySelector('.search-suggestion');
-          if (suggestion && !suggestion.matches(':hover')) {
-            suggestion.remove();
-          }
-        }, 200);
-      });
-    }
-
-    // Show search suggestion
+    // 🆕 ENHANCED SEARCH SUGGESTION DISPLAY
     function showSearchSuggestion(container, inputElement, result, originalQuery) {
       const suggestionDiv = document.createElement('div');
       
       if (result.found) {
-        suggestionDiv.className = 'search-suggestion found';
+        const suggestionClass = result.fromCache ? 'search-suggestion cached' : 'search-suggestion found';
+        suggestionDiv.className = suggestionClass;
+        
+        const performanceInfo = result.fromCache ? 
+          '💾 From cache' : 
+          `⚡ ${result.searchTime}ms${result.serverCacheHit ? ' (server cache)' : ''}`;
+
         suggestionDiv.innerHTML = `
           <div class="suggestion-content">
             <div class="suggestion-info">
               <div class="suggestion-card-name">✅ ${result.name}</div>
               <div class="suggestion-sku">SKU: ${result.sku} ${result.cardNumber !== 'N/A' ? '| ' + result.cardNumber : ''}</div>
+              <div class="suggestion-performance">
+                <div class="performance-metric ${result.searchTime < 1000 ? 'fast' : 'slow'}">
+                  ${performanceInfo}
+                </div>
+                ${result.optimizationUsed ? '<div class="performance-metric fast">🚀 Optimized</div>' : ''}
+              </div>
             </div>
             <div class="suggestion-actions">
               <button type="button" class="suggestion-btn confirm-btn">✅ Confirm</button>
@@ -1048,6 +1328,11 @@
             <div class="suggestion-info">
               <div class="suggestion-card-name">❌ "${originalQuery}" not found in inventory</div>
               <div class="suggestion-sku">This card is not in your Shopify store</div>
+              <div class="suggestion-performance">
+                <div class="performance-metric">
+                  ⚡ ${result.searchTime}ms${result.fromCache ? ' (cached)' : ''}
+                </div>
+              </div>
             </div>
             <div class="suggestion-actions">
               <button type="button" class="suggestion-btn continue-btn">⚠️ Continue Anyway</button>
@@ -1075,6 +1360,89 @@
       }
       
       container.appendChild(suggestionDiv);
+    }
+
+    // Debounced search function with optimization
+    function setupCardSearch(inputElement) {
+      const container = inputElement.closest('.card-input-container');
+      
+      inputElement.addEventListener('input', function() {
+        const query = this.value.trim();
+        const timerId = searchTimers.get(this) || null;
+        
+        // Clear existing timer
+        if (timerId) {
+          clearTimeout(timerId);
+        }
+        
+        // Remove existing suggestion
+        const existingSuggestion = container.querySelector('.search-suggestion');
+        if (existingSuggestion) {
+          existingSuggestion.remove();
+        }
+        
+        // Reset input styling
+        this.style.borderColor = '';
+        this.style.backgroundColor = '';
+        delete this.dataset.confirmedSku;
+        delete this.dataset.confirmedResult;
+        
+        // If query is too short, don't search
+        if (query.length < 2) {
+          return;
+        }
+
+        // Check for immediate cache hit
+        if (searchClient.isCached(query)) {
+          const result = searchClient.getCached(query);
+          showSearchSuggestion(container, inputElement, { ...result, fromCache: true, searchTime: 0 }, query);
+          return;
+        }
+        
+        // Show searching indicator
+        const searchingDiv = document.createElement('div');
+        searchingDiv.className = 'search-suggestion searching';
+        searchingDiv.innerHTML = '🔍 Searching...';
+        container.appendChild(searchingDiv);
+        
+        // Set new timer with shorter delay for cached results
+        const delay = searchClient.isCached(query) ? 300 : 1200; // Faster for potential cache hits
+        const newTimerId = setTimeout(async () => {
+          try {
+            const result = await searchCard(query);
+            
+            // Remove searching indicator
+            const currentSearching = container.querySelector('.search-suggestion.searching');
+            if (currentSearching) {
+              currentSearching.remove();
+            }
+            
+            // Show suggestion based on result
+            showSearchSuggestion(container, inputElement, result, query);
+            
+          } catch (error) {
+            console.error('Search error:', error);
+            const currentSearching = container.querySelector('.search-suggestion.searching');
+            if (currentSearching) {
+              currentSearching.remove();
+            }
+          }
+          
+          searchTimers.delete(this);
+        }, delay);
+        
+        searchTimers.set(this, newTimerId);
+      });
+      
+      // Hide suggestion when input loses focus (with a small delay)
+      inputElement.addEventListener('blur', function() {
+        setTimeout(() => {
+          const suggestion = container.querySelector('.search-suggestion');
+          if (suggestion && !suggestion.matches(':hover')) {
+            suggestion.remove();
+          }
+        }, 200);
+      });
     }
 
     // Email function with proper number parsing
@@ -1124,7 +1492,7 @@ ${tradeData.overrideUsed ? `OVERRIDE APPLIED:
 - Gift Card Code: ${tradeData.giftCardCode}
 
 ` : ''}---
-Generated by Buyback Portal (Connected to Shopify)`;
+Generated by Optimized Buyback Portal (Connected to Shopify)`;
 
       // Create mailto link
       const mailtoLink = `mailto:ea.collectibles.service@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -1312,7 +1680,11 @@ Generated by Buyback Portal (Connected to Shopify)`;
       }
     }
 
-    function getSearchMethodBadge(method) {
+    function getSearchMethodBadge(method, fromCache = false) {
+      if (fromCache) {
+        return '<span class="search-method-badge search-method-cached">Cached</span>';
+      }
+      
       const badges = {
         'title': '<span class="search-method-badge search-method-title">Title</span>',
         'sku': '<span class="search-method-badge search-method-sku">SKU</span>',
@@ -1335,6 +1707,7 @@ Generated by Buyback Portal (Connected to Shopify)`;
       const overrideContainer = document.getElementById('override-input-container');
       const overrideCancel = document.getElementById('override-cancel');
       const customerEmailSection = document.getElementById('customer-email-section');
+      const cacheStatus = document.getElementById('cacheStatus');
 
       // Setup search for existing card inputs
       document.querySelectorAll('input[name="cardName"]').forEach(setupCardSearch);
@@ -1396,7 +1769,7 @@ Generated by Buyback Portal (Connected to Shopify)`;
         document.getElementById('overrideTotal').value = '';
       });
 
-      // Estimate trade values
+      // 🆕 OPTIMIZED ESTIMATE FUNCTION
       estimateButton.addEventListener('click', async function() {
         const cards = getCardData();
         if (cards.length === 0) {
@@ -1411,7 +1784,12 @@ Generated by Buyback Portal (Connected to Shopify)`;
           return;
         }
 
-        statusBar.textContent = '🔍 Calculating trade estimates...';
+        statusBar.innerHTML = `
+          🔍 Calculating trade estimates...
+          <div class="status-metrics">
+            <div class="metric">⚡ Using optimized search</div>
+          </div>
+        `;
         estimateButton.disabled = true;
         
         try {
@@ -1427,7 +1805,8 @@ Generated by Buyback Portal (Connected to Shopify)`;
               retailPrice: result.retailPrice,
               suggestedPrice: result.suggestedTrade,
               maxPrice: result.maxTrade,
-              searchMethod: result.searchMethod
+              searchMethod: result.searchMethod,
+              fromCache: result.fromCache
             };
           });
 
@@ -1438,10 +1817,23 @@ Generated by Buyback Portal (Connected to Shopify)`;
           displayEstimateResults(results, totalRetail, totalSuggested, totalMaximum);
           
           const foundCards = results.filter(r => r.searchMethod !== 'none').length;
-          statusBar.textContent = `✅ Estimate complete! Using ${foundCards}/${results.length} confirmed cards.`;
+          const cachedCards = results.filter(r => r.fromCache).length;
+          
+          statusBar.innerHTML = `
+            ✅ Estimate complete! Using ${foundCards}/${results.length} confirmed cards.
+            <div class="status-metrics">
+              <div class="metric good">💾 ${cachedCards} cached</div>
+              <div class="metric good">⚡ Optimized</div>
+            </div>
+          `;
         } catch (error) {
           console.error('Estimation error:', error);
-          statusBar.textContent = '❌ Error getting estimates. Please try again.';
+          statusBar.innerHTML = `
+            ❌ Error getting estimates. Please try again.
+            <div class="status-metrics">
+              <div class="metric error">❌ ${error.message}</div>
+            </div>
+          `;
           alert('Error getting estimates: ' + error.message);
         } finally {
           estimateButton.disabled = false;
@@ -1482,19 +1874,44 @@ Generated by Buyback Portal (Connected to Shopify)`;
           return;
         }
 
-        statusBar.textContent = '⏳ Processing trade through Shopify...';
+        statusBar.innerHTML = `
+          ⏳ Processing trade through Shopify...
+          <div class="status-metrics">
+            <div class="metric">🚀 Optimized processing</div>
+          </div>
+        `;
         submitButton.disabled = true;
         
         try {
           await processTrade(cards, employeeName, payoutMethod, customerEmail, overrideAmount);
         } catch (error) {
           console.error('Trade processing error:', error);
-          statusBar.textContent = '❌ Trade processing failed. Please try again.';
+          statusBar.innerHTML = `
+            ❌ Trade processing failed. Please try again.
+            <div class="status-metrics">
+              <div class="metric error">❌ ${error.message}</div>
+            </div>
+          `;
           alert('Trade processing failed: ' + error.message);
         } finally {
           submitButton.disabled = false;
         }
       });
+
+      // 🆕 CACHE STATUS CLICK HANDLER
+      cacheStatus.addEventListener('click', function() {
+        const details = Array.from(searchClient.searchCache.entries()).map(([key, value]) => {
+          const age = Math.round((Date.now() - value.timestamp) / 1000);
+          return `${key}: ${age}s ago (${value.searchTime}ms)`;
+        }).join('\n');
+        
+        alert(`Cache Contents (${searchClient.searchCache.size} items):\n\n${details || 'Cache is empty'}\n\nCache hit rate: ${document.getElementById('cacheHitRate').textContent}`);
+      });
+
+      // 🆕 PERIODIC CACHE CLEANUP
+      setInterval(() => {
+        searchClient.clearExpiredCache();
+      }, 60000); // Clean every minute
 
       function getCardData() {
         const cardRows = document.querySelectorAll('.card-row');
@@ -1531,14 +1948,15 @@ Generated by Buyback Portal (Connected to Shopify)`;
       function displayEstimateResults(results, totalRetail, totalSuggested, totalMaximum) {
         let html = `
           <div style="margin-bottom: 15px;">
-            <strong>📊 Trade Estimate Results</strong>
+            <strong>📊 Optimized Trade Estimate Results</strong>
           </div>
         `;
 
         results.forEach(result => {
+          const cacheIndicator = result.fromCache ? '💾 ' : '';
           html += `
             <div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 6px; border-left: 4px solid #3498db;">
-              <strong>${result.cardName}</strong> ${getSearchMethodBadge(result.searchMethod)}
+              <strong>${cacheIndicator}${result.cardName}</strong> ${getSearchMethodBadge(result.searchMethod, result.fromCache)}
               <br>
               <small>SKU: ${result.sku} | Condition: ${result.condition} | Quantity: ${result.quantity}</small>
               <div class="trade-values">
@@ -1550,12 +1968,14 @@ Generated by Buyback Portal (Connected to Shopify)`;
           `;
         });
 
+        const cachedCount = results.filter(r => r.fromCache).length;
         html += `
           <div style="margin-top: 15px; padding: 15px; background: #e8f4fd; border-radius: 8px; border-left: 4px solid #17a2b8;">
             <strong>💰 Total Values:</strong><br>
             Retail Value: ${totalRetail.toFixed(2)}<br>
             <span class="suggested-value">Suggested Trade: ${totalSuggested.toFixed(2)}</span><br>
             <span class="maximum-value">Maximum Trade: ${totalMaximum.toFixed(2)}</span>
+            ${cachedCount > 0 ? `<br><small>💾 ${cachedCount} results from cache</small>` : ''}
           </div>
         `;
 
@@ -1578,7 +1998,7 @@ Generated by Buyback Portal (Connected to Shopify)`;
             overrideTotal: overrideAmount && parseFloat(overrideAmount) > 0 ? parseFloat(overrideAmount) : null
           };
 
-          console.log('Sending trade data to backend:', tradeData);
+          console.log('Sending optimized trade data to backend:', tradeData);
 
           const response = await fetch(`${API_BASE_URL}`, {
             method: 'POST',
@@ -1596,7 +2016,7 @@ Generated by Buyback Portal (Connected to Shopify)`;
           const data = await response.json();
           
           if (data.success) {
-            // Process the response from your backend
+            // Process the response from your optimized backend
             const tradeResults = {
               tradeId: Date.now().toString(),
               employeeName: data.employeeName,
@@ -1604,7 +2024,7 @@ Generated by Buyback Portal (Connected to Shopify)`;
               results: data.results.map(result => ({
                 cardName: result.match || result.cardName,
                 sku: result.sku,
-                cardNumber: extractCardNumber(result.sku) || 'N/A',
+                cardNumber: searchClient.extractCardNumber(result.sku) || 'N/A',
                 condition: 'NM', // Default condition
                 quantity: result.quantity,
                 retailPrice: result.retailPrice,
@@ -1621,13 +2041,15 @@ Generated by Buyback Portal (Connected to Shopify)`;
               overrideDifference: data.overrideDifference ? parseFloat(data.overrideDifference) : null,
               customer: data.customer,
               storeCreditTransaction: data.storeCreditTransaction,
-              giftCardCode: data.giftCardCode
+              giftCardCode: data.giftCardCode,
+              // 🆕 Include optimization metrics
+              searchPerformance: data.searchPerformance
             };
 
             // Store for label printing
             lastTradeData = tradeResults;
 
-            // Display results
+            // Display results with optimization info
             displayTradeResults(tradeResults);
             
             // Send email
@@ -1636,7 +2058,17 @@ Generated by Buyback Portal (Connected to Shopify)`;
             // Show print labels button
             printLabelsButton.style.display = 'inline-block';
             
-            statusBar.textContent = '✅ Trade completed successfully!';
+            // 🆕 Enhanced success message with optimization metrics
+            const optimizationInfo = data.searchPerformance?.optimizationUsed ? 
+              ` (⚡ ${data.searchPerformance.totalSearchTime}ms, ${data.searchPerformance.cacheHitRate} cache hits)` : '';
+            
+            statusBar.innerHTML = `
+              ✅ Trade completed successfully!${optimizationInfo}
+              <div class="status-metrics">
+                <div class="metric good">🚀 Optimized</div>
+                ${data.searchPerformance?.fastResponse ? '<div class="metric good">⚡ Fast</div>' : ''}
+              </div>
+            `;
 
             // Clear the form for next trade
             form.reset();
@@ -1671,13 +2103,16 @@ Generated by Buyback Portal (Connected to Shopify)`;
       function displayTradeResults(tradeData) {
         const tradeLog = document.getElementById('tradeLog');
         
+        const optimizationInfo = tradeData.searchPerformance ? 
+          `<br><small>⚡ Optimized: ${tradeData.searchPerformance.totalSearchTime}ms total, ${tradeData.searchPerformance.cacheHitRate} cache hits</small>` : '';
+        
         let resultHtml = `
           <div class="log-entry" style="border-left-color: #27ae60;">
             <strong>✅ TRADE COMPLETED</strong><br>
             Trade ID: ${tradeData.tradeId}<br>
             Employee: ${tradeData.employeeName}<br>
             Payout Method: ${tradeData.payoutMethod.replace('-', ' ').toUpperCase()}<br>
-            Final Payout: ${tradeData.finalPayout.toFixed(2)}
+            Final Payout: ${tradeData.finalPayout.toFixed(2)}${optimizationInfo}
         `;
 
         if (tradeData.overrideUsed) {
@@ -1705,6 +2140,16 @@ Generated by Buyback Portal (Connected to Shopify)`;
           alert('No trade data available for label printing.');
         }
       });
+
+      // 🆕 Initialize optimization features
+      console.log('🚀 Optimized Buyback Portal initialized');
+      console.log('💾 Client-side caching enabled');
+      console.log('⚡ Smart search strategies active');
+      console.log('🔄 Search deduplication enabled');
+      
+      // Show initial cache status
+      searchClient.updateCacheStatus();
+      searchClient.updateMetrics();
     });
   </script>
 </body>
