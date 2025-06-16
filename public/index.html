@@ -234,25 +234,6 @@
       position: relative;
     }
 
-    /* 🆕 OPTIMIZATION INDICATOR */
-    .optimization-badge {
-      position: absolute;
-      top: 8px;
-      right: 12px;
-      background: #27ae60;
-      color: white;
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-size: 0.7em;
-      font-weight: bold;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
-    }
-
     .card-row {
       display: flex;
       align-items: center;
@@ -938,10 +919,7 @@
       <div class="form-group">
         <label>Cards to Trade:</label>
         <div class="search-info">
-          <div class="optimization-badge">⚡ OPTIMIZED</div>
-          <strong>🔍 Smart Search:</strong> Enter card name, SKU, or card number - the system will automatically find your card and ask for confirmation!
-          <br><strong>Examples:</strong> "Lightning Bolt", "MTG-123-456", "#025/151"
-          <br><strong>🚀 New:</strong> Intelligent caching, strategic search ordering, and deduplication for faster results!
+          <strong>Enter card name, SKU, or card number</strong>
         </div>
         <div id="card-list">
           <div class="card-row">
