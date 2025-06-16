@@ -310,7 +310,7 @@
       background: rgba(214, 158, 46, 0.05);
     }
 
-    /* Search suggestions */
+    /* Search suggestions - enhanced for multiple results */
     .search-suggestion {
       position: absolute;
       top: 100%;
@@ -323,68 +323,115 @@
       box-shadow: var(--shadow-lg);
       z-index: 1000;
       animation: slideDown 0.2s ease;
+      max-height: 400px;
+      overflow-y: auto;
     }
 
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-8px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    .search-suggestion.multiple-results {
+      border-color: var(--warning);
     }
 
-    .suggestion-content {
-      padding: 20px;
+    .suggestion-header {
+      background: var(--gray-50);
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--gray-200);
+      font-weight: 600;
+      color: var(--gray-700);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 16px;
     }
 
-    .suggestion-info {
+    .suggestion-header.multiple {
+      background: rgba(214, 158, 46, 0.1);
+      border-bottom-color: rgba(214, 158, 46, 0.3);
+      color: var(--warning);
+    }
+
+    .result-count {
+      font-size: 14px;
+      color: var(--gray-500);
+    }
+
+    .suggestion-item {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--gray-100);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .suggestion-item:hover {
+      background: var(--gray-50);
+    }
+
+    .suggestion-item:last-child {
+      border-bottom: none;
+    }
+
+    .suggestion-item.selected {
+      background: rgba(49, 130, 206, 0.1);
+      border-left: 4px solid var(--accent);
+    }
+
+    .card-details {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .card-info {
       flex: 1;
     }
 
-    .suggestion-name {
+    .card-name {
       font-weight: 600;
       color: var(--gray-800);
       margin-bottom: 4px;
     }
 
-    .suggestion-details {
-      font-size: 14px;
-      color: var(--gray-500);
+    .card-meta {
       display: flex;
       gap: 16px;
-      align-items: center;
+      font-size: 14px;
+      color: var(--gray-500);
+      margin-bottom: 8px;
+      flex-wrap: wrap;
     }
 
-    .search-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 4px 8px;
-      background: var(--accent);
-      color: white;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 500;
-      text-transform: uppercase;
-    }
-
-    .search-badge.cached {
-      background: var(--success);
-    }
-
-    .suggestion-actions {
+    .card-pricing {
       display: flex;
-      gap: 8px;
+      gap: 12px;
+      font-size: 13px;
     }
 
-    .suggestion-btn {
+    .price-item {
+      background: var(--gray-100);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .price-retail {
+      color: var(--gray-700);
+    }
+
+    .price-trade {
+      color: var(--accent);
+    }
+
+    .price-max {
+      color: var(--success);
+    }
+
+    .card-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 100px;
+    }
+
+    .select-btn {
       padding: 8px 16px;
       border: none;
       border-radius: var(--border-radius);
@@ -392,26 +439,81 @@
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s ease;
-    }
-
-    .confirm-btn {
-      background: var(--success);
+      background: var(--accent);
       color: white;
     }
 
-    .confirm-btn:hover {
-      background: #2f855a;
+    .select-btn:hover {
+      background: var(--primary);
       transform: translateY(-1px);
     }
 
-    .reject-btn {
-      background: var(--gray-200);
-      color: var(--gray-700);
+    .disambiguation-actions {
+      background: var(--gray-50);
+      padding: 16px 20px;
+      border-top: 1px solid var(--gray-200);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
     }
 
-    .reject-btn:hover {
+    .refine-search {
+      background: var(--gray-200);
+      color: var(--gray-700);
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .refine-search:hover {
       background: var(--gray-300);
     }
+
+    .cancel-search {
+      background: var(--error);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .cancel-search:hover {
+      background: #c53030;
+    }
+
+    /* Set indicators */
+    .set-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      background: var(--primary);
+      color: white;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .rarity-badge {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .rarity-common { background: #718096; color: white; }
+    .rarity-uncommon { background: #38a169; color: white; }
+    .rarity-rare { background: #d69e2e; color: white; }
+    .rarity-mythic { background: #e53e3e; color: white; }
 
     /* Remove button */
     .remove-btn {
@@ -1049,9 +1151,20 @@
       }
 
       function showSearchSuggestion(container, input, query) {
-        // Demo data - simulate found card
-        const isFound = Math.random() > 0.3; // 70% chance of finding
-        const isCached = Math.random() > 0.6; // 40% chance of cache hit
+        // Simulate multiple results for demonstration
+        const hasMultipleResults = Math.random() > 0.4; // 60% chance of multiple results
+        
+        if (hasMultipleResults) {
+          showMultipleResults(container, input, query);
+        } else {
+          showSingleResult(container, input, query);
+        }
+      }
+
+      function showSingleResult(container, input, query) {
+        // Original single result logic
+        const isFound = Math.random() > 0.3;
+        const isCached = Math.random() > 0.6;
 
         const suggestion = document.createElement('div');
         suggestion.className = 'search-suggestion';
@@ -1094,7 +1207,7 @@
 
         container.appendChild(suggestion);
 
-        // Handle suggestion actions
+        // Handle single result actions
         suggestion.querySelector('.confirm-btn, .suggestion-btn')?.addEventListener('click', function() {
           if (isFound) {
             input.classList.add('confirmed');
@@ -1110,10 +1223,206 @@
           input.focus();
         });
 
-        // Auto-remove after 10 seconds
         setTimeout(() => {
           if (suggestion.parentNode) suggestion.remove();
         }, 10000);
+      }
+
+      function showMultipleResults(container, input, query) {
+        const suggestion = document.createElement('div');
+        suggestion.className = 'search-suggestion multiple-results';
+        
+        // Generate sample conflicting results
+        const results = generateConflictingResults(query);
+        
+        suggestion.innerHTML = `
+          <div class="suggestion-header multiple">
+            <span>⚠️ Multiple matches found</span>
+            <span class="result-count">${results.length} results</span>
+          </div>
+          
+          ${results.map((result, index) => `
+            <div class="suggestion-item" data-result-index="${index}">
+              <div class="card-details">
+                <div class="card-info">
+                  <div class="card-name">${result.name}</div>
+                  <div class="card-meta">
+                    <span>SKU: ${result.sku}</span>
+                    <span class="set-badge">${result.set}</span>
+                    <span class="rarity-badge rarity-${result.rarity}">${result.rarity}</span>
+                    <span>${result.cardNumber}</span>
+                  </div>
+                  <div class="card-pricing">
+                    <span class="price-item price-retail">Retail: ${result.retail}</span>
+                    <span class="price-item price-trade">Trade: ${result.trade}</span>
+                    <span class="price-item price-max">Max: ${result.max}</span>
+                  </div>
+                </div>
+                <div class="card-actions">
+                  <button type="button" class="select-btn" data-result-index="${index}">
+                    Select This
+                  </button>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+          
+          <div class="disambiguation-actions">
+            <button type="button" class="refine-search">🔍 Refine Search</button>
+            <span style="font-size: 14px; color: var(--gray-500);">Choose the correct card variant</span>
+            <button type="button" class="cancel-search">❌ Cancel</button>
+          </div>
+        `;
+
+        container.appendChild(suggestion);
+
+        // Handle result selection
+        suggestion.querySelectorAll('.select-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const resultIndex = parseInt(this.dataset.resultIndex);
+            const selectedResult = results[resultIndex];
+            
+            // Highlight selection
+            suggestion.querySelectorAll('.suggestion-item').forEach(item => {
+              item.classList.remove('selected');
+            });
+            this.closest('.suggestion-item').classList.add('selected');
+            
+            // Confirm selection after short delay
+            setTimeout(() => {
+              input.classList.add('confirmed');
+              input.value = selectedResult.name;
+              input.dataset.selectedSku = selectedResult.sku;
+              input.dataset.selectedResult = JSON.stringify(selectedResult);
+              suggestion.remove();
+              
+              // Show brief confirmation
+              showSelectionConfirmation(container, selectedResult);
+            }, 300);
+          });
+        });
+
+        // Handle refine search
+        suggestion.querySelector('.refine-search').addEventListener('click', function() {
+          suggestion.remove();
+          input.focus();
+          // Could trigger more specific search interface
+          showRefineSearchPrompt(input);
+        });
+
+        // Handle cancel
+        suggestion.querySelector('.cancel-search').addEventListener('click', function() {
+          suggestion.remove();
+          input.value = '';
+          input.focus();
+        });
+
+        // Hover effects for better UX
+        suggestion.querySelectorAll('.suggestion-item').forEach(item => {
+          item.addEventListener('mouseenter', function() {
+            this.style.background = 'var(--gray-50)';
+          });
+          item.addEventListener('mouseleave', function() {
+            if (!this.classList.contains('selected')) {
+              this.style.background = '';
+            }
+          });
+        });
+      }
+
+      function generateConflictingResults(query) {
+        // Generate realistic conflicting card results
+        const sets = ['M21', 'ZNR', 'KHM', 'STX', 'AFR', 'MID'];
+        const rarities = ['common', 'uncommon', 'rare', 'mythic'];
+        
+        return [
+          {
+            name: `${query} (Regular)`,
+            sku: `MTG-${Math.floor(Math.random() * 10000)}`,
+            set: sets[Math.floor(Math.random() * sets.length)],
+            rarity: rarities[Math.floor(Math.random() * rarities.length)],
+            cardNumber: `${Math.floor(Math.random() * 300 + 1)}/${Math.floor(Math.random() * 100 + 200)}`,
+            retail: (Math.random() * 20 + 5).toFixed(2),
+            trade: (Math.random() * 10 + 2).toFixed(2),
+            max: (Math.random() * 15 + 3).toFixed(2)
+          },
+          {
+            name: `${query} (Foil)`,
+            sku: `MTG-${Math.floor(Math.random() * 10000)}-F`,
+            set: sets[Math.floor(Math.random() * sets.length)],
+            rarity: rarities[Math.floor(Math.random() * rarities.length)],
+            cardNumber: `${Math.floor(Math.random() * 300 + 1)}/${Math.floor(Math.random() * 100 + 200)}`,
+            retail: (Math.random() * 40 + 15).toFixed(2),
+            trade: (Math.random() * 20 + 8).toFixed(2),
+            max: (Math.random() * 30 + 12).toFixed(2)
+          },
+          {
+            name: `${query} (Extended Art)`,
+            sku: `MTG-${Math.floor(Math.random() * 10000)}-EA`,
+            set: sets[Math.floor(Math.random() * sets.length)],
+            rarity: rarities[Math.floor(Math.random() * rarities.length)],
+            cardNumber: `${Math.floor(Math.random() * 50 + 300)}/${Math.floor(Math.random() * 100 + 200)}`,
+            retail: (Math.random() * 60 + 25).toFixed(2),
+            trade: (Math.random() * 30 + 15).toFixed(2),
+            max: (Math.random() * 45 + 20).toFixed(2)
+          }
+        ];
+      }
+
+      function showSelectionConfirmation(container, result) {
+        const confirmation = document.createElement('div');
+        confirmation.style.cssText = `
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          background: var(--success);
+          color: white;
+          padding: 12px 16px;
+          border-radius: 0 0 var(--border-radius) var(--border-radius);
+          font-weight: 500;
+          z-index: 1001;
+          animation: slideDown 0.3s ease;
+        `;
+        confirmation.innerHTML = `✅ Selected: ${result.name} (${result.sku})`;
+        
+        container.appendChild(confirmation);
+        
+        setTimeout(() => {
+          if (confirmation.parentNode) {
+            confirmation.style.animation = 'slideDown 0.3s ease reverse';
+            setTimeout(() => confirmation.remove(), 300);
+          }
+        }, 2000);
+      }
+
+      function showRefineSearchPrompt(input) {
+        const prompt = document.createElement('div');
+        prompt.style.cssText = `
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          background: rgba(214, 158, 46, 0.1);
+          border: 1px solid rgba(214, 158, 46, 0.3);
+          color: var(--warning);
+          padding: 16px;
+          border-radius: 0 0 var(--border-radius) var(--border-radius);
+          font-size: 14px;
+          z-index: 1000;
+        `;
+        prompt.innerHTML = `
+          💡 <strong>Search Tips:</strong><br>
+          • Include set code (e.g. "Lightning Bolt M21")<br>
+          • Specify variant (e.g. "foil", "extended art")<br>
+          • Use full card number (e.g. "001/182")
+        `;
+        
+        input.closest('.card-input-container').appendChild(prompt);
+        
+        setTimeout(() => {
+          if (prompt.parentNode) prompt.remove();
+        }, 5000);
       }
 
       // Estimate functionality
