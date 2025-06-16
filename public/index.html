@@ -450,6 +450,21 @@
       border: 1px solid var(--gray-300);
     }
 
+    .btn.appearing {
+      animation: buttonAppear 0.4s ease;
+    }
+
+    @keyframes buttonAppear {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     .status-bar {
       background: white;
       border: 1px solid var(--gray-200);
@@ -651,6 +666,11 @@
               <span>✅</span>
               <span>Process Trade</span>
             </button>
+            
+            <button type="button" class="btn btn-primary" id="print-labels" style="display: none;">
+              <span>🏷️</span>
+              <span>Print Labels</span>
+            </button>
           </div>
         </form>
 
@@ -739,10 +759,307 @@
           };
         }
       }
+
+      // Helper function to extract card number from SKU
+      extractCardNumber(sku) {
+        if (!sku) return null;
+        const cardNumberMatch = sku.match(/#?(\d+(?:\/\d+)?)/);
+        return cardNumberMatch ? `#${cardNumberMatch[1]}` : null;
+      }
+    }
+
+    // Store the last trade data for label printing
+    let lastTradeData = null;
+
+    // Print inventory labels function
+    function printInventoryLabels(tradeData) {
+      if (!tradeData || !tradeData.results || tradeData.results.length === 0) {
+        alert('No cards available for label printing.');
+        return;
+      }
+
+      // Generate labels for each card (repeated by quantity)
+      const labels = [];
+      tradeData.results.forEach(card => {
+        for (let i = 0; i < card.quantity; i++) {
+          labels.push({
+            sku: card.sku || `CARD-${Date.now()}-${i}`,
+            cardName: card.cardName,
+            condition: card.condition || 'NM'
+          });
+        }
+      });
+
+      const labelHTML = generateLabelSheet(labels, tradeData);
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(labelHTML);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+    }
+
+    // Generate the label sheet HTML
+    function generateLabelSheet(labels, tradeData) {
+      const tradeId = Date.now().toString();
+      const tradeDate = new Date().toLocaleDateString();
+      
+      return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Inventory Labels - Trade ${tradeId}</title>
+          <style>
+            @page { 
+              margin: 0.5in; 
+              size: letter;
+            }
+            
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 0;
+            }
+            
+            .header {
+              text-align: center;
+              margin-bottom: 20px;
+              font-size: 12pt;
+              border-bottom: 2px solid #000;
+              padding-bottom: 10px;
+            }
+            
+            .label-sheet {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 4mm;
+              margin: 0;
+            }
+            
+            .inventory-label {
+              width: 60mm;
+              height: 25mm;
+              border: 1px solid #000;
+              padding: 2mm;
+              box-sizing: border-box;
+              page-break-inside: avoid;
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+            }
+            
+            .barcode-container {
+              text-align: center;
+              flex-grow: 1;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+            }
+            
+            .barcode {
+              height: 12mm;
+              width: 100%;
+              background: repeating-linear-gradient(
+                to right,
+                #000 0px,
+                #000 1px,
+                #fff 1px,
+                #fff 2px
+              );
+              margin: 2mm 0;
+            }
+            
+            .sku-text {
+              font-size: 8pt;
+              font-weight: bold;
+              text-align: center;
+              font-family: 'Courier New', monospace;
+            }
+            
+            .card-info {
+              font-size: 6pt;
+              text-align: center;
+              margin-top: 1mm;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+            
+            @media print {
+              .header { color: #000; }
+              .inventory-label { border: 1px solid #000; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <strong>INVENTORY LABELS</strong><br>
+            Trade ID: ${tradeId} | Date: ${tradeDate} | Employee: ${tradeData.employeeName || 'N/A'}<br>
+            Total Labels: ${labels.length}
+          </div>
+          
+          <div class="label-sheet">
+            ${labels.map(label => `
+              <div class="inventory-label">
+                <div class="barcode-container">
+                  <div class="barcode"></div>
+                  <div class="sku-text">${label.sku}</div>
+                </div>
+                <div class="card-info">${label.cardName.substring(0, 20)}${label.cardName.length > 20 ? '...' : ''} (${label.condition})</div>
+              </div>
+            `).join('')}
+          </div>
+        </body>
+        </html>
+      `;
     }
 
     // Initialize search client
     const searchClient = new SearchClient();
+
+    // Store the last trade data for label printing
+    let lastTradeData = null;
+
+    // Print inventory labels function
+    function printInventoryLabels(tradeData) {
+      if (!tradeData || !tradeData.results || tradeData.results.length === 0) {
+        alert('No cards available for label printing.');
+        return;
+      }
+
+      // Generate labels for each card (repeated by quantity)
+      const labels = [];
+      tradeData.results.forEach(card => {
+        for (let i = 0; i < card.quantity; i++) {
+          labels.push({
+            sku: card.sku || `CARD-${Date.now()}-${i}`,
+            cardName: card.cardName,
+            condition: card.condition || 'NM'
+          });
+        }
+      });
+
+      const labelHTML = generateLabelSheet(labels, tradeData);
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(labelHTML);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+    }
+
+    // Generate the label sheet HTML
+    function generateLabelSheet(labels, tradeData) {
+      const tradeId = Date.now().toString();
+      const tradeDate = new Date().toLocaleDateString();
+      
+      return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Inventory Labels - Trade ${tradeId}</title>
+          <style>
+            @page { 
+              margin: 0.5in; 
+              size: letter;
+            }
+            
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 0;
+            }
+            
+            .header {
+              text-align: center;
+              margin-bottom: 20px;
+              font-size: 12pt;
+              border-bottom: 2px solid #000;
+              padding-bottom: 10px;
+            }
+            
+            .label-sheet {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 4mm;
+              margin: 0;
+            }
+            
+            .inventory-label {
+              width: 60mm;
+              height: 25mm;
+              border: 1px solid #000;
+              padding: 2mm;
+              box-sizing: border-box;
+              page-break-inside: avoid;
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+            }
+            
+            .barcode-container {
+              text-align: center;
+              flex-grow: 1;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+            }
+            
+            .barcode {
+              height: 12mm;
+              width: 100%;
+              background: repeating-linear-gradient(
+                to right,
+                #000 0px,
+                #000 1px,
+                #fff 1px,
+                #fff 2px
+              );
+              margin: 2mm 0;
+            }
+            
+            .sku-text {
+              font-size: 8pt;
+              font-weight: bold;
+              text-align: center;
+              font-family: 'Courier New', monospace;
+            }
+            
+            .card-info {
+              font-size: 6pt;
+              text-align: center;
+              margin-top: 1mm;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+            
+            @media print {
+              .header { color: #000; }
+              .inventory-label { border: 1px solid #000; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <strong>INVENTORY LABELS</strong><br>
+            Trade ID: ${tradeId} | Date: ${tradeDate} | Employee: ${tradeData.employeeName || 'N/A'}<br>
+            Total Labels: ${labels.length}
+          </div>
+          
+          <div class="label-sheet">
+            ${labels.map(label => `
+              <div class="inventory-label">
+                <div class="barcode-container">
+                  <div class="barcode"></div>
+                  <div class="sku-text">${label.sku}</div>
+                </div>
+                <div class="card-info">${label.cardName.substring(0, 20)}${label.cardName.length > 20 ? '...' : ''} (${label.condition})</div>
+              </div>
+            `).join('')}
+          </div>
+        </body>
+        </html>
+      `;
+    }
 
     // Search functionality
     function setupCardSearch(input) {
@@ -801,8 +1118,6 @@
               </div>
             </div>
             <div class="suggestion-actions">
-              <button type="button" class="suggestion-btn confirm-btn">✅ Confirm</button>
-              <button type="button" class="suggestion-btn reject-btn">❌ Reject</button>
             </div>
           </div>
         `;
@@ -897,6 +1212,19 @@
         });
       });
 
+      // Print labels button handler
+      document.getElementById('print-labels').addEventListener('click', function() {
+        console.log('🏷️ Print button clicked');
+        console.log('📄 Trade data available:', !!lastTradeData);
+        
+        if (lastTradeData) {
+          console.log('📄 Printing labels for trade:', lastTradeData);
+          printInventoryLabels(lastTradeData);
+        } else {
+          alert('No trade data available for label printing. Please complete a trade first.');
+        }
+      });
+
       // Estimate button
       document.getElementById('estimate-trade').addEventListener('click', function() {
         const cards = document.querySelectorAll('.card-row');
@@ -969,18 +1297,40 @@
             })
           });
 
+          if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+          }
+
           const data = await response.json();
+          console.log('📥 Trade Response:', data);
 
           if (data.success) {
             submitBtn.innerHTML = '<span>✅</span><span>Trade Complete</span>';
             submitBtn.disabled = false;
             
+            // Store trade data for label printing
+            lastTradeData = {
+              tradeId: Date.now().toString(),
+              employeeName: employeeName,
+              payoutMethod: payoutMethod,
+              results: cards.map((card, index) => ({
+                cardName: card.cardName,
+                sku: card.sku,
+                quantity: card.quantity,
+                condition: Array.from(document.querySelectorAll('.card-row'))[index]?.querySelector('[name="cardCondition"]')?.value || 'NM'
+              }))
+            };
+            
+            // Show print labels button
+            document.getElementById('print-labels').style.display = 'inline-flex';
+            console.log('🏷️ Print button should now be visible');
+            
             const statusText = document.querySelector('.status-text');
-            statusText.textContent = 'Trade completed successfully! 🎉';
+            statusText.textContent = 'Trade completed successfully! Print labels available.';
             statusText.style.color = 'var(--success)';
 
             // Show success details
-            let successMessage = `Trade completed!\n\nFinal Payout: ${data.finalPayout}\nPayout Method: ${data.payoutMethod.replace('-', ' ').toUpperCase()}`;
+            let successMessage = `Trade completed!\n\nFinal Payout: ${data.finalPayout || 'N/A'}\nPayout Method: ${(data.payoutMethod || payoutMethod).replace('-', ' ').toUpperCase()}`;
             
             if (data.giftCardCode) {
               successMessage += `\nGift Card Code: ${data.giftCardCode}`;
@@ -990,14 +1340,11 @@
               successMessage += `\nStore Credit issued to: ${data.customer.email}`;
             }
 
+            successMessage += `\n\nYou can now print inventory labels for the traded cards.`;
+
             alert(successMessage);
 
-            // Reset form after success
-            setTimeout(() => {
-              if (confirm('Reset form for next trade?')) {
-                location.reload();
-              }
-            }, 2000);
+            // Don't auto-reset the form so print button stays visible
 
           } else {
             throw new Error(data.error || 'Trade processing failed');
