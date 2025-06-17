@@ -593,6 +593,14 @@
         <div class="status-indicator disconnected" id="connection-status"></div>
       </div>
       <div class="config-row">
+        <span class="config-label">HTTP Method:</span>
+        <select class="form-select" id="http-method" style="width: 120px;">
+          <option value="POST">POST</option>
+          <option value="GET">GET</option>
+          <option value="PUT">PUT</option>
+        </select>
+      </div>
+      <div class="config-row">
         <span class="config-label">CORS Mode:</span>
         <select class="form-select" id="cors-mode" style="width: 200px;">
           <option value="cors">CORS</option>
@@ -774,6 +782,7 @@
         this.apiUrl = '/api/buybackstep4';
         this.mockMode = false;
         this.corsMode = 'cors';
+        this.httpMethod = 'POST';
         this.logger = new DebugLogger();
       }
 
@@ -785,6 +794,11 @@
       setCorsMode(mode) {
         this.corsMode = mode;
         this.logger.log('info', `CORS mode set to: ${mode}`);
+      }
+
+      setHttpMethod(method) {
+        this.httpMethod = method;
+        this.logger.log('info', `HTTP method set to: ${method}`);
       }
 
       setMockMode(enabled) {
@@ -802,17 +816,35 @@
             payoutMethod: 'cash'
           };
 
-          this.logger.log('info', 'Sending test request', { url: this.apiUrl, cors: this.corsMode });
+          this.logger.log('info', 'Sending test request', { 
+            url: this.apiUrl, 
+            method: this.httpMethod,
+            cors: this.corsMode 
+          });
 
-          const response = await fetch(this.apiUrl, {
-            method: 'POST',
+          const requestConfig = {
+            method: this.httpMethod,
             mode: this.corsMode,
             headers: { 
               'Content-Type': 'application/json',
               'Accept': 'application/json'
-            },
-            body: JSON.stringify(testPayload)
-          });
+            }
+          };
+
+          // Only add body for POST/PUT requests
+          if (this.httpMethod === 'POST' || this.httpMethod === 'PUT') {
+            requestConfig.body = JSON.stringify(testPayload);
+          } else if (this.httpMethod === 'GET') {
+            // For GET, add query parameters
+            const params = new URLSearchParams({
+              cardName: 'Test Card',
+              employeeName: 'Test',
+              payoutMethod: 'cash'
+            });
+            this.apiUrl = this.apiUrl.includes('?') ? this.apiUrl : `${this.apiUrl}?${params}`;
+          }
+
+          const response = await fetch(this.apiUrl, requestConfig);
 
           this.logger.log('info', 'Response received', {
             status: response.status,
@@ -895,17 +927,41 @@
             payoutMethod: 'cash'
           };
 
-          this.logger.log('info', 'Sending API request', { url: this.apiUrl, payload });
+          this.logger.log('info', 'Sending API request', { 
+            url: this.apiUrl, 
+            method: this.httpMethod,
+            payload 
+          });
 
-          const response = await fetch(this.apiUrl, {
-            method: 'POST',
+          const requestConfig = {
+            method: this.httpMethod,
             mode: this.corsMode,
             headers: { 
               'Content-Type': 'application/json',
               'Accept': 'application/json'
-            },
-            body: JSON.stringify(payload)
-          });
+            }
+          };
+
+          let finalUrl = this.apiUrl;
+
+          // Configure request based on method
+          if (this.httpMethod === 'POST' || this.httpMethod === 'PUT') {
+            requestConfig.body = JSON.stringify(payload);
+          } else if (this.httpMethod === 'GET') {
+            // For GET, add query parameters
+            const params = new URLSearchParams({
+              cardName: query,
+              employeeName: 'Preview',
+              payoutMethod: 'cash'
+            });
+            finalUrl = this.apiUrl.includes('?') ? 
+              `${this.apiUrl}&${params}` : 
+              `${this.apiUrl}?${params}`;
+            
+            this.logger.log('info', 'GET request URL:', finalUrl);
+          }
+
+          const response = await fetch(finalUrl, requestConfig);
 
           this.logger.log('info', 'Response status', {
             status: response.status,
@@ -1169,6 +1225,11 @@
 
       document.getElementById('cors-mode').addEventListener('change', function() {
         searchClient.setCorsMode(this.value);
+      });
+
+      // HTTP Method handler
+      document.getElementById('http-method').addEventListener('change', function() {
+        searchClient.setHttpMethod(this.value);
       });
 
       document.getElementById('mock-mode').addEventListener('change', function() {
