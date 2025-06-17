@@ -915,52 +915,45 @@
       }
     }
 
-    /* Print styles - FIXED: Only barcode labels print, no blank pages */
+    /* Print styles optimized for Avery 7666 - FIXED: Only labels print */
     @media print {
       @page {
         size: letter;
-        margin: 0.5in 0.1875in 0.5in 0.1875in;
+        margin: 0.5in 0.1875in 0.5in 0.1875in;  /* Avery 7666 spec */
       }
       
-      /* Hide absolutely everything first */
-      body, body * {
+      body {
+        margin: 0 !important;
+        padding: 0 !important;
+        font-size: 8px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        background: white !important;
+      }
+      
+      /* Hide EVERYTHING except barcode labels when printing */
+      * {
         visibility: hidden !important;
-        display: none !important;
       }
       
-      /* Only show barcode elements */
-      #barcode-section,
-      #barcode-section *,
       .barcode-grid,
       .barcode-grid *,
       .barcode-label,
-      .barcode-label *,
-      .barcode-svg,
-      .barcode-svg * {
+      .barcode-label * {
         visibility: visible !important;
-        display: block !important;
       }
       
-      .barcode-grid {
-        display: grid !important;
-      }
-      
-      .barcode-display {
-        display: flex !important;
-      }
-      
-      /* Position barcode section to fill page */
-      #barcode-section {
-        position: fixed !important;
+      .barcode-section {
+        position: absolute !important;
         top: 0 !important;
         left: 0 !important;
-        width: 100vw !important;
-        height: 100vh !important;
+        width: 100% !important;
+        height: 100% !important;
         background: white !important;
+        border: none !important;
         margin: 0 !important;
         padding: 0 !important;
-        border: none !important;
-        z-index: 9999 !important;
+        overflow: visible !important;
       }
       
       .barcode-header {
@@ -976,24 +969,27 @@
         margin: 0 !important;
         padding: 0 !important;
         gap: 0 !important;
+        display: grid !important;
         grid-template-columns: repeat(3, 2.625in) !important;
         grid-template-rows: repeat(10, 1in) !important;
         background: white !important;
       }
       
       .barcode-label {
+        border: none !important;
         width: 2.625in !important;
         height: 1in !important;
         margin: 0 !important;
         padding: 2px 4px !important;
-        border: none !important;
-        background: white !important;
         page-break-inside: avoid !important;
+        box-sizing: border-box !important;
+        background: white !important;
+        overflow: hidden !important;
       }
       
-      .barcode-svg {
-        max-width: 100% !important;
-        max-height: 100% !important;
+      .barcode-display {
+        border: 1px solid black !important;
+        background: white !important;
       }
     }
 
@@ -1959,93 +1955,6 @@
         }
       }
 
-      // Code 128 barcode generation - Real barcodes with actual SKUs
-      function generateBarcodes(results) {
-        const barcodeContent = document.getElementById('barcode-content');
-        barcodeContent.innerHTML = '';
-
-        // Only generate barcodes for items that were successfully matched
-        const matchedItems = results.filter(item => item.match && item.sku);
-        
-        if (matchedItems.length === 0) {
-          barcodeContent.innerHTML = `
-            <div style="grid-column: 1/-1; text-align: center; color: var(--gray-500); padding: 40px;">
-              📊 No SKUs available for barcode generation
-            </div>
-          `;
-          return;
-        }
-
-        let labelCount = 0;
-        const barcodeIds = []; // Store IDs for rendering after insertion
-
-        matchedItems.forEach(item => {
-          // Generate Code 128 barcode for each quantity
-          for (let i = 0; i < item.quantity; i++) {
-            const barcodeLabel = document.createElement('div');
-            barcodeLabel.className = 'barcode-label';
-            
-            // Generate unique barcode container
-            const barcodeId = 'barcode-' + Math.random().toString(36).substr(2, 9);
-            barcodeIds.push({ id: barcodeId, sku: item.sku });
-            
-            // Clean label with Code 128 format
-            barcodeLabel.innerHTML = `
-              <div class="barcode-sku">SKU: ${item.sku}</div>
-              <div class="barcode-display">
-                <svg id="${barcodeId}" class="barcode-svg"></svg>
-              </div>
-              <div class="barcode-number">${item.sku}</div>
-            `;
-            
-            barcodeContent.appendChild(barcodeLabel);
-            labelCount++;
-          }
-        });
-
-        // Fill remaining slots to complete the sheet (if less than 30 labels)
-        while (labelCount < 30 && labelCount % 30 !== 0) {
-          const emptyLabel = document.createElement('div');
-          emptyLabel.className = 'barcode-label';
-          emptyLabel.style.border = '1px dashed #e2e8f0';
-          emptyLabel.style.backgroundColor = '#f7fafc';
-          barcodeContent.appendChild(emptyLabel);
-          labelCount++;
-        }
-
-        // Render all barcodes after DOM insertion
-        setTimeout(() => {
-          barcodeIds.forEach(barcode => {
-            renderBarcode(barcode.id, barcode.sku);
-          });
-        }, 100);
-      }
-
-      // Function to render Code 128 barcode
-      function renderBarcode(containerId, sku) {
-        try {
-          const element = document.getElementById(containerId);
-          if (element && window.JsBarcode) {
-            JsBarcode(element, sku, {
-              format: "CODE128",
-              width: 4,           // Thick bars for Socket S740
-              height: 60,         // Tall enough for scanning
-              displayValue: false, // Don't show text (we have it separately)
-              background: "white",
-              lineColor: "black",
-              margin: 2,
-              fontSize: 0         // No font inside barcode
-            });
-          }
-        } catch (error) {
-          console.error('Barcode generation error for', sku, ':', error);
-          // Fallback: show SKU as text if barcode fails
-          if (element) {
-            element.innerHTML = `<text x="50%" y="50%" text-anchor="middle" font-family="monospace" font-size="12">${sku}</text>`;
-          }
-        }
-      }
-
       // Success section close and new trade buttons
       document.getElementById('close-success').addEventListener('click', function() {
         tradeSuccess.classList.remove('visible');
@@ -2064,96 +1973,15 @@
         window.print();
       });
 
-      // Print barcodes functionality - FIXED: No blank pages
+      // NEW: Print barcodes functionality - FIXED: Only labels print
       document.getElementById('print-barcodes').addEventListener('click', function() {
         const barcodeSection = document.getElementById('barcode-section');
         if (barcodeSection.style.display === 'none') {
           barcodeSection.style.display = 'block';
-          this.innerHTML = '<span>🖨️</span><span>Print Code 128 Labels</span>';
+          this.innerHTML = '<span>🖨️</span><span>Print UPC Labels</span>';
         } else {
-          // Create a new window with only the barcode content
-          const printWindow = window.open('', '_blank');
-          const barcodeHTML = document.getElementById('barcode-content').innerHTML;
-          
-          printWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-              <title>Barcode Labels</title>
-              <style>
-                @page {
-                  size: letter;
-                  margin: 0.5in 0.1875in 0.5in 0.1875in;
-                }
-                body {
-                  margin: 0;
-                  padding: 0;
-                  background: white;
-                  font-family: Arial, sans-serif;
-                }
-                .barcode-grid {
-                  display: grid;
-                  grid-template-columns: repeat(3, 2.625in);
-                  grid-template-rows: repeat(10, 1in);
-                  gap: 0;
-                  width: 7.875in;
-                  height: 10in;
-                }
-                .barcode-label {
-                  width: 2.625in;
-                  height: 1in;
-                  padding: 2px 4px;
-                  display: flex;
-                  flex-direction: column;
-                  justify-content: center;
-                  align-items: center;
-                  text-align: center;
-                  background: white;
-                  box-sizing: border-box;
-                  font-family: monospace;
-                }
-                .barcode-sku {
-                  font-size: 7px;
-                  color: black;
-                  margin-bottom: 2px;
-                  font-weight: 600;
-                }
-                .barcode-display {
-                  height: 60px;
-                  width: 95%;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  margin: 3px 0;
-                }
-                .barcode-svg {
-                  max-width: 100%;
-                  max-height: 100%;
-                }
-                .barcode-number {
-                  font-size: 6px;
-                  color: black;
-                  margin-top: 1px;
-                  font-weight: 500;
-                  font-family: monospace;
-                }
-              </style>
-            </head>
-            <body>
-              <div class="barcode-grid">
-                ${barcodeHTML}
-              </div>
-              <script>
-                window.onload = function() {
-                  window.print();
-                  window.close();
-                };
-              </script>
-            </body>
-            </html>
-          `);
-          
-          printWindow.document.close();
+          // Print with clean labels only
+          window.print();
         }
       });
 
