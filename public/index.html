@@ -752,18 +752,18 @@
       padding-bottom: 16px;
     }
 
-    /* Custom 2" Grid Layout - 4 columns x 10 rows = 40 labels per sheet */
+    /* Custom 1.5" Grid Layout - 5 columns x 10 rows = 50 labels per sheet */
     .barcode-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 0;
       margin: 20px 0;
       background: white;
     }
 
-    /* Custom 2" Individual Label - UPC format like Pokemon card packs */
+    /* Custom 1.5" Individual Label - UPC format like Pokemon card packs */
     .barcode-label {
-      width: 2in;      /* 2" */
+      width: 1.5in;    /* 1.5" */
       height: 1in;     /* 1" */
       border: 1px dashed var(--gray-300);
       padding: 4px;
@@ -1289,7 +1289,7 @@
           <div class="barcode-header">
             <h3 style="margin: 0; color: var(--gray-800);">📊 Code 128 Barcode Labels</h3>
             <div style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">
-              Custom 2" x 1" • Code 128 Format • Real SKUs • Socket S740 Compatible
+              Custom 1.5" x 1" • Code 128 Format • Real SKUs • Socket S740 Compatible
             </div>
           </div>
           <div id="barcode-content" class="barcode-grid">
@@ -1996,8 +1996,8 @@
           }
         });
 
-        // Fill remaining slots to complete the sheet (if less than 40 labels)
-        while (labelCount < 40 && labelCount % 40 !== 0) {
+        // Fill remaining slots to complete the sheet (if less than 50 labels)
+        while (labelCount < 50 && labelCount % 50 !== 0) {
           const emptyLabel = document.createElement('div');
           emptyLabel.className = 'barcode-label';
           emptyLabel.style.border = '1px dashed #e2e8f0';
@@ -2047,12 +2047,12 @@
 
           JsBarcode(element, sku, {
             format: "CODE128",
-            width: 4,           // Thick bars for Socket S740 scanner
-            height: 60,         // Tall enough for easy scanning
+            width: 3,           // Slightly thinner bars for narrower label
+            height: 55,         // Slightly shorter for 1.5" width
             displayValue: false, // Don't show text (we have it separately)
             background: "white",
             lineColor: "black",
-            margin: 2,
+            margin: 1,          // Smaller margin for compact label
             fontSize: 0,        // No font inside barcode
             textMargin: 0       // No text margin
           });
