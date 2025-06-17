@@ -902,15 +902,13 @@
       background: white;
     }
 
-    /* Avery 7666 Individual Label - 1" x 2-5/8" optimized for Socket S740 scanning */
+    /* Avery 7666 Individual Label - UPC format like Pokemon card packs */
     .barcode-label {
       width: 2.625in;  /* 2-5/8" */
       height: 1in;     /* 1" */
       border: 1px dashed var(--gray-300);
-      padding: 2px 4px;
+      padding: 4px;
       font-family: var(--font-mono);
-      font-size: 8px;
-      line-height: 1.1;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -923,42 +921,45 @@
     }
 
     .barcode-item-name {
-      display: none; /* Remove item name to maximize barcode space */
+      display: none; /* Remove item name to maximize UPC space */
     }
 
     .barcode-sku {
       font-size: 8px;
       color: var(--gray-800);
-      margin-bottom: 3px;
+      margin-bottom: 4px;
       white-space: nowrap;
       font-weight: 600;
     }
 
+    /* UPC Barcode - Pokemon card pack size */
     .barcode-display {
       background: white;
-      border: none;
-      padding: 2px;
-      margin: 2px 0;
+      border: 1px solid var(--gray-200);
+      padding: 2px 4px;
+      margin: 3px 0;
       font-family: 'Courier New', monospace;
-      font-size: 14px;  /* Larger for better scanning */
-      letter-spacing: 0px;
+      font-size: 16px;  /* Large enough for UPC scanning */
+      letter-spacing: -1px;  /* Tight spacing for UPC bars */
       overflow: hidden;
-      word-break: break-all;
-      line-height: 0.9;
-      height: 20px;  /* Taller barcode for Socket S740 */
+      line-height: 1;
+      height: 32px;  /* Pokemon pack UPC height (~0.45") */
+      width: 90%;    /* Pokemon pack UPC width (~1.5") */
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 100%;
+      border-left: 3px solid black;  /* UPC start guard */
+      border-right: 3px solid black; /* UPC end guard */
     }
 
     .barcode-number {
       font-size: 7px;
       color: var(--gray-800);
       margin-top: 2px;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
       white-space: nowrap;
       font-weight: 500;
+      font-family: 'Courier New', monospace;
     }
 
     .barcode-details {
@@ -1230,16 +1231,16 @@
           </div>
         </div>
 
-        <!-- Barcode Section - Socket S740 Optimized Avery 7666 Format -->
+        <!-- UPC Barcode Section - Pokemon Card Pack Style -->
         <div id="barcode-section" class="barcode-section" style="display: none;">
           <div class="barcode-header">
-            <h3 style="margin: 0; color: var(--gray-800);">📊 SKU Barcode Labels</h3>
+            <h3 style="margin: 0; color: var(--gray-800);">📊 UPC Barcode Labels</h3>
             <div style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">
-              Avery 7666 • Optimized for Socket Mobile S740 Scanner • SKU Only
+              Avery 7666 • UPC-A Format • Pokemon Card Pack Size • Socket S740 Compatible
             </div>
           </div>
           <div id="barcode-content" class="barcode-grid">
-            <!-- Barcode labels will be generated here in Socket S740 optimized format -->
+            <!-- UPC barcode labels will be generated here -->
           </div>
         </div>
 
