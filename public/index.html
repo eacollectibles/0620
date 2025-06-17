@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buyback Portal</title>
+  <title>Buyback Portal with Analytics</title>
   <!-- JsBarcode library for generating real Code 128 barcodes -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
+  <!-- Chart.js for analytics charts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
   
   <style>
     :root {
@@ -1113,6 +1115,322 @@
       border: 1px solid #ced4da;
     }
 
+    /* ===== ANALYTICS DASHBOARD STYLES ===== */
+
+    /* Analytics Button - Floating */
+    .analytics-trigger {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: var(--shadow-lg);
+      transition: all 0.3s ease;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .analytics-trigger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+      background: var(--primary-light);
+    }
+
+    /* Analytics Modal */
+    .analytics-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .analytics-modal.visible {
+      display: flex;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .analytics-content {
+      background: white;
+      border-radius: var(--border-radius-lg);
+      width: 100%;
+      max-width: 1400px;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: slideUp 0.3s ease;
+      box-shadow: var(--shadow-lg);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(50px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Analytics Header */
+    .analytics-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      padding: 24px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .analytics-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .close-analytics {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: background 0.2s ease;
+    }
+
+    .close-analytics:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Analytics Body */
+    .analytics-body {
+      padding: 32px;
+    }
+
+    /* Filters */
+    .analytics-filters {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-label {
+      font-weight: 600;
+      color: var(--gray-700);
+      font-size: 14px;
+    }
+
+    .filter-select {
+      padding: 8px 12px;
+      border: 2px solid var(--gray-200);
+      border-radius: var(--border-radius);
+      background: white;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .filter-select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    /* Summary Cards */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .summary-card {
+      background: white;
+      border-radius: var(--border-radius-lg);
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--gray-200);
+      transition: transform 0.2s ease;
+    }
+
+    .summary-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .summary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .summary-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .summary-icon {
+      font-size: 20px;
+      padding: 8px;
+      border-radius: var(--border-radius);
+      background: var(--gray-100);
+    }
+
+    .summary-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--gray-800);
+      margin-bottom: 8px;
+    }
+
+    .summary-change {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .change-positive { color: var(--success); }
+    .change-negative { color: var(--error); }
+    .change-neutral { color: var(--gray-500); }
+
+    /* Charts Section */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .chart-card {
+      background: white;
+      border-radius: var(--border-radius-lg);
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--gray-200);
+    }
+
+    .chart-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--gray-800);
+      margin-bottom: 20px;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+    }
+
+    /* Data Tables */
+    .data-section {
+      background: white;
+      border-radius: var(--border-radius-lg);
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--gray-200);
+      margin-bottom: 24px;
+    }
+
+    .section-title-analytics {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--gray-800);
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .data-table th {
+      background: var(--gray-50);
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--gray-700);
+      border-bottom: 2px solid var(--gray-200);
+    }
+
+    .data-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .data-table tr:hover {
+      background: var(--gray-50);
+    }
+
+    /* Export Button */
+    .export-btn {
+      background: var(--success);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .export-btn:hover {
+      background: #2f855a;
+    }
+
+    /* Status Indicators */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-success {
+      background: rgba(56, 161, 105, 0.1);
+      color: var(--success);
+    }
+
+    .status-warning {
+      background: rgba(214, 158, 46, 0.1);
+      color: var(--warning);
+    }
+
+    .status-error {
+      background: rgba(229, 62, 62, 0.1);
+      color: var(--error);
+    }
+
     /* Print styles optimized for Star TSP100III thermal receipt printer */
     @media print {
       /* Only apply receipt print styles when receipt-print-mode is active */
@@ -1162,83 +1480,6 @@
         page-break-inside: avoid !important;
         font-family: 'Courier New', monospace !important;
       }
-      
-      .receipt-print-mode .receipt-store-name {
-        font-size: 16px !important;
-        font-weight: bold !important;
-      }
-      
-      .receipt-print-mode .receipt-store-info {
-        font-size: 9px !important;
-        line-height: 1.2 !important;
-      }
-      
-      .receipt-print-mode .receipt-transaction-info {
-        font-size: 9px !important;
-        margin: 6px 0 !important;
-      }
-      
-      .receipt-print-mode .receipt-title {
-        font-size: 12px !important;
-        margin: 6px 0 !important;
-      }
-      
-      .receipt-print-mode .receipt-item {
-        font-size: 9px !important;
-        margin-bottom: 3px !important;
-        line-height: 1.2 !important;
-      }
-      
-      .receipt-print-mode .receipt-item-details {
-        font-size: 7px !important;
-      }
-      
-      .receipt-print-mode .receipt-total-line {
-        font-size: 9px !important;
-        margin-bottom: 2px !important;
-      }
-      
-      .receipt-print-mode .receipt-total-line.final {
-        font-size: 11px !important;
-        font-weight: bold !important;
-      }
-      
-      .receipt-print-mode .receipt-payout {
-        font-size: 10px !important;
-        margin: 6px 0 !important;
-        padding: 4px !important;
-      }
-      
-      .receipt-print-mode .receipt-gift-card {
-        margin: 6px 0 !important;
-        padding: 4px !important;
-      }
-      
-      .receipt-print-mode .receipt-gift-card-code {
-        font-size: 12px !important;
-        letter-spacing: 1px !important;
-      }
-      
-      .receipt-print-mode .receipt-footer {
-        font-size: 7px !important;
-        margin-top: 8px !important;
-        padding-top: 6px !important;
-        line-height: 1.2 !important;
-      }
-      
-      .receipt-print-mode .receipt-signature {
-        margin-top: 12px !important;
-        padding-top: 6px !important;
-      }
-      
-      .receipt-print-mode .receipt-signature-line {
-        height: 25px !important;
-        margin: 4px 0 2px 0 !important;
-      }
-      
-      .receipt-print-mode .receipt-signature-label {
-        font-size: 7px !important;
-      }
 
       /* Barcode print styles */
       .barcode-print-mode * {
@@ -1266,45 +1507,6 @@
         margin: 0 !important;
         padding: 0 !important;
         overflow: visible !important;
-      }
-      
-      .barcode-print-mode .barcode-header {
-        display: none !important;
-      }
-      
-      .barcode-print-mode .barcode-grid {
-        position: absolute !important;
-        top: 0.5in !important;
-        left: 0.1875in !important;
-        width: 7.875in !important;
-        height: 10in !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        gap: 0 !important;
-        display: grid !important;
-        grid-template-columns: repeat(3, 2.625in) !important;
-        grid-template-rows: repeat(10, 1in) !important;
-        background: white !important;
-      }
-      
-      .barcode-print-mode .barcode-label {
-        border: none !important;
-        width: 2.625in !important;
-        height: 1in !important;
-        margin: 0 !important;
-        padding: 6px 8px !important;
-        page-break-inside: avoid !important;
-        box-sizing: border-box !important;
-        background: white !important;
-        overflow: hidden !important;
-      }
-      
-      .barcode-print-mode .barcode-display {
-        border: none !important;
-        background: white !important;
-        padding: 0 !important;
-        margin: 1px 0 !important;
-        height: 40px !important;
       }
     }
 
@@ -1338,6 +1540,28 @@
 
       .estimate-totals {
         grid-template-columns: 1fr;
+      }
+
+      .analytics-content {
+        margin: 10px;
+        max-height: 95vh;
+      }
+
+      .analytics-body {
+        padding: 20px;
+      }
+
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .analytics-filters {
+        flex-direction: column;
+        align-items: stretch;
       }
     }
 
@@ -1386,7 +1610,7 @@
       <!-- Card Header -->
       <div class="card-header">
         <h1 class="card-title">Trade-In Processing</h1>
-        <p class="card-subtitle">Process card trades with real Shopify integration</p>
+        <p class="card-subtitle">Process card trades with real Shopify integration + Analytics Dashboard</p>
       </div>
 
       <!-- Card Content -->
@@ -1600,6 +1824,314 @@
     </div>
   </div>
 
+  <!-- Analytics Trigger Button -->
+  <button class="analytics-trigger" id="analyticsBtn" title="View Analytics Dashboard">
+    📊
+  </button>
+
+  <!-- Analytics Modal -->
+  <div class="analytics-modal" id="analyticsModal">
+    <div class="analytics-content">
+      <!-- Header -->
+      <div class="analytics-header">
+        <h2 class="analytics-title">📊 Buyback Analytics Dashboard</h2>
+        <button class="close-analytics" id="closeAnalytics">✕</button>
+      </div>
+
+      <!-- Body -->
+      <div class="analytics-body">
+        <!-- Filters -->
+        <div class="analytics-filters">
+          <div class="filter-group">
+            <label class="filter-label">Time Period:</label>
+            <select class="filter-select" id="timePeriod">
+              <option value="today">Today</option>
+              <option value="week" selected>This Week</option>
+              <option value="month">This Month</option>
+              <option value="quarter">This Quarter</option>
+              <option value="year">This Year</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Employee:</label>
+            <select class="filter-select" id="employeeFilter">
+              <option value="all">All Employees</option>
+              <option value="Alex">Alex</option>
+              <option value="Jamie">Jamie</option>
+              <option value="Morgan">Morgan</option>
+              <option value="Taylor">Taylor</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Payout Method:</label>
+            <select class="filter-select" id="payoutFilter">
+              <option value="all">All Methods</option>
+              <option value="cash">Cash</option>
+              <option value="store-credit">Store Credit</option>
+              <option value="gift-card">Gift Card</option>
+            </select>
+          </div>
+          <button class="export-btn" id="exportData">📄 Export Report</button>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="summary-header">
+              <span class="summary-title">Total Trades</span>
+              <span class="summary-icon">🔄</span>
+            </div>
+            <div class="summary-value" id="totalTrades">247</div>
+            <div class="summary-change change-positive">
+              <span>↗ +12.3%</span> vs last period
+            </div>
+          </div>
+
+          <div class="summary-card">
+            <div class="summary-header">
+              <span class="summary-title">Avg Trade Value</span>
+              <span class="summary-icon">📈</span>
+            </div>
+            <div class="summary-value" id="avgTradeValue">$62.47</div>
+            <div class="summary-change change-negative">
+              <span>↘ -5.2%</span> vs last period
+            </div>
+          </div>
+
+          <div class="summary-card">
+            <div class="summary-header">
+              <span class="summary-title">Search Success</span>
+              <span class="summary-icon">🎯</span>
+            </div>
+            <div class="summary-value" id="searchSuccess">84.3%</div>
+            <div class="summary-change change-positive">
+              <span>↗ +2.1%</span> vs last period
+            </div>
+          </div>
+
+          <div class="summary-card">
+            <div class="summary-header">
+              <span class="summary-title">Cards Processed</span>
+              <span class="summary-icon">🃏</span>
+            </div>
+            <div class="summary-value" id="cardsProcessed">1,523</div>
+            <div class="summary-change change-positive">
+              <span>↗ +24.7%</span> vs last period
+            </div>
+          </div>
+
+          <div class="summary-card">
+            <div class="summary-header">
+              <span class="summary-title">Active Customers</span>
+              <span class="summary-icon">👥</span>
+            </div>
+            <div class="summary-value" id="activeCustomers">186</div>
+            <div class="summary-change change-positive">
+              <span>↗ +8.9%</span> vs last period
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h3 class="chart-title">Trade Volume Over Time</h3>
+            <div class="chart-container">
+              <canvas id="tradeVolumeChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <h3 class="chart-title">Payout Methods</h3>
+            <div class="chart-container">
+              <canvas id="payoutMethodChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Employee Performance -->
+        <div class="data-section">
+          <div class="section-title-analytics">
+            <span>👤 Employee Performance</span>
+            <button class="export-btn" onclick="exportEmployeeData()">📊 Export</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Trades</th>
+                <th>Total Value</th>
+                <th>Avg Value</th>
+                <th>Search Success</th>
+                <th>Processing Time</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="employeeTable">
+              <tr>
+                <td><strong>Alex</strong></td>
+                <td>73</td>
+                <td>$4,892</td>
+                <td>$67.01</td>
+                <td>87.2%</td>
+                <td>3.4 min</td>
+                <td><span class="status-badge status-success">● Excellent</span></td>
+              </tr>
+              <tr>
+                <td><strong>Jamie</strong></td>
+                <td>61</td>
+                <td>$3,754</td>
+                <td>$61.54</td>
+                <td>82.1%</td>
+                <td>4.1 min</td>
+                <td><span class="status-badge status-success">● Good</span></td>
+              </tr>
+              <tr>
+                <td><strong>Morgan</strong></td>
+                <td>68</td>
+                <td>$4,156</td>
+                <td>$61.12</td>
+                <td>85.3%</td>
+                <td>3.8 min</td>
+                <td><span class="status-badge status-success">● Good</span></td>
+              </tr>
+              <tr>
+                <td><strong>Taylor</strong></td>
+                <td>45</td>
+                <td>$2,630</td>
+                <td>$58.44</td>
+                <td>79.8%</td>
+                <td>4.7 min</td>
+                <td><span class="status-badge status-warning">● Training</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Top Cards -->
+        <div class="data-section">
+          <div class="section-title-analytics">
+            <span>🏆 Most Traded Cards</span>
+            <button class="export-btn" onclick="exportCardData()">📊 Export</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Card Name</th>
+                <th>Times Traded</th>
+                <th>Total Quantity</th>
+                <th>Avg Trade Value</th>
+                <th>Total Value</th>
+                <th>Search Success</th>
+              </tr>
+            </thead>
+            <tbody id="cardTable">
+              <tr>
+                <td><strong>Lightning Bolt</strong></td>
+                <td>23</td>
+                <td>31</td>
+                <td>$47.23</td>
+                <td>$1,463</td>
+                <td><span class="status-badge status-success">● 100%</span></td>
+              </tr>
+              <tr>
+                <td><strong>Charizard</strong></td>
+                <td>18</td>
+                <td>22</td>
+                <td>$312.45</td>
+                <td>$6,874</td>
+                <td><span class="status-badge status-success">● 94.4%</span></td>
+              </tr>
+              <tr>
+                <td><strong>Black Lotus</strong></td>
+                <td>3</td>
+                <td>3</td>
+                <td>$8,750.00</td>
+                <td>$26,250</td>
+                <td><span class="status-badge status-success">● 100%</span></td>
+              </tr>
+              <tr>
+                <td><strong>Blue-Eyes White Dragon</strong></td>
+                <td>15</td>
+                <td>19</td>
+                <td>$67.89</td>
+                <td>$1,289</td>
+                <td><span class="status-badge status-warning">● 86.7%</span></td>
+              </tr>
+              <tr>
+                <td><strong>Pikachu</strong></td>
+                <td>27</td>
+                <td>34</td>
+                <td>$24.12</td>
+                <td>$820</td>
+                <td><span class="status-badge status-success">● 92.6%</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="data-section">
+          <div class="section-title-analytics">
+            <span>🕐 Recent Trade Activity</span>
+            <button class="export-btn" onclick="exportRecentActivity()">📊 Export</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Employee</th>
+                <th>Cards</th>
+                <th>Value</th>
+                <th>Payout Method</th>
+                <th>Customer</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="recentActivity">
+              <tr>
+                <td>2:34 PM</td>
+                <td>Alex</td>
+                <td>3 cards</td>
+                <td>$147.50</td>
+                <td>Store Credit</td>
+                <td>john@example.com</td>
+                <td><span class="status-badge status-success">● Complete</span></td>
+              </tr>
+              <tr>
+                <td>2:18 PM</td>
+                <td>Morgan</td>
+                <td>7 cards</td>
+                <td>$89.25</td>
+                <td>Cash</td>
+                <td>—</td>
+                <td><span class="status-badge status-success">● Complete</span></td>
+              </tr>
+              <tr>
+                <td>1:45 PM</td>
+                <td>Jamie</td>
+                <td>2 cards</td>
+                <td>$1,250.00</td>
+                <td>Gift Card</td>
+                <td>sarah@example.com</td>
+                <td><span class="status-badge status-success">● Complete</span></td>
+              </tr>
+              <tr>
+                <td>1:22 PM</td>
+                <td>Taylor</td>
+                <td>5 cards</td>
+                <td>$34.75</td>
+                <td>Cash</td>
+                <td>—</td>
+                <td><span class="status-badge status-warning">● Pending</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // REAL API configuration
     const API_URL = '/api/buybackstep4'; 
@@ -1607,6 +2139,190 @@
     // Global variable to store the last API response for debugging
     let lastApiResponse = null;
 
+    // ===== ANALYTICS DATABASE CLASS =====
+    class AnalyticsDB {
+      constructor() {
+        this.trades = JSON.parse(localStorage.getItem('analytics_trades') || '[]');
+        this.searches = JSON.parse(localStorage.getItem('analytics_searches') || '[]');
+        this.employees = JSON.parse(localStorage.getItem('analytics_employees') || '{}');
+        this.initializeSampleData();
+      }
+
+      initializeSampleData() {
+        if (this.trades.length === 0) {
+          this.generateSampleData();
+        }
+      }
+
+      generateSampleData() {
+        const employees = ['Alex', 'Jamie', 'Morgan', 'Taylor'];
+        const cards = [
+          { name: 'Lightning Bolt', avgValue: 47.23 },
+          { name: 'Charizard', avgValue: 312.45 },
+          { name: 'Black Lotus', avgValue: 8750.00 },
+          { name: 'Blue-Eyes White Dragon', avgValue: 67.89 },
+          { name: 'Pikachu', avgValue: 24.12 },
+          { name: 'Time Walk', avgValue: 2340.00 },
+          { name: 'Mox Ruby', avgValue: 1850.00 },
+          { name: 'Dark Magician', avgValue: 45.67 }
+        ];
+        const payoutMethods = ['cash', 'store-credit', 'gift-card'];
+
+        // Generate trades for the last 30 days
+        for (let i = 0; i < 247; i++) {
+          const randomDate = new Date();
+          randomDate.setDate(randomDate.getDate() - Math.floor(Math.random() * 30));
+          
+          const employee = employees[Math.floor(Math.random() * employees.length)];
+          const cardCount = Math.floor(Math.random() * 8) + 1;
+          const selectedCards = [];
+          let totalValue = 0;
+
+          for (let j = 0; j < cardCount; j++) {
+            const card = cards[Math.floor(Math.random() * cards.length)];
+            const variance = 0.7 + Math.random() * 0.6; // ±30% variance
+            const value = card.avgValue * variance;
+            selectedCards.push({ ...card, value });
+            totalValue += value;
+          }
+
+          this.trades.push({
+            id: `trade_${Date.now()}_${i}`,
+            timestamp: randomDate.toISOString(),
+            employee,
+            cards: selectedCards,
+            totalValue,
+            payoutMethod: payoutMethods[Math.floor(Math.random() * payoutMethods.length)],
+            customerEmail: Math.random() > 0.6 ? `customer${i}@example.com` : null,
+            searchSuccessRate: 0.75 + Math.random() * 0.25,
+            processingTime: 2 + Math.random() * 4 // 2-6 minutes
+          });
+        }
+
+        this.saveTrades();
+      }
+
+      addTrade(tradeData) {
+        // Calculate search success rate from results
+        const searchSuccessRate = tradeData.results ? 
+          tradeData.results.filter(r => r.match).length / tradeData.results.length : 0.85;
+
+        // Calculate processing time (for demo purposes, use a default)
+        const processingTime = tradeData.processingTime || (2 + Math.random() * 3);
+
+        this.trades.push({
+          id: `trade_${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          employee: tradeData.employeeName || tradeData.employee,
+          cards: tradeData.results || tradeData.cards || [],
+          totalValue: parseFloat(tradeData.finalPayout || tradeData.totalValue || 0),
+          payoutMethod: tradeData.payoutMethod,
+          customerEmail: tradeData.customerEmail,
+          searchSuccessRate: searchSuccessRate,
+          processingTime: processingTime
+        });
+        this.saveTrades();
+      }
+
+      addSearch(searchData) {
+        this.searches.push({
+          ...searchData,
+          id: `search_${Date.now()}`,
+          timestamp: new Date().toISOString()
+        });
+        this.saveSearches();
+      }
+
+      getTradesByPeriod(period, employee = null, payoutMethod = null) {
+        const now = new Date();
+        let startDate = new Date();
+
+        switch (period) {
+          case 'today':
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case 'week':
+            startDate.setDate(now.getDate() - 7);
+            break;
+          case 'month':
+            startDate.setMonth(now.getMonth() - 1);
+            break;
+          case 'quarter':
+            startDate.setMonth(now.getMonth() - 3);
+            break;
+          case 'year':
+            startDate.setFullYear(now.getFullYear() - 1);
+            break;
+        }
+
+        return this.trades.filter(trade => {
+          const tradeDate = new Date(trade.timestamp);
+          const matchesDate = tradeDate >= startDate;
+          const matchesEmployee = !employee || employee === 'all' || trade.employee === employee;
+          const matchesPayout = !payoutMethod || payoutMethod === 'all' || trade.payoutMethod === payoutMethod;
+          
+          return matchesDate && matchesEmployee && matchesPayout;
+        });
+      }
+
+      saveTrades() {
+        localStorage.setItem('analytics_trades', JSON.stringify(this.trades));
+      }
+
+      saveSearches() {
+        localStorage.setItem('analytics_searches', JSON.stringify(this.searches));
+      }
+
+      exportData(format = 'csv') {
+        const data = this.trades.map(trade => ({
+          Date: new Date(trade.timestamp).toLocaleDateString(),
+          Employee: trade.employee,
+          CardsCount: trade.cards.length,
+          TotalValue: trade.totalValue.toFixed(2),
+          PayoutMethod: trade.payoutMethod,
+          CustomerEmail: trade.customerEmail || 'N/A',
+          ProcessingTime: trade.processingTime.toFixed(1)
+        }));
+
+        if (format === 'csv') {
+          const csv = this.arrayToCSV(data);
+          this.downloadFile(csv, 'analytics_export.csv', 'text/csv');
+        }
+      }
+
+      arrayToCSV(array) {
+        const headers = Object.keys(array[0]).join(',');
+        const rows = array.map(obj => Object.values(obj).join(','));
+        return [headers, ...rows].join('\n');
+      }
+
+      downloadFile(content, filename, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    // Initialize Analytics
+    const analyticsDB = new AnalyticsDB();
+    let tradeVolumeChart, payoutMethodChart;
+
+    // Global functions for analytics integration
+    window.addTradeToAnalytics = function(tradeData) {
+      analyticsDB.addTrade(tradeData);
+      console.log('📊 Analytics: Trade added', tradeData);
+    };
+
+    window.addSearchToAnalytics = function(searchData) {
+      analyticsDB.addSearch(searchData);
+      console.log('📊 Analytics: Search logged', searchData);
+    };
+
+    // ===== MAIN BUYBACK PORTAL FUNCTIONALITY =====
     document.addEventListener('DOMContentLoaded', function() {
       const customerEmail = document.getElementById('customer-email');
       const addCardBtn = document.getElementById('add-card');
@@ -1691,6 +2407,15 @@
 
         input.addEventListener('input', function() {
           const query = this.value.trim();
+          
+          // Log search to analytics
+          if (query.length >= 2) {
+            window.addSearchToAnalytics({
+              query: query,
+              employee: document.getElementById('employeeName').value || 'Unknown',
+              timestamp: new Date().toISOString()
+            });
+          }
           
           // Remove existing suggestion
           if (currentSuggestion) {
@@ -2107,6 +2832,9 @@
             throw new Error(data.error || 'Failed to process trade');
           }
 
+          // ===== ANALYTICS INTEGRATION: Add trade to analytics =====
+          window.addTradeToAnalytics(data);
+
           // FIXED: Show success information in the trade success section
           showTradeSuccess(data, payoutMethod);
           
@@ -2126,7 +2854,7 @@
           
           alert(alertMessage);
           
-          updateStatus('Trade completed successfully!', 'success');
+          updateStatus('Trade completed successfully! Data added to analytics.', 'success');
 
           // Reset form
           this.reset();
@@ -2721,49 +3449,15 @@
         data.results.forEach(card => {
           const cardElement = document.createElement('div');
           cardElement.className = 'estimate-card';
-          cardElement.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <div>
-                <div style="font-weight: 600; color: var(--gray-800);">
-                  ${card.match || card.cardName}
-                  ${!card.match ? ' ❌ Not Found' : ' ✅'}
-                  ${card.searchMethod === 'exact_sku' ? ' 🎯' : ''}
-                </div>
-                <div style="font-size: 14px; color: var(--gray-500);">
-                  Quantity: ${card.quantity}
-                  ${card.sku ? ` • SKU: ${card.sku}` : ''}
-                  ${card.searchMethod === 'exact_sku' ? ' • Exact Match' : ''}
-                  ${card.searchMethod && card.searchMethod !== 'exact_sku' ? ` • Found by: ${card.searchMethod}` : ''}
-                </div>
-              </div>
+          cardElement +18.5%</span> vs last period
             </div>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center;">
-              <div>
-                <div style="font-size: 12px; color: var(--gray-500);">Retail</div>
-                <div style="font-weight: 600;">${card.retailPrice ? card.retailPrice.toFixed(2) : '0.00'}</div>
-              </div>
-              <div>
-                <div style="font-size: 12px; color: var(--gray-500);">Suggested</div>
-                <div style="font-weight: 600; color: var(--accent);">${card.suggestedTradeValue ? card.suggestedTradeValue.toFixed(2) : '0.00'}</div>
-              </div>
-              <div>
-                <div style="font-size: 12px; color: var(--gray-500);">Maximum</div>
-                <div style="font-weight: 600; color: var(--success);">${card.maximumTradeValue ? card.maximumTradeValue.toFixed(2) : '0.00'}</div>
-              </div>
+          </div>
+
+          <div class="summary-card">
+            <div class="summary-header">
+              <span class="summary-title">Total Value</span>
+              <span class="summary-icon">💰</span>
             </div>
-          `;
-          estimateCards.appendChild(cardElement);
-        });
-
-        // Update totals
-        document.getElementById('total-retail').textContent = `${data.totalRetailValue || '0.00'}`;
-        document.getElementById('total-suggested').textContent = `${data.suggestedTotal || '0.00'}`;
-        document.getElementById('total-maximum').textContent = `${data.maximumTotal || '0.00'}`;
-
-        // Show results
-        estimateResults.classList.add('visible');
-      }
-    });
-  </script>
-</body>
-</html>
+            <div class="summary-value" id="totalValue">$15,432</div>
+            <div class="summary-change change-positive">
+              <span>↗
