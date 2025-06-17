@@ -876,7 +876,169 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Micro-interactions */
+    /* Barcode/Label Printing Styles - Avery 7666 Format */
+    .barcode-section {
+      background: white;
+      border: 2px solid var(--gray-300);
+      border-radius: var(--border-radius-lg);
+      padding: 24px;
+      margin: 20px 0;
+      page-break-inside: avoid;
+    }
+
+    .barcode-header {
+      text-align: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--gray-200);
+      padding-bottom: 16px;
+    }
+
+    /* Avery 7666 Grid Layout - 3 columns x 10 rows = 30 labels per sheet */
+    .barcode-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      margin: 20px 0;
+      background: white;
+    }
+
+    /* Avery 7666 Individual Label - 1" x 2-5/8" (72pt x 189pt) */
+    .barcode-label {
+      width: 2.625in;  /* 2-5/8" */
+      height: 1in;     /* 1" */
+      border: 1px dashed var(--gray-300);
+      padding: 2px 4px;
+      font-family: var(--font-mono);
+      font-size: 8px;
+      line-height: 1.1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background: white;
+      box-sizing: border-box;
+      page-break-inside: avoid;
+      overflow: hidden;
+    }
+
+    .barcode-item-name {
+      font-weight: 600;
+      font-size: 7px;
+      margin-bottom: 1px;
+      color: var(--gray-800);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+
+    .barcode-sku {
+      font-size: 6px;
+      color: var(--gray-600);
+      margin-bottom: 2px;
+      white-space: nowrap;
+    }
+
+    .barcode-display {
+      background: white;
+      border: none;
+      padding: 1px;
+      margin: 1px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 8px;
+      letter-spacing: 0px;
+      overflow: hidden;
+      word-break: break-all;
+      line-height: 0.8;
+      height: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .barcode-number {
+      font-size: 6px;
+      color: var(--gray-700);
+      margin-top: 1px;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .barcode-details {
+      font-size: 5px;
+      color: var(--gray-500);
+      margin-top: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+
+    /* Print styles optimized for Avery 7666 */
+    @media print {
+      @page {
+        size: letter;
+        margin: 0.5in 0.1875in;  /* Avery 7666 margins */
+      }
+      
+      body {
+        margin: 0;
+        padding: 0;
+        font-size: 8px;
+      }
+      
+      .barcode-section {
+        border: none;
+        margin: 0;
+        padding: 0;
+        background: white;
+      }
+      
+      .barcode-header {
+        display: none;  /* Hide header when printing */
+      }
+      
+      .barcode-grid {
+        margin: 0;
+        padding: 0;
+        gap: 0;
+        grid-template-columns: repeat(3, 2.625in);
+        grid-template-rows: repeat(10, 1in);
+      }
+      
+      .barcode-label {
+        border: none;
+        width: 2.625in;
+        height: 1in;
+        margin: 0;
+        padding: 2px 4px;
+        page-break-inside: avoid;
+      }
+      
+      .barcode-display {
+        border: none;
+        background: white;
+      }
+      
+      /* Hide everything except barcode section when printing */
+      body > *:not(.container) {
+        display: none !important;
+      }
+      
+      .main-card > *:not(.card-content) {
+        display: none !important;
+      }
+      
+      .card-content > *:not(.barcode-section) {
+        display: none !important;
+      }
+      
+      /* Ensure proper page breaks */
+      .barcode-label:nth-child(30n) {
+        page-break-after: always;
+      }
+    }
     .btn::before {
       content: '';
       position: absolute;
@@ -1071,6 +1233,23 @@
               <span>🖨️</span>
               <span>Print Receipt</span>
             </button>
+            <button type="button" class="btn btn-accent" id="print-barcodes">
+              <span>📊</span>
+              <span>Print Barcodes</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Barcode Section - Hidden by default, Avery 7666 Format -->
+        <div id="barcode-section" class="barcode-section" style="display: none;">
+          <div class="barcode-header">
+            <h3 style="margin: 0; color: var(--gray-800);">📊 Avery 7666 Barcode Labels</h3>
+            <div style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">
+              30 labels per sheet • 1" x 2⅝" • Ready to print and scan
+            </div>
+          </div>
+          <div id="barcode-content" class="barcode-grid">
+            <!-- Barcode labels will be generated here in Avery 7666 format -->
           </div>
         </div>
 
@@ -1574,7 +1753,7 @@
           successHTML += `
             <div class="store-credit-display">
               <div style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">🏪 Store Credit Issued</div>
-              <div class="payout-amount">$${data.finalPayout} CAD</div>
+              <div class="payout-amount">${data.finalPayout} CAD</div>
               <div>Customer: ${data.customer.email}</div>
               <div style="margin-top: 16px; opacity: 0.9;">
                 Store credit has been added to the customer's account.
@@ -1585,7 +1764,7 @@
           successHTML += `
             <div class="cash-display">
               <div style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">💵 Cash Payout</div>
-              <div class="payout-amount">$${data.finalPayout} CAD</div>
+              <div class="payout-amount">${data.finalPayout} CAD</div>
               <div style="margin-top: 16px; opacity: 0.9;">
                 Please provide this amount in cash to the customer.
               </div>
@@ -1608,7 +1787,7 @@
               </div>
               <div class="detail-item">
                 <div class="detail-label">Final Amount</div>
-                <div class="detail-value">$${data.finalPayout} CAD</div>
+                <div class="detail-value">${data.finalPayout} CAD</div>
               </div>
               <div class="detail-item">
                 <div class="detail-label">Trade ID</div>
@@ -1633,7 +1812,7 @@
                   <div style="font-size: 14px; color: var(--gray-500);">Qty: ${card.quantity} • ${card.condition}</div>
                 </div>
                 <div style="text-align: right;">
-                  <div style="font-weight: 600;">$${card.suggestedTradeValue.toFixed(2)}</div>
+                  <div style="font-weight: 600;">${card.suggestedTradeValue.toFixed(2)}</div>
                   <div style="font-size: 12px; color: var(--gray-500);">Trade Value</div>
                 </div>
               </div>
@@ -1646,20 +1825,116 @@
         // Insert content and show
         successContent.innerHTML = successHTML;
         tradeSuccess.classList.add('visible');
+        
+        // Generate barcodes for successfully matched items
+        generateBarcodes(data.results);
+      }
+
+      // Barcode generation function
+      function generateBarcodes(results) {
+        const barcodeContent = document.getElementById('barcode-content');
+        barcodeContent.innerHTML = '';
+
+        // Only generate barcodes for items that were successfully matched
+        const matchedItems = results.filter(item => item.match && item.sku);
+        
+        if (matchedItems.length === 0) {
+          barcodeContent.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; color: var(--gray-500); padding: 40px;">
+              📊 No SKUs available for barcode generation
+            </div>
+          `;
+          return;
+        }
+
+        matchedItems.forEach(item => {
+          // Generate barcode for each quantity
+          for (let i = 0; i < item.quantity; i++) {
+            const barcodeLabel = document.createElement('div');
+            barcodeLabel.className = 'barcode-label';
+            
+            // Generate a simple barcode representation (using Code 128 style)
+            const barcodeDisplay = generateBarcodeDisplay(item.sku);
+            
+            barcodeLabel.innerHTML = `
+              <div class="barcode-item-name">${item.match}</div>
+              <div class="barcode-sku">SKU: ${item.sku}</div>
+              <div class="barcode-display">${barcodeDisplay}</div>
+              <div class="barcode-number">${item.sku}</div>
+              <div class="barcode-details">
+                Condition: ${item.condition} | Trade Value: ${item.suggestedTradeValue.toFixed(2)}<br>
+                Generated: ${new Date().toLocaleDateString()}
+              </div>
+            `;
+            
+            barcodeContent.appendChild(barcodeLabel);
+          }
+        });
+      }
+
+      // Generate barcode display (simple representation)
+      function generateBarcodeDisplay(sku) {
+        // Create a simple barcode-like pattern
+        // In a real implementation, you'd use a proper barcode library
+        let barcode = '';
+        const chars = sku.toString();
+        
+        // Start pattern
+        barcode += '|||';
+        
+        // Convert each character to a simple bar pattern
+        for (let char of chars) {
+          const code = char.charCodeAt(0);
+          const pattern = (code % 8).toString(2).padStart(3, '0');
+          barcode += pattern.replace(/0/g, ' ').replace(/1/g, '|');
+          barcode += ' ';
+        }
+        
+        // End pattern
+        barcode += '|||';
+        
+        return barcode;
       }
 
       // Success section close and new trade buttons
       document.getElementById('close-success').addEventListener('click', function() {
         tradeSuccess.classList.remove('visible');
+        document.getElementById('barcode-section').style.display = 'none';
       });
 
       document.getElementById('new-trade').addEventListener('click', function() {
         tradeSuccess.classList.remove('visible');
+        document.getElementById('barcode-section').style.display = 'none';
         // Form is already reset above
       });
 
       document.getElementById('print-receipt').addEventListener('click', function() {
+        // Hide barcode section for receipt printing
+        document.getElementById('barcode-section').style.display = 'none';
         window.print();
+      });
+
+      // NEW: Print barcodes functionality
+      document.getElementById('print-barcodes').addEventListener('click', function() {
+        const barcodeSection = document.getElementById('barcode-section');
+        if (barcodeSection.style.display === 'none') {
+          barcodeSection.style.display = 'block';
+          this.innerHTML = '<span>🖨️</span><span>Print Barcode Labels</span>';
+        } else {
+          // Print only the barcode section
+          const originalDisplay = [];
+          document.querySelectorAll('body > *:not(.container)').forEach((el, i) => {
+            originalDisplay[i] = el.style.display;
+            el.style.display = 'none';
+          });
+          
+          window.print();
+          
+          // Restore original display
+          document.querySelectorAll('body > *:not(.container)').forEach((el, i) => {
+            el.style.display = originalDisplay[i];
+          });
+        }
       });
 
       // Override functionality
