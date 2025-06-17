@@ -1330,6 +1330,8 @@
         updateStatus('Processing trade...', 'info');
 
         try {
+          console.log('Submitting trade:', requestData);
+          
           const response = await fetch(API_URL, {
             method: 'POST',
             headers: {
@@ -1338,24 +1340,43 @@
             body: JSON.stringify(requestData)
           });
 
+          console.log('Trade response status:', response.status);
+          
           const data = await response.json();
+          console.log('Trade response data:', data);
 
           if (!response.ok) {
             throw new Error(data.error || 'Failed to process trade');
           }
 
-          // Show success message with details
-          let successMessage = `Trade processed successfully! $${data.finalPayout} ${payoutMethod.replace('-', ' ')}`;
-          
-          if (data.giftCardCode) {
-            successMessage += `\n\nGift Card Code: ${data.giftCardCode}`;
-          }
-          
-          if (data.customer) {
-            successMessage += `\n\nCustomer: ${data.customer.email}`;
+          // Show success message with details based on payout method
+          let successMessage = `Trade processed successfully!\n\n`;
+          successMessage += `💰 Amount: ${data.finalPayout} CAD\n`;
+          successMessage += `👤 Employee: ${data.employeeName}\n`;
+          successMessage += `📦 Cards processed: ${data.processingStats.cardsFound}/${data.processingStats.totalCards}\n\n`;
+
+          if (payoutMethod === 'gift-card' && data.giftCardCode) {
+            successMessage += `🎁 GIFT CARD CREATED!\n`;
+            successMessage += `📋 Gift Card Code: ${data.giftCardCode}\n\n`;
+            successMessage += `⚠️ IMPORTANT: Please save this code!\n`;
+            successMessage += `Give this gift card code to the customer.`;
+          } else if (payoutMethod === 'store-credit' && data.customer) {
+            successMessage += `🏪 STORE CREDIT ISSUED!\n`;
+            successMessage += `📧 Customer: ${data.customer.email}\n`;
+            successMessage += `💳 Store credit has been added to their account.`;
+          } else if (payoutMethod === 'cash') {
+            successMessage += `💵 CASH PAYOUT\n`;
+            successMessage += `Please provide ${data.finalPayout} CAD in cash to the customer.`;
           }
 
+          // Show the alert with all the details
           alert(successMessage);
+          
+          // Also log to console for record keeping
+          if (data.giftCardCode) {
+            console.log('🎁 GIFT CARD CODE:', data.giftCardCode);
+          }
+          
           updateStatus('Trade completed successfully!', 'success');
 
           // Reset form
@@ -1364,6 +1385,12 @@
           hideButton('override-section');
           hideButton('submit-trade');
           hideOverride();
+          
+          // Clear all input states
+          document.querySelectorAll('.card-input').forEach(input => {
+            input.classList.remove('confirmed', 'not-found');
+            input.removeAttribute('data-search-result');
+          });
 
         } catch (error) {
           console.error('Trade error:', error);
