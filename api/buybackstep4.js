@@ -134,15 +134,26 @@ module.exports = async function handler(req, res) {
       );
 
       const productData = await productRes.json();
+      console.log('🔍 Title search response:', JSON.stringify(productData, null, 2));
       
       if (productData?.products?.length > 0) {
         const product = productData.products[0];
         const variant = product.variants[0];
         
+        console.log('🔍 Title search found variant:', {
+          sku: variant.sku,
+          price: variant.price,
+          inventory_item_id: variant.inventory_item_id
+        });
+        
         return {
           found: true,
           product: product,
-          variant: variant,
+          variant: {
+            sku: variant.sku,
+            price: variant.price,
+            inventory_item_id: variant.inventory_item_id
+          },
           searchMethod: 'title'
         };
       }
@@ -184,10 +195,23 @@ module.exports = async function handler(req, res) {
       });
 
       const json = await graphqlRes.json();
+      console.log('🔍 SKU GraphQL response:', JSON.stringify(json, null, 2));
+      
       const variantEdge = json?.data?.productVariants?.edges?.[0];
       
       if (variantEdge?.node) {
         const variant = variantEdge.node;
+        const inventoryItemId = variant.inventoryItem?.id;
+        
+        // Extract numeric ID from GraphQL ID
+        const numericInventoryItemId = inventoryItemId ? inventoryItemId.replace('gid://shopify/InventoryItem/', '') : null;
+        
+        console.log('🔍 SKU search found variant:', {
+          sku: variant.sku,
+          price: variant.price,
+          inventoryItemId: inventoryItemId,
+          numericInventoryItemId: numericInventoryItemId
+        });
         
         return {
           found: true,
@@ -195,7 +219,7 @@ module.exports = async function handler(req, res) {
           variant: {
             sku: variant.sku,
             price: variant.price,
-            inventory_item_id: variant.inventoryItem?.id?.replace('gid://shopify/InventoryItem/', '')
+            inventory_item_id: numericInventoryItemId
           },
           searchMethod: 'sku'
         };
@@ -462,6 +486,11 @@ module.exports = async function handler(req, res) {
       // Update inventory if not in estimate mode
       if (!estimateMode && locationId && variant.inventory_item_id) {
         try {
+          console.log(`📦 Updating inventory for ${cardName}:`);
+          console.log(`  - Location ID: ${locationId}`);
+          console.log(`  - Inventory Item ID: ${variant.inventory_item_id}`);
+          console.log(`  - Quantity adjustment: +${quantity}`);
+          
           const adjustRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/inventory_levels/adjust.json`, {
             method: 'POST',
             headers: {
@@ -469,20 +498,35 @@ module.exports = async function handler(req, res) {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              location_id: locationId,
-              inventory_item_id: variant.inventory_item_id,
+              location_id: parseInt(locationId),
+              inventory_item_id: parseInt(variant.inventory_item_id),
               available_adjustment: parseInt(quantity)
             })
           });
           
+          console.log(`📦 Inventory adjustment response status: ${adjustRes.status}`);
+          
           if (adjustRes.ok) {
-            console.log(`✅ Inventory updated: +${quantity}`);
+            const adjustData = await adjustRes.json();
+            console.log(`✅ Inventory updated for ${cardName}: +${quantity}`);
+            console.log(`📦 New inventory level:`, adjustData.inventory_level);
           } else {
-            console.error(`❌ Inventory update failed:`, await adjustRes.text());
+            const errorText = await adjustRes.text();
+            console.error(`❌ Failed to update inventory for ${cardName}:`, errorText);
+            console.error(`📦 Request details:`, {
+              location_id: parseInt(locationId),
+              inventory_item_id: parseInt(variant.inventory_item_id),
+              available_adjustment: parseInt(quantity)
+            });
           }
         } catch (inventoryErr) {
-          console.error(`❌ Inventory update error:`, inventoryErr);
+          console.error(`❌ Failed to update inventory for ${cardName}:`, inventoryErr);
         }
+      } else {
+        console.log(`📦 Skipping inventory update for ${cardName}:`);
+        console.log(`  - Estimate mode: ${estimateMode}`);
+        console.log(`  - Location ID: ${locationId}`);
+        console.log(`  - Inventory Item ID: ${variant.inventory_item_id}`);
       }
 
       results.push({
