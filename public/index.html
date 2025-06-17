@@ -3,29 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trade-In Processing</title>
+  <title>Buyback Portal</title>
   
   <style>
     :root {
+      /* Sophisticated color palette */
       --primary: #1a365d;
       --primary-light: #2c5282;
+      --primary-dark: #153e52;
       --accent: #3182ce;
+      --accent-light: #63b3ed;
       --success: #38a169;
       --warning: #d69e2e;
       --error: #e53e3e;
+      
+      /* Neutral grays */
       --gray-50: #f7fafc;
       --gray-100: #edf2f7;
       --gray-200: #e2e8f0;
       --gray-300: #cbd5e0;
+      --gray-400: #a0aec0;
       --gray-500: #718096;
       --gray-600: #4a5568;
       --gray-700: #2d3748;
       --gray-800: #1a202c;
+      --gray-900: #171923;
+      
+      /* Typography */
       --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+      
+      /* Shadows */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
       --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      
+      /* Borders */
       --border-radius: 8px;
       --border-radius-lg: 12px;
+      --border-radius-xl: 16px;
     }
 
     * {
@@ -47,12 +65,37 @@
       margin: 0 auto;
     }
 
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--primary);
+      color: white;
+      padding: 16px 32px;
+      border-radius: var(--border-radius-xl);
+      box-shadow: var(--shadow-lg);
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+    }
+
+    .logo-icon {
+      font-size: 28px;
+    }
+
+    /* Main card */
     .main-card {
       background: white;
-      border-radius: var(--border-radius-lg);
-      box-shadow: var(--shadow-lg);
+      border-radius: var(--border-radius-xl);
+      box-shadow: var(--shadow-xl);
       border: 1px solid var(--gray-200);
-      overflow: visible;
+      overflow: hidden;
     }
 
     .card-header {
@@ -78,9 +121,9 @@
 
     .card-content {
       padding: 48px;
-      overflow: visible;
     }
 
+    /* Form sections */
     .form-section {
       margin-bottom: 40px;
     }
@@ -95,6 +138,7 @@
       gap: 8px;
     }
 
+    /* Employee and payout section */
     .employee-payout-grid {
       display: grid;
       grid-template-columns: 1fr 2fr;
@@ -105,6 +149,7 @@
       border: 1px solid var(--gray-200);
     }
 
+    /* Form controls */
     .form-group {
       margin-bottom: 24px;
     }
@@ -134,6 +179,7 @@
       box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
     }
 
+    /* Payout method radio buttons */
     .payout-options {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -168,16 +214,17 @@
     .payout-option:hover .payout-label {
       border-color: var(--accent);
       transform: translateY(-1px);
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow-md);
     }
 
     .payout-radio:checked + .payout-label {
       border-color: var(--accent);
       background: var(--accent);
       color: white;
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow-md);
     }
 
+    /* Customer email section */
     .customer-email {
       margin-top: 20px;
       padding: 24px;
@@ -195,11 +242,12 @@
       max-height: 200px;
     }
 
+    /* Cards section - FIXED: Changed overflow from hidden to visible */
     .cards-section {
       background: var(--gray-50);
       border-radius: var(--border-radius-lg);
       border: 1px solid var(--gray-200);
-      overflow: visible;
+      overflow: visible; /* FIXED: Was hidden, now visible to show suggestions */
     }
 
     .cards-header {
@@ -213,7 +261,7 @@
 
     .cards-list {
       padding: 24px 32px;
-      overflow: visible;
+      overflow: visible; /* FIXED: Ensure suggestions aren't clipped */
     }
 
     .card-row {
@@ -228,17 +276,15 @@
       margin-bottom: 16px;
       transition: all 0.2s ease;
       position: relative;
-      overflow: visible;
     }
 
     .card-row:hover {
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow-md);
       transform: translateY(-1px);
     }
 
     .card-input-container {
       position: relative;
-      z-index: 1000;
     }
 
     .card-input {
@@ -266,6 +312,7 @@
       background: rgba(214, 158, 46, 0.05);
     }
 
+    /* Search suggestions - IMPROVED: Better sizing and positioning */
     .search-suggestion {
       position: absolute;
       top: 100%;
@@ -276,8 +323,10 @@
       border-top: none;
       border-radius: 0 0 var(--border-radius) var(--border-radius);
       box-shadow: var(--shadow-lg);
-      z-index: 10000;
+      z-index: 1000;
       animation: slideDown 0.2s ease;
+      max-height: 300px; /* FIXED: Prevent overly tall suggestions */
+      overflow-y: auto; /* FIXED: Allow scrolling if needed */
     }
 
     @keyframes slideDown {
@@ -297,16 +346,19 @@
       justify-content: space-between;
       align-items: center;
       gap: 16px;
+      min-height: 60px; /* FIXED: Ensure minimum height */
     }
 
     .suggestion-info {
       flex: 1;
+      min-width: 0; /* FIXED: Allow text to truncate properly */
     }
 
     .suggestion-name {
       font-weight: 600;
       color: var(--gray-800);
       margin-bottom: 4px;
+      word-wrap: break-word; /* FIXED: Handle long text */
     }
 
     .suggestion-details {
@@ -315,7 +367,7 @@
       display: flex;
       gap: 16px;
       align-items: center;
-      flex-wrap: wrap;
+      flex-wrap: wrap; /* FIXED: Allow wrapping */
     }
 
     .search-badge {
@@ -329,15 +381,25 @@
       font-size: 12px;
       font-weight: 500;
       text-transform: uppercase;
+      white-space: nowrap; /* FIXED: Prevent badge text wrapping */
     }
 
     .search-badge.cached {
       background: var(--success);
     }
 
+    .search-badge.found {
+      background: var(--success);
+    }
+
+    .search-badge.not-found {
+      background: var(--warning);
+    }
+
     .suggestion-actions {
       display: flex;
       gap: 8px;
+      flex-shrink: 0; /* FIXED: Prevent buttons from shrinking */
     }
 
     .suggestion-btn {
@@ -348,6 +410,7 @@
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s ease;
+      white-space: nowrap; /* FIXED: Prevent button text wrapping */
     }
 
     .confirm-btn {
@@ -369,6 +432,16 @@
       background: var(--gray-300);
     }
 
+    .continue-btn {
+      background: var(--warning);
+      color: white;
+    }
+
+    .continue-btn:hover {
+      background: #b7791f;
+    }
+
+    /* Remove button */
     .remove-btn {
       background: var(--error);
       color: white;
@@ -385,6 +458,7 @@
       transform: scale(1.05);
     }
 
+    /* Action buttons */
     .actions {
       display: flex;
       gap: 16px;
@@ -418,12 +492,6 @@
       transform: translateY(0);
     }
 
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none !important;
-    }
-
     .btn-primary {
       background: var(--primary);
       color: white;
@@ -450,6 +518,80 @@
       border: 1px solid var(--gray-300);
     }
 
+    /* Estimate results */
+    .estimate-results {
+      background: linear-gradient(135deg, rgba(49, 130, 206, 0.05) 0%, rgba(49, 130, 206, 0.02) 100%);
+      border: 1px solid rgba(49, 130, 206, 0.2);
+      border-radius: var(--border-radius-lg);
+      padding: 32px;
+      margin: 32px 0;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .estimate-results.visible {
+      opacity: 1;
+      max-height: 1000px;
+    }
+
+    .estimate-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .estimate-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+
+    .estimate-card {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 20px;
+      margin-bottom: 16px;
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .estimate-totals {
+      background: white;
+      border-radius: var(--border-radius-lg);
+      padding: 24px;
+      border: 2px solid var(--accent);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 20px;
+      text-align: center;
+    }
+
+    .total-item {
+      padding: 16px;
+      border-radius: var(--border-radius);
+      background: var(--gray-50);
+    }
+
+    .total-label {
+      font-size: 14px;
+      color: var(--gray-600);
+      margin-bottom: 4px;
+    }
+
+    .total-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--gray-800);
+    }
+
+    .total-value.primary {
+      color: var(--accent);
+    }
+
+    /* Status bar */
     .status-bar {
       background: white;
       border: 1px solid var(--gray-200);
@@ -459,7 +601,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow-sm);
     }
 
     .status-text {
@@ -467,46 +609,77 @@
       color: var(--gray-700);
     }
 
-    .status-metrics {
-      display: flex;
-      gap: 16px;
-    }
-
-    .metric {
+    /* Override section */
+    .override-section {
       display: flex;
       align-items: center;
-      gap: 4px;
-      font-size: 14px;
-      color: var(--gray-600);
+      gap: 16px;
+      flex-wrap: wrap;
     }
 
-    .metric.good {
-      color: var(--success);
+    .override-input-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(214, 158, 46, 0.1);
+      border: 1px solid rgba(214, 158, 46, 0.3);
+      border-radius: var(--border-radius);
+      animation: slideIn 0.3s ease;
     }
 
-    .metric.warning {
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .override-warning {
+      background: rgba(214, 158, 46, 0.1);
+      border: 1px solid rgba(214, 158, 46, 0.3);
       color: var(--warning);
+      padding: 16px;
+      border-radius: var(--border-radius);
+      margin: 16px 0;
+      font-weight: 500;
+      display: none;
     }
 
-    .metric.error {
-      color: var(--error);
+    .override-warning.visible {
+      display: block;
+      animation: slideDown 0.3s ease;
     }
 
-    .spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid transparent;
-      border-top: 2px solid currentColor;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
+    /* Button states */
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    .btn.hidden {
+      display: none;
     }
 
+    .btn.appearing {
+      animation: buttonAppear 0.4s ease;
+    }
+
+    @keyframes buttonAppear {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
     @media (max-width: 768px) {
       body {
         padding: 16px;
@@ -534,17 +707,66 @@
       .btn {
         justify-content: center;
       }
+
+      .estimate-totals {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Loading states */
+    .loading {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid transparent;
+      border-top: 2px solid currentColor;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Micro-interactions */
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+      left: 100%;
     }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">
+        <span class="logo-icon">💳</span>
+        <span>Buyback Portal</span>
+      </div>
+    </div>
+
     <!-- Main Card -->
     <div class="main-card">
       <!-- Card Header -->
       <div class="card-header">
         <h1 class="card-title">Trade-In Processing</h1>
-        <p class="card-subtitle">Process card trades with intelligent search optimization</p>
+        <p class="card-subtitle">Process card trades with real Shopify integration</p>
       </div>
 
       <!-- Card Content -->
@@ -626,7 +848,7 @@
               <div class="cards-list" id="card-list">
                 <div class="card-row">
                   <div class="card-input-container">
-                    <input type="text" class="card-input" name="cardName" placeholder="Enter card name, SKU, or card number" required>
+                    <input type="text" class="card-input" name="cardName" placeholder="Enter card name or SKU" required>
                   </div>
                   <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
                   <select class="form-select" name="cardCondition" required style="width: 120px;">
@@ -640,6 +862,32 @@
             </div>
           </div>
 
+          <!-- Estimate Results -->
+          <div id="estimate-results" class="estimate-results">
+            <div class="estimate-header">
+              <div class="estimate-title">📊 Trade Estimate</div>
+            </div>
+            
+            <div id="estimate-cards">
+              <!-- Estimate cards will be inserted here -->
+            </div>
+
+            <div class="estimate-totals">
+              <div class="total-item">
+                <div class="total-label">Retail Value</div>
+                <div class="total-value" id="total-retail">$0.00</div>
+              </div>
+              <div class="total-item">
+                <div class="total-label">Suggested Trade</div>
+                <div class="total-value primary" id="total-suggested">$0.00</div>
+              </div>
+              <div class="total-item">
+                <div class="total-label">Maximum Trade</div>
+                <div class="total-value" id="total-maximum">$0.00</div>
+              </div>
+            </div>
+          </div>
+
           <!-- Actions -->
           <div class="actions">
             <button type="button" class="btn btn-accent" id="estimate-trade">
@@ -647,14 +895,24 @@
               <span>Get Estimate</span>
             </button>
             
+            <!-- Override section - hidden by default -->
+            <div id="override-section" class="override-section" style="display: none;">
+              <button type="button" class="btn btn-warning" id="override-toggle">
+                <span>💰</span>
+                <span>Override Amount</span>
+              </button>
+              
+              <div id="override-input-container" class="override-input-container" style="display: none;">
+                <input type="number" class="form-input" id="overrideTotal" name="overrideTotal" placeholder="0.00" min="0" max="13500" step="0.01" style="width: 150px;">
+                <button type="button" class="btn btn-secondary" id="override-cancel" style="padding: 8px 12px;">✖</button>
+                <span style="font-size: 14px; color: var(--gray-500);">Max: $13,500 CAD</span>
+              </div>
+            </div>
+            
+            <!-- Submit button - hidden by default -->
             <button type="submit" class="btn btn-success" id="submit-trade" style="display: none;">
               <span>✅</span>
               <span>Process Trade</span>
-            </button>
-            
-            <button type="button" class="btn btn-primary" id="print-labels" style="display: none;">
-              <span>🏷️</span>
-              <span>Print Labels</span>
             </button>
           </div>
         </form>
@@ -662,371 +920,44 @@
         <!-- Status Bar -->
         <div class="status-bar" id="status-bar">
           <div class="status-text">Ready to process trades...</div>
-          <div class="status-metrics">
-            <div class="metric good">
-              <span>💾</span>
-              <span id="cache-rate">0%</span>
-            </div>
-            <div class="metric good">
-              <span>⚡</span>
-              <span id="avg-speed">0ms</span>
-            </div>
-            <div class="metric">
-              <span>🔍</span>
-              <span id="total-searches">0</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    // Simple search client for your real API
-    class SearchClient {
-      constructor() {
-        this.apiUrl = '/api/buybackstep4'; // Change this to your actual API URL
-        this.searchCache = new Map();
-        this.stats = { totalSearches: 0, cacheHits: 0 };
-      }
+    // REAL API configuration - update this to your actual Vercel endpoint
+    const API_URL = '/api/trade'; 
 
-      async searchCard(query) {
-        this.stats.totalSearches++;
-        console.log('🔍 Searching for:', query);
-
-        try {
-          const response = await fetch(this.apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              cards: [{ cardName: query, sku: null, quantity: 1 }],
-              employeeName: 'Preview',
-              payoutMethod: 'cash'
-            })
-          });
-
-          const data = await response.json();
-          console.log('📥 API Response:', data);
-
-          if (data.success && data.results && data.results.length > 0) {
-            const result = data.results[0];
-            return {
-              found: !!result.match,
-              name: result.match || result.cardName,
-              sku: result.sku || 'NOT-FOUND',
-              retailPrice: parseFloat(result.retailPrice) || 0,
-              suggestedTrade: parseFloat(result.suggestedTradeValue) || 0,
-              maxTrade: parseFloat(result.maximumTradeValue) || 0,
-              searchMethod: result.searchMethod || 'none'
-            };
-          } else {
-            return {
-              found: false,
-              name: query,
-              sku: 'NOT-FOUND',
-              retailPrice: 0,
-              suggestedTrade: 0,
-              maxTrade: 0,
-              searchMethod: 'none'
-            };
-          }
-        } catch (error) {
-          console.error('Search error:', error);
-          return {
-            found: false,
-            name: query,
-            sku: 'ERROR',
-            retailPrice: 0,
-            suggestedTrade: 0,
-            maxTrade: 0,
-            searchMethod: 'none',
-            error: error.message
-          };
-        }
-      }
-
-      // Helper function to extract card number from SKU
-      extractCardNumber(sku) {
-        if (!sku) return null;
-        const cardNumberMatch = sku.match(/#?(\d+(?:\/\d+)?)/);
-        return cardNumberMatch ? `#${cardNumberMatch[1]}` : null;
-      }
-    }
-
-    // Store the last trade data for label printing
-    let lastTradeData = null;
-
-    // Print inventory labels function
-    function printInventoryLabels(tradeData) {
-      if (!tradeData || !tradeData.results || tradeData.results.length === 0) {
-        alert('No cards available for label printing.');
-        return;
-      }
-
-      // Generate labels for each card (repeated by quantity)
-      const labels = [];
-      tradeData.results.forEach(card => {
-        for (let i = 0; i < card.quantity; i++) {
-          labels.push({
-            sku: card.sku || `CARD-${Date.now()}-${i}`,
-            cardName: card.cardName,
-            condition: card.condition || 'NM'
-          });
-        }
-      });
-
-      const labelHTML = generateLabelSheet(labels, tradeData);
-      const printWindow = window.open('', '_blank');
-      printWindow.document.write(labelHTML);
-      printWindow.document.close();
-      printWindow.focus();
-      printWindow.print();
-    }
-
-    // Generate the label sheet HTML
-    function generateLabelSheet(labels, tradeData) {
-      const tradeId = Date.now().toString();
-      const tradeDate = new Date().toLocaleDateString();
-      
-      return `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Inventory Labels - Trade ${tradeId}</title>
-          <style>
-            @page { 
-              margin: 0.5in; 
-              size: letter;
-            }
-            
-            body {
-              font-family: Arial, sans-serif;
-              margin: 0;
-              padding: 0;
-            }
-            
-            .header {
-              text-align: center;
-              margin-bottom: 20px;
-              font-size: 12pt;
-              border-bottom: 2px solid #000;
-              padding-bottom: 10px;
-            }
-            
-            .label-sheet {
-              display: grid;
-              grid-template-columns: repeat(3, 1fr);
-              gap: 4mm;
-              margin: 0;
-            }
-            
-            .inventory-label {
-              width: 60mm;
-              height: 25mm;
-              border: 1px solid #000;
-              padding: 2mm;
-              box-sizing: border-box;
-              page-break-inside: avoid;
-              display: flex;
-              flex-direction: column;
-              justify-content: space-between;
-            }
-            
-            .barcode-container {
-              text-align: center;
-              flex-grow: 1;
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-            }
-            
-            .barcode {
-              height: 12mm;
-              width: 100%;
-              background: repeating-linear-gradient(
-                to right,
-                #000 0px,
-                #000 1px,
-                #fff 1px,
-                #fff 2px
-              );
-              margin: 2mm 0;
-            }
-            
-            .sku-text {
-              font-size: 8pt;
-              font-weight: bold;
-              text-align: center;
-              font-family: 'Courier New', monospace;
-            }
-            
-            .card-info {
-              font-size: 6pt;
-              text-align: center;
-              margin-top: 1mm;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-            }
-            
-            @media print {
-              .header { color: #000; }
-              .inventory-label { border: 1px solid #000; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <strong>INVENTORY LABELS</strong><br>
-            Trade ID: ${tradeId} | Date: ${tradeDate} | Employee: ${tradeData.employeeName || 'N/A'}<br>
-            Total Labels: ${labels.length}
-          </div>
-          
-          <div class="label-sheet">
-            ${labels.map(label => `
-              <div class="inventory-label">
-                <div class="barcode-container">
-                  <div class="barcode"></div>
-                  <div class="sku-text">${label.sku}</div>
-                </div>
-                <div class="card-info">${label.cardName.substring(0, 20)}${label.cardName.length > 20 ? '...' : ''} (${label.condition})</div>
-              </div>
-            `).join('')}
-          </div>
-        </body>
-        </html>
-      `;
-    }
-
-    // Initialize search client
-    const searchClient = new SearchClient();
-
-    // Search functionality
-    function setupCardSearch(input) {
-      let searchTimeout;
-
-      input.addEventListener('input', function() {
-        const query = this.value.trim();
-        if (query.length < 3) return;
-
-        clearTimeout(searchTimeout);
-        const container = this.closest('.card-input-container');
-        
-        // Remove existing suggestion
-        const existing = container.querySelector('.search-suggestion');
-        if (existing) existing.remove();
-
-        // Show searching indicator
-        const searching = document.createElement('div');
-        searching.className = 'search-suggestion';
-        searching.innerHTML = `
-          <div class="suggestion-content">
-            <div class="suggestion-info">
-              <div class="suggestion-name">🔍 Searching...</div>
-            </div>
-          </div>
-        `;
-        container.appendChild(searching);
-
-        searchTimeout = setTimeout(async () => {
-          try {
-            const result = await searchClient.searchCard(query);
-            searching.remove();
-            showSearchResult(container, input, result, query);
-          } catch (error) {
-            searching.remove();
-            console.error('Search failed:', error);
-          }
-        }, 1000);
-      });
-    }
-
-    function showSearchResult(container, input, result, query) {
-      const suggestion = document.createElement('div');
-      suggestion.className = 'search-suggestion';
-      
-      if (result.found) {
-        suggestion.innerHTML = `
-          <div class="suggestion-content">
-            <div class="suggestion-info">
-              <div class="suggestion-name">✅ ${result.name}</div>
-              <div class="suggestion-details">
-                <span>SKU: ${result.sku}</span>
-                <span class="search-badge">${result.searchMethod.toUpperCase()}</span>
-                <span>Retail: $${result.retailPrice.toFixed(2)}</span>
-                <span>Trade: $${result.suggestedTrade.toFixed(2)}</span>
-              </div>
-            </div>
-            <div class="suggestion-actions">
-              <button type="button" class="suggestion-btn confirm-btn">✅ Confirm</button>
-              <button type="button" class="suggestion-btn reject-btn">❌ Reject</button>
-            </div>
-          </div>
-        `;
-      } else {
-        suggestion.innerHTML = `
-          <div class="suggestion-content">
-            <div class="suggestion-info">
-              <div class="suggestion-name">❌ "${query}" not found</div>
-              <div class="suggestion-details">
-                <span>Not in your Shopify inventory</span>
-              </div>
-            </div>
-            <div class="suggestion-actions">
-              <button type="button" class="suggestion-btn" style="background: var(--warning); color: white;">⚠️ Continue</button>
-              <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
-            </div>
-          </div>
-        `;
-      }
-
-      container.appendChild(suggestion);
-
-      // Handle confirm
-      suggestion.querySelector('.confirm-btn, .suggestion-btn')?.addEventListener('click', function() {
-        input.value = result.name;
-        input.dataset.confirmedResult = JSON.stringify(result);
-        input.classList.add(result.found ? 'confirmed' : 'not-found');
-        suggestion.remove();
-      });
-
-      // Handle reject
-      suggestion.querySelector('.reject-btn').addEventListener('click', function() {
-        suggestion.remove();
-        input.focus();
-      });
-
-      // Auto-remove
-      setTimeout(() => {
-        if (suggestion.parentNode) suggestion.remove();
-      }, 10000);
-    }
-
-    // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
-      // Setup search for existing inputs
-      document.querySelectorAll('.card-input').forEach(setupCardSearch);
+      const customerEmail = document.getElementById('customer-email');
+      const addCardBtn = document.getElementById('add-card');
+      const cardList = document.getElementById('card-list');
+      const estimateBtn = document.getElementById('estimate-trade');
+      const estimateResults = document.getElementById('estimate-results');
+      const overrideToggle = document.getElementById('override-toggle');
+      const overrideContainer = document.getElementById('override-input-container');
+      const overrideCancel = document.getElementById('override-cancel');
+      const overrideTotal = document.getElementById('overrideTotal');
 
-      // Show/hide customer email
+      // Show/hide customer email section
       document.querySelectorAll('input[name="payoutMethod"]').forEach(radio => {
         radio.addEventListener('change', function() {
-          const emailSection = document.getElementById('customer-email');
           if (this.value === 'store-credit') {
-            emailSection.classList.add('visible');
+            customerEmail.classList.add('visible');
           } else {
-            emailSection.classList.remove('visible');
+            customerEmail.classList.remove('visible');
           }
         });
       });
 
       // Add card functionality
-      document.getElementById('add-card').addEventListener('click', function() {
-        const cardList = document.getElementById('card-list');
+      addCardBtn.addEventListener('click', function() {
         const newRow = document.createElement('div');
         newRow.className = 'card-row';
         newRow.innerHTML = `
           <div class="card-input-container">
-            <input type="text" class="card-input" name="cardName" placeholder="Enter card name, SKU, or card number" required>
+            <input type="text" class="card-input" name="cardName" placeholder="Enter card name or SKU" required>
           </div>
           <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
           <select class="form-select" name="cardCondition" required style="width: 120px;">
@@ -1038,161 +969,520 @@
         `;
         cardList.appendChild(newRow);
 
-        // Setup search for new input
-        setupCardSearch(newRow.querySelector('.card-input'));
-
-        // Setup remove button
+        // Setup remove functionality
         newRow.querySelector('.remove-btn').addEventListener('click', function() {
           newRow.remove();
         });
+
+        // Setup REAL search for new input
+        setupRealSearch(newRow.querySelector('.card-input'));
       });
 
-      // Remove button for existing cards
+      // Setup remove functionality for existing cards
       document.querySelectorAll('.remove-btn').forEach(btn => {
         btn.addEventListener('click', function() {
           btn.closest('.card-row').remove();
         });
       });
 
-      // Print labels button handler
-      document.getElementById('print-labels').addEventListener('click', function() {
-        if (lastTradeData) {
-          printInventoryLabels(lastTradeData);
-        } else {
-          alert('No trade data available for label printing.');
-        }
-      });
+      // Setup REAL search for existing inputs (replaces demo functionality)
+      document.querySelectorAll('.card-input').forEach(setupRealSearch);
 
-      // Estimate button
-      document.getElementById('estimate-trade').addEventListener('click', function() {
-        const cards = document.querySelectorAll('.card-row');
-        const confirmedCards = Array.from(cards).filter(row => {
-          const input = row.querySelector('.card-input');
-          return input.dataset.confirmedResult;
-        });
+      // REAL search functionality that connects to your Vercel API
+      function setupRealSearch(input) {
+        let searchTimeout;
+        let currentSuggestion = null;
 
-        if (confirmedCards.length === 0) {
-          alert('Please search and confirm at least one card before estimating.');
-          return;
-        }
-
-        if (confirmedCards.length !== cards.length) {
-          alert('Please confirm all card searches before estimating.');
-          return;
-        }
-
-        // Show submit button after estimate
-        document.getElementById('submit-trade').style.display = 'inline-flex';
-        
-        const statusText = document.querySelector('.status-text');
-        statusText.textContent = `Estimate complete! ${confirmedCards.length} cards confirmed.`;
-        statusText.style.color = 'var(--success)';
-      });
-
-      // Form submission
-      document.getElementById('trade-form').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const employeeName = document.getElementById('employeeName').value;
-        const payoutMethod = document.querySelector('input[name="payoutMethod"]:checked')?.value;
-        const customerEmail = document.getElementById('customerEmail').value;
-
-        if (!employeeName || !payoutMethod) {
-          alert('Please select an employee and payout method.');
-          return;
-        }
-
-        if (payoutMethod === 'store-credit' && !customerEmail) {
-          alert('Customer email is required for store credit.');
-          return;
-        }
-
-        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
-          const input = row.querySelector('.card-input');
-          const quantity = parseInt(row.querySelector('[name="cardQuantity"]').value) || 1;
-          const result = JSON.parse(input.dataset.confirmedResult || '{}');
+        input.addEventListener('input', function() {
+          const query = this.value.trim();
           
-          return {
-            cardName: result.name || input.value,
-            sku: result.sku || null,
-            quantity: quantity
-          };
+          // Remove existing suggestion
+          if (currentSuggestion) {
+            currentSuggestion.remove();
+            currentSuggestion = null;
+          }
+
+          // Clear previous timeout
+          if (searchTimeout) {
+            clearTimeout(searchTimeout);
+          }
+
+          // Don't search for very short queries
+          if (query.length < 2) {
+            input.classList.remove('confirmed', 'not-found');
+            return;
+          }
+
+          // Debounce the search
+          searchTimeout = setTimeout(async () => {
+            await performRealSearch(query, input);
+          }, 500); // Wait 500ms after user stops typing
         });
 
-        const submitBtn = document.getElementById('submit-trade');
-        submitBtn.innerHTML = '<span class="spinner"></span><span>Processing...</span>';
-        submitBtn.disabled = true;
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!input.closest('.card-input-container').contains(e.target)) {
+            if (currentSuggestion) {
+              currentSuggestion.remove();
+              currentSuggestion = null;
+            }
+          }
+        });
+
+        async function performRealSearch(query, input) {
+          const container = input.closest('.card-input-container');
+          
+          try {
+            // Show loading state
+            showSearchLoading(container, query);
+
+            // Make REAL API call to your Vercel backend
+            const response = await fetch(`${API_URL}?estimate=true`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                cards: [{ cardName: query, quantity: 1, condition: 'NM' }],
+                employeeName: 'Preview',
+                payoutMethod: 'cash'
+              })
+            });
+
+            const data = await response.json();
+            
+            if (!response.ok) {
+              throw new Error(data.error || 'Search failed');
+            }
+
+            // Process the REAL search result from your Shopify store
+            const result = data.results && data.results[0];
+            showSearchResult(container, input, query, result);
+
+          } catch (error) {
+            console.error('Search error:', error);
+            showSearchError(container, query, error.message);
+          }
+        }
+
+        function showSearchLoading(container, query) {
+          const existing = container.querySelector('.search-suggestion');
+          if (existing) existing.remove();
+
+          const suggestion = document.createElement('div');
+          suggestion.className = 'search-suggestion';
+          suggestion.innerHTML = `
+            <div class="suggestion-content">
+              <div class="suggestion-info">
+                <div class="suggestion-name">🔍 Searching for "${query}"...</div>
+                <div class="suggestion-details">
+                  <span class="search-badge">
+                    <span class="spinner"></span> Searching
+                  </span>
+                </div>
+              </div>
+            </div>
+          `;
+          container.appendChild(suggestion);
+          currentSuggestion = suggestion;
+        }
+
+        function showSearchResult(container, input, query, result) {
+          const existing = container.querySelector('.search-suggestion');
+          if (existing) existing.remove();
+
+          const suggestion = document.createElement('div');
+          suggestion.className = 'search-suggestion';
+          
+          if (result && result.match) {
+            // Card found in your real Shopify inventory
+            suggestion.innerHTML = `
+              <div class="suggestion-content">
+                <div class="suggestion-info">
+                  <div class="suggestion-name">✅ ${result.match}</div>
+                  <div class="suggestion-details">
+                    <span>SKU: ${result.sku || 'N/A'}</span>
+                    <span>Price: $${result.retailPrice.toFixed(2)}</span>
+                    <span class="search-badge found">Found</span>
+                  </div>
+                </div>
+                <div class="suggestion-actions">
+                  <button type="button" class="suggestion-btn confirm-btn" data-result='${JSON.stringify(result)}'>✅ Use This</button>
+                  <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
+                </div>
+              </div>
+            `;
+          } else {
+            // Card not found in your real Shopify inventory
+            suggestion.innerHTML = `
+              <div class="suggestion-content">
+                <div class="suggestion-info">
+                  <div class="suggestion-name">❌ "${query}" not found</div>
+                  <div class="suggestion-details">
+                    <span>This item is not in your Shopify inventory</span>
+                    <span class="search-badge not-found">Not Found</span>
+                  </div>
+                </div>
+                <div class="suggestion-actions">
+                  <button type="button" class="suggestion-btn continue-btn">⚠️ Continue Anyway</button>
+                  <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
+                </div>
+              </div>
+            `;
+          }
+
+          container.appendChild(suggestion);
+          currentSuggestion = suggestion;
+
+          // Handle suggestion actions
+          const confirmBtn = suggestion.querySelector('.confirm-btn');
+          const continueBtn = suggestion.querySelector('.continue-btn');
+          const rejectBtn = suggestion.querySelector('.reject-btn');
+
+          if (confirmBtn) {
+            confirmBtn.addEventListener('click', function() {
+              const resultData = JSON.parse(this.getAttribute('data-result'));
+              input.classList.remove('not-found');
+              input.classList.add('confirmed');
+              input.value = resultData.match;
+              input.setAttribute('data-search-result', JSON.stringify(resultData));
+              suggestion.remove();
+              currentSuggestion = null;
+            });
+          }
+
+          if (continueBtn) {
+            continueBtn.addEventListener('click', function() {
+              input.classList.remove('confirmed');
+              input.classList.add('not-found');
+              input.setAttribute('data-search-result', JSON.stringify({ match: null, retailPrice: 0 }));
+              suggestion.remove();
+              currentSuggestion = null;
+            });
+          }
+
+          if (rejectBtn) {
+            rejectBtn.addEventListener('click', function() {
+              suggestion.remove();
+              currentSuggestion = null;
+              input.focus();
+            });
+          }
+
+          // Auto-remove after 15 seconds
+          setTimeout(() => {
+            if (suggestion.parentNode) {
+              suggestion.remove();
+              if (currentSuggestion === suggestion) {
+                currentSuggestion = null;
+              }
+            }
+          }, 15000);
+        }
+
+        function showSearchError(container, query, errorMessage) {
+          const existing = container.querySelector('.search-suggestion');
+          if (existing) existing.remove();
+
+          const suggestion = document.createElement('div');
+          suggestion.className = 'search-suggestion';
+          suggestion.innerHTML = `
+            <div class="suggestion-content">
+              <div class="suggestion-info">
+                <div class="suggestion-name">⚠️ Search Error</div>
+                <div class="suggestion-details">
+                  <span>${errorMessage}</span>
+                  <span class="search-badge" style="background: var(--error);">Error</span>
+                </div>
+              </div>
+              <div class="suggestion-actions">
+                <button type="button" class="suggestion-btn reject-btn">❌ Close</button>
+              </div>
+            </div>
+          `;
+
+          container.appendChild(suggestion);
+          currentSuggestion = suggestion;
+
+          suggestion.querySelector('.reject-btn').addEventListener('click', function() {
+            suggestion.remove();
+            currentSuggestion = null;
+          });
+
+          // Auto-remove after 10 seconds
+          setTimeout(() => {
+            if (suggestion.parentNode) {
+              suggestion.remove();
+              if (currentSuggestion === suggestion) {
+                currentSuggestion = null;
+              }
+            }
+          }, 10000);
+        }
+      }
+
+      // REAL estimate functionality
+      estimateBtn.addEventListener('click', async function() {
+        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => ({
+          cardName: row.querySelector('[name="cardName"]').value,
+          quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+          condition: row.querySelector('[name="cardCondition"]').value
+        }));
+
+        if (cards.length === 0) {
+          alert('Please add at least one card to estimate.');
+          return;
+        }
+
+        const formData = {
+          cards: cards,
+          employeeName: 'Preview',
+          payoutMethod: 'cash',
+          customerEmail: null,
+          overrideTotal: null
+        };
+
+        // Show loading state
+        estimateBtn.innerHTML = '<span class="spinner"></span><span>Calculating...</span>';
+        estimateBtn.disabled = true;
+        updateStatus('Searching for cards in your inventory...', 'info');
 
         try {
-          const response = await fetch(searchClient.apiUrl, {
+          const response = await fetch(`${API_URL}?estimate=true`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              cards: cards,
-              employeeName: employeeName,
-              payoutMethod: payoutMethod,
-              customerEmail: customerEmail || undefined
-            })
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
           });
 
           const data = await response.json();
 
-          if (data.success) {
-            submitBtn.innerHTML = '<span>✅</span><span>Trade Complete</span>';
-            submitBtn.disabled = false;
-            
-            const statusText = document.querySelector('.status-text');
-            statusText.textContent = 'Trade completed successfully! 🎉';
-            statusText.style.color = 'var(--success)';
-
-            // Show success details
-            let successMessage = `Trade completed!\n\nFinal Payout: ${data.finalPayout}\nPayout Method: ${data.payoutMethod.replace('-', ' ').toUpperCase()}`;
-            
-            if (data.giftCardCode) {
-              successMessage += `\nGift Card Code: ${data.giftCardCode}`;
-            }
-            
-            if (data.customer?.email) {
-              successMessage += `\nStore Credit issued to: ${data.customer.email}`;
-            }
-
-            alert(successMessage);
-
-            // Reset form after success
-            setTimeout(() => {
-              if (confirm('Reset form for next trade?')) {
-                location.reload();
-              }
-            }, 2000);
-
-          } else {
-            throw new Error(data.error || 'Trade processing failed');
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to get estimate');
           }
 
+          showEstimateResults(data);
+          showButton('override-section');
+          showButton('submit-trade');
+          updateStatus('Estimate complete! Review values and submit trade.', 'success');
+
         } catch (error) {
-          console.error('Trade error:', error);
-          submitBtn.innerHTML = '<span>✅</span><span>Process Trade</span>';
-          submitBtn.disabled = false;
-          
-          const statusText = document.querySelector('.status-text');
-          statusText.textContent = `Trade failed: ${error.message}`;
-          statusText.style.color = 'var(--error)';
-          
-          alert('Trade processing failed: ' + error.message);
+          console.error('Estimate error:', error);
+          updateStatus(`Error: ${error.message}`, 'error');
+          alert(`Failed to get estimate: ${error.message}`);
+        } finally {
+          estimateBtn.innerHTML = '<span>📊</span><span>Get Estimate</span>';
+          estimateBtn.disabled = false;
         }
       });
 
-      // Update metrics periodically
-      setInterval(() => {
-        document.getElementById('total-searches').textContent = searchClient.stats.totalSearches;
-        document.getElementById('cache-rate').textContent = 
-          searchClient.stats.totalSearches > 0 ? 
-          Math.round((searchClient.stats.cacheHits / searchClient.stats.totalSearches) * 100) + '%' : 
-          '0%';
-      }, 1000);
+      // REAL form submission
+      document.getElementById('trade-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => ({
+          cardName: row.querySelector('[name="cardName"]').value,
+          quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+          condition: row.querySelector('[name="cardCondition"]').value
+        }));
 
-      console.log('🚀 Trade-In Portal initialized - connecting to real API');
-      console.log('🔗 API URL:', searchClient.apiUrl);
+        if (cards.length === 0) {
+          alert('Please add at least one card to process.');
+          return;
+        }
+
+        const payoutMethod = formData.get('payoutMethod');
+        if (payoutMethod === 'store-credit' && !formData.get('customerEmail')) {
+          alert('Customer email is required for store credit payouts.');
+          return;
+        }
+
+        const requestData = {
+          cards: cards,
+          employeeName: formData.get('employeeName'),
+          payoutMethod: payoutMethod,
+          customerEmail: formData.get('customerEmail'),
+          overrideTotal: formData.get('overrideTotal') || null
+        };
+
+        const submitBtn = document.getElementById('submit-trade');
+        submitBtn.innerHTML = '<span class="spinner"></span><span>Processing...</span>';
+        submitBtn.disabled = true;
+        updateStatus('Processing trade...', 'info');
+
+        try {
+          const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to process trade');
+          }
+
+          // Show success message with details
+          let successMessage = `Trade processed successfully! $${data.finalPayout} ${payoutMethod.replace('-', ' ')}`;
+          
+          if (data.giftCardCode) {
+            successMessage += `\n\nGift Card Code: ${data.giftCardCode}`;
+          }
+          
+          if (data.customer) {
+            successMessage += `\n\nCustomer: ${data.customer.email}`;
+          }
+
+          alert(successMessage);
+          updateStatus('Trade completed successfully!', 'success');
+
+          // Reset form
+          this.reset();
+          estimateResults.classList.remove('visible');
+          hideButton('override-section');
+          hideButton('submit-trade');
+          hideOverride();
+
+        } catch (error) {
+          console.error('Trade error:', error);
+          updateStatus(`Error: ${error.message}`, 'error');
+          alert(`Failed to process trade: ${error.message}`);
+        } finally {
+          submitBtn.innerHTML = '<span>✅</span><span>Process Trade</span>';
+          submitBtn.disabled = false;
+        }
+      });
+
+      // Override functionality
+      overrideToggle.addEventListener('click', function() {
+        if (overrideContainer.style.display === 'none') {
+          overrideContainer.style.display = 'flex';
+          this.innerHTML = '<span>💰</span><span>Override Active</span>';
+          this.style.background = 'var(--error)';
+          overrideTotal.focus();
+          showOverrideWarning();
+        } else {
+          hideOverride();
+        }
+      });
+
+      overrideCancel.addEventListener('click', hideOverride);
+
+      function hideOverride() {
+        overrideContainer.style.display = 'none';
+        overrideToggle.innerHTML = '<span>💰</span><span>Override Amount</span>';
+        overrideToggle.style.background = 'var(--warning)';
+        overrideTotal.value = '';
+        hideOverrideWarning();
+      }
+
+      function showOverrideWarning() {
+        let warning = document.querySelector('.override-warning');
+        if (!warning) {
+          warning = document.createElement('div');
+          warning.className = 'override-warning';
+          warning.innerHTML = '⚠️ <strong>Override Active:</strong> This will bypass the calculated trade value. Ensure amount is authorized.';
+          overrideContainer.parentNode.insertBefore(warning, overrideContainer.nextSibling);
+        }
+        warning.classList.add('visible');
+      }
+
+      function hideOverrideWarning() {
+        const warning = document.querySelector('.override-warning');
+        if (warning) {
+          warning.classList.remove('visible');
+        }
+      }
+
+      function showButton(buttonId) {
+        const button = document.getElementById(buttonId);
+        if (button) {
+          button.style.display = button.tagName === 'DIV' ? 'flex' : 'inline-flex';
+          button.classList.add('appearing');
+          setTimeout(() => button.classList.remove('appearing'), 400);
+        }
+      }
+
+      function hideButton(buttonId) {
+        const button = document.getElementById(buttonId);
+        if (button) {
+          button.style.display = 'none';
+        }
+      }
+
+      function updateStatus(message, type = 'info') {
+        const statusText = document.querySelector('.status-text');
+        statusText.textContent = message;
+        
+        statusText.style.color = '';
+        
+        switch(type) {
+          case 'success':
+            statusText.style.color = 'var(--success)';
+            break;
+          case 'warning':
+            statusText.style.color = 'var(--warning)';
+            break;
+          case 'error':
+            statusText.style.color = 'var(--error)';
+            break;
+          default:
+            statusText.style.color = 'var(--gray-700)';
+        }
+      }
+
+      function showEstimateResults(data) {
+        const estimateCards = document.getElementById('estimate-cards');
+        estimateCards.innerHTML = '';
+
+        data.results.forEach(card => {
+          const cardElement = document.createElement('div');
+          cardElement.className = 'estimate-card';
+          cardElement.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <div>
+                <div style="font-weight: 600; color: var(--gray-800);">
+                  ${card.match || card.cardName}
+                  ${!card.match ? ' ❌ Not Found' : ' ✅'}
+                </div>
+                <div style="font-size: 14px; color: var(--gray-500);">
+                  Quantity: ${card.quantity}
+                  ${card.sku ? ` • SKU: ${card.sku}` : ''}
+                  ${card.searchMethod ? ` • Found by: ${card.searchMethod}` : ''}
+                </div>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center;">
+              <div>
+                <div style="font-size: 12px; color: var(--gray-500);">Retail</div>
+                <div style="font-weight: 600;">$${card.retailPrice.toFixed(2)}</div>
+              </div>
+              <div>
+                <div style="font-size: 12px; color: var(--gray-500);">Suggested</div>
+                <div style="font-weight: 600; color: var(--accent);">$${card.suggestedTradeValue.toFixed(2)}</div>
+              </div>
+              <div>
+                <div style="font-size: 12px; color: var(--gray-500);">Maximum</div>
+                <div style="font-weight: 600; color: var(--success);">$${card.maximumTradeValue.toFixed(2)}</div>
+              </div>
+            </div>
+          `;
+          estimateCards.appendChild(cardElement);
+        });
+
+        // Update totals
+        document.getElementById('total-retail').textContent = `$${data.totalRetailValue}`;
+        document.getElementById('total-suggested').textContent = `$${data.suggestedTotal}`;
+        document.getElementById('total-maximum').textContent = `$${data.maximumTotal}`;
+
+        // Show results
+        estimateResults.classList.add('visible');
+      }
     });
   </script>
 </body>
