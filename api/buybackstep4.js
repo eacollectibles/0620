@@ -1,355 +1,599 @@
-// buybackstep4.js - ENHANCED DIAGNOSTIC for Tag Searching
 module.exports = async function handler(req, res) {
-  console.log('=== SHOPIFY ENHANCED DIAGNOSTIC START ===');
+  // CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    console.log('OPTIONS request received - sending CORS headers');
+    return res.status(200).end();
+  }
+
+  console.log('=== API REQUEST START ===');
   console.log('Method:', req.method);
+  console.log('URL:', req.url);
   console.log('Body:', req.body);
 
   try {
-    // CORS headers
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    
-    if (req.method === 'OPTIONS') {
-      return res.status(200).end();
-    }
-
-    if (req.method === 'GET') {
-      return res.status(200).json({
-        success: true,
-        message: 'Shopify Enhanced Diagnostic API is running',
-        timestamp: new Date().toISOString()
-      });
-    }
-
     if (req.method !== 'POST') {
-      return res.status(405).json({ error: 'POST method required' });
+      console.log('❌ Method not allowed:', req.method);
+      return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    const { cards, employeeName, payoutMethod } = req.body;
+    const estimateMode = req.query?.estimate === 'true';
+    const { cards, employeeName, payoutMethod, overrideTotal, customerEmail } = req.body;
     
-    if (!cards || !Array.isArray(cards) || cards.length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'Cards array is required'
-      });
-    }
-
-    const cardName = cards[0]?.cardName;
-    console.log('🔍 ENHANCED SEARCH for:', cardName);
-
-    // Your Shopify credentials from environment variables
-    const SHOPIFY_DOMAIN = process.env.SHOPIFY_DOMAIN;
-    const ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
-    
-    // Debug: Check if environment variables are loaded
-    console.log('🔑 Environment Variables Check:');
-    console.log('  SHOPIFY_DOMAIN:', SHOPIFY_DOMAIN ? `✅ ${SHOPIFY_DOMAIN}` : '❌ Missing');
-    console.log('  ACCESS_TOKEN:', ACCESS_TOKEN ? `✅ ${ACCESS_TOKEN.substring(0, 10)}...` : '❌ Missing');
-    
-    if (!SHOPIFY_DOMAIN || !ACCESS_TOKEN) {
-      return res.status(500).json({
-        success: false,
-        error: 'Missing required environment variables',
-        details: 'SHOPIFY_DOMAIN and SHOPIFY_ACCESS_TOKEN must be set in Vercel environment variables',
-        timestamp: new Date().toISOString()
-      });
-    }
-
-    // DIAGNOSTIC: Get first 10 products to see structure
-    const diagnosticUrl = `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/products.json?` +
-      `limit=10&` +
-      `fields=id,title,variants,product_type,tags,handle`;
-
-    console.log('🔗 DIAGNOSTIC URL:', diagnosticUrl);
-
-    const diagnosticResponse = await fetch(diagnosticUrl, {
-      headers: {
-        'X-Shopify-Access-Token': ACCESS_TOKEN,
-        'Content-Type': 'application/json'
-      }
+    console.log('📋 Request data:', {
+      cardsCount: cards?.length,
+      employeeName,
+      payoutMethod,
+      overrideTotal,
+      customerEmail,
+      estimateMode
     });
 
-    if (!diagnosticResponse.ok) {
-      const errorText = await diagnosticResponse.text();
-      console.log('❌ Shopify API error:', diagnosticResponse.status, errorText);
-      throw new Error(`Shopify API failed: ${diagnosticResponse.status}`);
+    // Validation
+    if (payoutMethod === "store-credit" && !customerEmail && !estimateMode) {
+      return res.status(400).json({ error: 'Customer email is required for store credit payouts' });
     }
 
-    const diagnosticData = await diagnosticResponse.json();
-    console.log('📊 DIAGNOSTIC: Found', diagnosticData.products?.length || 0, 'products');
+    // Validate override total
+    let validatedOverride = null;
+    if (overrideTotal !== undefined && overrideTotal !== null && overrideTotal !== '') {
+      const override = parseFloat(overrideTotal);
+      if (isNaN(override) || override < 0) {
+        return res.status(400).json({ error: 'Override total must be a valid positive number' });
+      }
+      if (override > 13500) {
+        return res.status(400).json({ error: 'Override total exceeds maximum allowed limit ($13,500 CAD)' });
+      }
+      validatedOverride = override;
+    }
 
-    // Log detailed info about first few products
-    const products = diagnosticData.products || [];
-    const diagnosticInfo = [];
+    if (!cards || !Array.isArray(cards)) {
+      return res.status(400).json({ error: 'Invalid or missing cards array' });
+    }
 
-    products.slice(0, 5).forEach((product, index) => {
-      console.log(`\n🔍 PRODUCT ${index + 1}:`);
-      console.log(`  Title: "${product.title}"`);
-      console.log(`  Handle: "${product.handle}"`);
-      console.log(`  Tags: "${product.tags}"`);
-      console.log(`  Product Type: "${product.product_type}"`);
-      console.log(`  Variants (${product.variants?.length || 0}):`);
+    // Shopify configuration
+    const SHOPIFY_DOMAIN = "ke40sv-my.myshopify.com";
+    const ACCESS_TOKEN = "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";
+
+    // Trade rate calculation functions
+    function calculateMaximumTradeValue(marketValue) {
+      const price = parseFloat(marketValue);
       
-      const variantInfo = [];
-      product.variants?.forEach((variant, vIndex) => {
-        console.log(`    Variant ${vIndex + 1}:`);
-        console.log(`      SKU: "${variant.sku || 'NO SKU'}"`);
-        console.log(`      Price: $${variant.price || 'NO PRICE'}"`);
-        console.log(`      Title: "${variant.title || 'NO TITLE'}"`);
+      if (price >= 50.00) return parseFloat((price * 0.75).toFixed(2));
+      if (price >= 25.00) return parseFloat((price * 0.70).toFixed(2));
+      if (price >= 15.01) return parseFloat((price * 0.65).toFixed(2));
+      if (price >= 8.00) return parseFloat((price * 0.50).toFixed(2));
+      if (price >= 5.00) return parseFloat((price * 0.35).toFixed(2));
+      if (price >= 3.01) return parseFloat((price * 0.25).toFixed(2));
+      if (price >= 2.00) return 0.50;
+      if (price >= 0.01) return 0.01;
+      return 0;
+    }
+
+    function calculateSuggestedTradeValue(marketValue) {
+      const price = parseFloat(marketValue);
+      
+      if (price >= 50.00) return parseFloat((price * 0.75).toFixed(2));
+      if (price >= 25.00) return parseFloat((price * 0.50).toFixed(2));
+      if (price >= 15.01) return parseFloat((price * 0.35).toFixed(2));
+      if (price >= 8.00) return parseFloat((price * 0.40).toFixed(2));
+      if (price >= 5.00) return parseFloat((price * 0.35).toFixed(2));
+      if (price >= 3.01) return parseFloat((price * 0.25).toFixed(2));
+      if (price >= 2.00) return 0.10;
+      if (price >= 0.01) return 0.01;
+      return 0;
+    }
+
+    // Get location ID for inventory updates
+    let locationId = null;
+    if (!estimateMode) {
+      try {
+        const locationRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/locations.json`, {
+          headers: {
+            'X-Shopify-Access-Token': ACCESS_TOKEN,
+            'Content-Type': 'application/json'
+          }
+        });
+        const locations = await locationRes.json();
+        locationId = locations.locations?.[0]?.id;
+        console.log('📍 Location ID:', locationId);
+      } catch (err) {
+        console.error('❌ Failed to get location ID:', err);
+      }
+    }
+
+    // Real Shopify search functions
+    const searchByTitle = async (query) => {
+      console.log('🔍 Searching by title:', query);
+      
+      const productRes = await fetch(
+        `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/products.json?title=${encodeURIComponent(query)}`,
+        {
+          headers: {
+            'X-Shopify-Access-Token': ACCESS_TOKEN,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      const productData = await productRes.json();
+      
+      if (productData?.products?.length > 0) {
+        const product = productData.products[0];
+        const variant = product.variants[0];
         
-        variantInfo.push({
-          sku: variant.sku,
-          price: variant.price,
-          title: variant.title
-        });
-      });
-
-      diagnosticInfo.push({
-        title: product.title,
-        handle: product.handle,
-        tags: product.tags,
-        productType: product.product_type,
-        variants: variantInfo
-      });
-    });
-
-    // Now search ALL products (increased limit)
-    console.log(`\n🎯 SEARCHING FOR: "${cardName}"`);
-    
-    let foundProducts = [];
-    let allProducts = [];
-    let page = 1;
-    const limit = 250;
-    
-    // Paginate through ALL products
-    while (true) {
-      const pageUrl = `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/products.json?` +
-        `limit=${limit}&` +
-        `page=${page}&` +
-        `fields=id,title,variants,product_type,tags,handle`;
-
-      console.log(`📄 Fetching page ${page}...`);
-
-      const pageResponse = await fetch(pageUrl, {
-        headers: {
-          'X-Shopify-Access-Token': ACCESS_TOKEN,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!pageResponse.ok) {
-        console.log(`❌ Failed to fetch page ${page}`);
-        break;
-      }
-
-      const pageData = await pageResponse.json();
-      const pageProducts = pageData.products || [];
-      
-      if (pageProducts.length === 0) {
-        console.log(`📄 Page ${page} empty - stopping pagination`);
-        break;
+        return {
+          found: true,
+          product: product,
+          variant: variant,
+          searchMethod: 'title'
+        };
       }
       
-      allProducts = allProducts.concat(pageProducts);
-      console.log(`📄 Page ${page}: ${pageProducts.length} products (Total: ${allProducts.length})`);
-      
-      // Stop if we got less than the limit (last page)
-      if (pageProducts.length < limit) {
-        break;
-      }
-      
-      page++;
-      
-      // Safety limit to prevent infinite loops
-      if (page > 20) {
-        console.log('⚠️ Stopping at page 20 for safety');
-        break;
-      }
-    }
-      
-    console.log(`📦 Total products to search: ${allProducts.length}`);
-    
-    // Enhanced search strategies with detailed logging
-    const searchStrategies = [
-      { 
-        name: 'Exact Title', 
-        test: (p) => {
-          const match = p.title.toLowerCase() === cardName.toLowerCase();
-          if (match) console.log(`  ✅ Title exact match: "${p.title}"`);
-          return match;
-        }
-      },
-      { 
-        name: 'Title Contains', 
-        test: (p) => {
-          const match = p.title.toLowerCase().includes(cardName.toLowerCase());
-          if (match) console.log(`  ✅ Title contains: "${p.title}" contains "${cardName}"`);
-          return match;
-        }
-      },
-      { 
-        name: 'SKU Exact', 
-        test: (p) => {
-          const match = p.variants.some(v => v.sku === cardName);
-          if (match) {
-            const matchingVariant = p.variants.find(v => v.sku === cardName);
-            console.log(`  ✅ SKU exact match: "${matchingVariant.sku}" in "${p.title}"`);
-          }
-          return match;
-        }
-      },
-      { 
-        name: 'SKU Contains', 
-        test: (p) => {
-          const match = p.variants.some(v => v.sku && v.sku.toLowerCase().includes(cardName.toLowerCase()));
-          if (match) {
-            const matchingVariant = p.variants.find(v => v.sku && v.sku.toLowerCase().includes(cardName.toLowerCase()));
-            console.log(`  ✅ SKU contains: "${matchingVariant.sku}" contains "${cardName}" in "${p.title}"`);
-          }
-          return match;
-        }
-      },
-      { 
-        name: 'Tags Contains', 
-        test: (p) => {
-          if (!p.tags) return false;
-          
-          console.log(`  🏷️ Checking tags: "${p.tags}" for "${cardName}"`);
-          
-          // Try multiple tag search approaches
-          const searches = [
-            p.tags.toLowerCase().includes(cardName.toLowerCase()),
-            p.tags.split(',').some(tag => tag.trim().toLowerCase() === cardName.toLowerCase()),
-            p.tags.split(',').some(tag => tag.trim().toLowerCase().includes(cardName.toLowerCase()))
-          ];
-          
-          const match = searches.some(s => s);
-          
-          if (match) {
-            console.log(`  ✅ Tags match found: "${p.tags}" contains "${cardName}" in "${p.title}"`);
-          }
-          
-          return match;
-        }
-      },
-      { 
-        name: 'Handle Contains', 
-        test: (p) => {
-          const searchHandle = cardName.toLowerCase().replace(/[^a-z0-9]/g, '-');
-          const match = p.handle.includes(searchHandle);
-          if (match) console.log(`  ✅ Handle contains: "${p.handle}" contains "${searchHandle}"`);
-          return match;
-        }
-      },
-      { 
-        name: 'Card Number Pattern', 
-        test: (p) => {
-          const cardNum = cardName.split('/')[0]; // Get "001" from "001/182"
-          const setNum = cardName.split('/')[1]; // Get "182" from "001/182"
-          
-          const titleMatch = p.title.toLowerCase().includes(cardNum.toLowerCase());
-          const skuMatch = p.variants.some(v => v.sku && v.sku.includes(cardNum));
-          const tagMatch = p.tags && (
-            p.tags.includes(cardNum) || 
-            p.tags.includes(cardName) ||
-            (setNum && p.tags.includes(setNum))
-          );
-          
-          const match = titleMatch || skuMatch || tagMatch;
-          
-          if (match) {
-            console.log(`  ✅ Card pattern match: "${cardName}" found in "${p.title}"`);
-            if (titleMatch) console.log(`    - Found in title`);
-            if (skuMatch) console.log(`    - Found in SKU`);
-            if (tagMatch) console.log(`    - Found in tags: "${p.tags}"`);
-          }
-          
-          return match;
-        }
-      }
-    ];
-
-    // Run each search strategy
-    searchStrategies.forEach(strategy => {
-      console.log(`\n🔍 Testing ${strategy.name}:`);
-      const matches = allProducts.filter(strategy.test);
-      console.log(`🔍 ${strategy.name}: ${matches.length} matches`);
-      
-      if (matches.length > 0) {
-        matches.slice(0, 3).forEach(match => {
-          console.log(`  📋 "${match.title}"`);
-          console.log(`    Tags: "${match.tags}"`);
-          match.variants?.forEach(v => {
-            if (v.sku) console.log(`    SKU: "${v.sku}" - Price: $${v.price}`);
-          });
-        });
-        foundProducts = foundProducts.concat(matches);
-      }
-    });
-
-    // Remove duplicates
-    foundProducts = foundProducts.filter((product, index, self) => 
-      index === self.findIndex(p => p.id === product.id)
-    );
-
-    // If still no matches, show sample tags for debugging
-    if (foundProducts.length === 0) {
-      console.log('\n🔍 NO MATCHES FOUND - Sample tags from products:');
-      allProducts.slice(0, 10).forEach((p, i) => {
-        if (p.tags) {
-          console.log(`  Product ${i+1}: "${p.title}" - Tags: "${p.tags}"`);
-        }
-      });
-    }
-
-    const response = {
-      success: true,
-      diagnostic: {
-        searchQuery: cardName,
-        totalProductsInStore: allProducts.length,
-        sampleProducts: diagnosticInfo,
-        searchResults: foundProducts.length,
-        foundProducts: foundProducts.slice(0, 3).map(p => ({
-          title: p.title,
-          handle: p.handle,
-          tags: p.tags,
-          variants: p.variants?.map(v => ({ sku: v.sku, price: v.price }))
-        }))
-      },
-      results: foundProducts.length > 0 ? [{
-        cardName: cardName,
-        match: foundProducts[0].title,
-        sku: foundProducts[0].variants?.[0]?.sku || null,
-        retailPrice: parseFloat(foundProducts[0].variants?.[0]?.price) || 0,
-        suggestedTradeValue: Math.floor((parseFloat(foundProducts[0].variants?.[0]?.price) || 0) * 0.7), // 70% of retail
-        maximumTradeValue: Math.floor((parseFloat(foundProducts[0].variants?.[0]?.price) || 0) * 0.8), // 80% of retail
-        searchMethod: 'enhanced_diagnostic'
-      }] : [{
-        cardName: cardName,
-        match: null,
-        sku: null,
-        retailPrice: 0,
-        suggestedTradeValue: 0,
-        maximumTradeValue: 0,
-        searchMethod: 'enhanced_diagnostic'
-      }],
-      resultsCount: foundProducts.length > 0 ? 1 : 0,
-      timestamp: new Date().toISOString()
+      return { found: false };
     };
 
-    console.log('📋 ENHANCED DIAGNOSTIC COMPLETE');
-    console.log('📊 Final Results:', foundProducts.length, 'products found');
-    
-    return res.status(200).json(response);
+    const searchBySKU = async (sku) => {
+      console.log('🔍 Searching by SKU:', sku);
+      
+      const query = `{
+        productVariants(first: 1, query: "sku:${sku}") {
+          edges {
+            node {
+              id
+              title
+              sku
+              price
+              inventoryQuantity
+              inventoryItem {
+                id
+              }
+              product {
+                id
+                title
+              }
+            }
+          }
+        }
+      }`;
 
-  } catch (error) {
-    console.error('💥 ENHANCED DIAGNOSTIC ERROR:', error);
+      const graphqlRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/graphql.json`, {
+        method: 'POST',
+        headers: {
+          'X-Shopify-Access-Token': ACCESS_TOKEN,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query })
+      });
+
+      const json = await graphqlRes.json();
+      const variantEdge = json?.data?.productVariants?.edges?.[0];
+      
+      if (variantEdge?.node) {
+        const variant = variantEdge.node;
+        
+        return {
+          found: true,
+          product: { title: variant.product.title },
+          variant: {
+            sku: variant.sku,
+            price: variant.price,
+            inventory_item_id: variant.inventoryItem?.id?.replace('gid://shopify/InventoryItem/', '')
+          },
+          searchMethod: 'sku'
+        };
+      }
+      
+      return { found: false };
+    };
+
+    const searchByTag = async (tag) => {
+      console.log('🏷️ Searching by tag:', tag);
+      
+      const query = `{
+        products(first: 1, query: "tag:${tag}") {
+          edges {
+            node {
+              id
+              title
+              variants(first: 1) {
+                edges {
+                  node {
+                    id
+                    title
+                    sku
+                    price
+                    inventoryQuantity
+                    inventoryItem {
+                      id
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }`;
+
+      const graphqlRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/graphql.json`, {
+        method: 'POST',
+        headers: {
+          'X-Shopify-Access-Token': ACCESS_TOKEN,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query })
+      });
+
+      const json = await graphqlRes.json();
+      const productEdge = json?.data?.products?.edges?.[0];
+      
+      if (productEdge?.node?.variants?.edges?.[0]) {
+        const product = productEdge.node;
+        const variant = product.variants.edges[0].node;
+        
+        return {
+          found: true,
+          product: { title: product.title },
+          variant: {
+            sku: variant.sku,
+            price: variant.price,
+            inventory_item_id: variant.inventoryItem?.id?.replace('gid://shopify/InventoryItem/', '')
+          },
+          searchMethod: 'tag'
+        };
+      }
+      
+      return { found: false };
+    };
+
+    // Main search function - tries multiple strategies
+    const searchCard = async (cardName, sku) => {
+      const searchQueries = [
+        { query: cardName, method: searchByTitle },
+        { query: sku || cardName, method: searchBySKU },
+        { query: cardName, method: searchByTag }
+      ].filter(s => s.query); // Remove null/empty queries
+
+      for (const { query, method } of searchQueries) {
+        try {
+          const result = await method(query);
+          if (result.found) {
+            return result;
+          }
+        } catch (error) {
+          console.log(`❌ Search method failed for ${query}:`, error.message);
+          continue;
+        }
+      }
+      
+      return { found: false };
+    };
+
+    // Customer and store credit functions
+    const findOrCreateCustomer = async (email) => {
+      try {
+        // Search for existing customer
+        const searchRes = await fetch(
+          `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/customers/search.json?query=email:${encodeURIComponent(email)}`,
+          {
+            headers: {
+              'X-Shopify-Access-Token': ACCESS_TOKEN,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        const searchData = await searchRes.json();
+        
+        if (searchData.customers?.length > 0) {
+          console.log('✅ Existing customer found');
+          return searchData.customers[0];
+        }
+
+        // Create new customer
+        const createRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/customers.json`, {
+          method: 'POST',
+          headers: {
+            'X-Shopify-Access-Token': ACCESS_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            customer: {
+              email: email,
+              first_name: "Trade-in",
+              last_name: "Customer",
+              note: "Customer created via trade-in system",
+              tags: "trade-in-customer"
+            }
+          })
+        });
+
+        if (!createRes.ok) {
+          throw new Error(`Failed to create customer: ${await createRes.text()}`);
+        }
+
+        const customerData = await createRes.json();
+        console.log('✅ New customer created:', customerData.customer.id);
+        return customerData.customer;
+      } catch (err) {
+        console.error('❌ Error finding/creating customer:', err);
+        throw err;
+      }
+    };
+
+    const issueStoreCredit = async (customerId, amount, reason) => {
+      try {
+        const mutation = `
+          mutation StoreCreditAccountCreditCreate($input: StoreCreditAccountCreditInput!) {
+            storeCreditAccountCreditCreate(input: $input) {
+              storeCreditAccountTransaction {
+                id
+                amount {
+                  amount
+                  currencyCode
+                }
+                createdAt
+                account {
+                  id
+                  balance {
+                    amount
+                    currencyCode
+                  }
+                }
+              }
+              userErrors {
+                field
+                message
+              }
+            }
+          }
+        `;
+
+        const variables = {
+          input: {
+            customerId: `gid://shopify/Customer/${customerId}`,
+            amount: {
+              amount: amount.toFixed(2),
+              currencyCode: "CAD"
+            },
+            note: reason
+          }
+        };
+
+        const graphqlRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/graphql.json`, {
+          method: 'POST',
+          headers: {
+            'X-Shopify-Access-Token': ACCESS_TOKEN,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            query: mutation,
+            variables: variables
+          })
+        });
+
+        if (!graphqlRes.ok) {
+          throw new Error(`HTTP Error ${graphqlRes.status}: ${await graphqlRes.text()}`);
+        }
+
+        const result = await graphqlRes.json();
+        
+        if (result.errors) {
+          throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
+        }
+        
+        if (result.data?.storeCreditAccountCreditCreate?.userErrors?.length > 0) {
+          throw new Error(`Store credit error: ${result.data.storeCreditAccountCreditCreate.userErrors[0].message}`);
+        }
+
+        const transaction = result.data?.storeCreditAccountCreditCreate?.storeCreditAccountTransaction;
+        
+        if (!transaction) {
+          throw new Error('Store credit transaction was not created');
+        }
+
+        console.log('✅ Store credit created:', transaction.id);
+        return transaction;
+      } catch (err) {
+        console.error('❌ Store credit creation failed:', err);
+        throw err;
+      }
+    };
+
+    // Process cards
+    let totalSuggestedValue = 0;
+    let totalMaximumValue = 0;
+    let totalRetailValue = 0;
+    const results = [];
+
+    console.log('⏱️ Processing', cards.length, 'cards');
+
+    for (const card of cards) {
+      const { cardName, sku = null, quantity = 1 } = card;
+      
+      console.log(`🃏 Processing: ${cardName} (SKU: ${sku}, Qty: ${quantity})`);
+      
+      const searchResult = await searchCard(cardName, sku);
+      
+      if (!searchResult.found) {
+        console.log('❌ No match found for:', cardName);
+        results.push({
+          cardName,
+          match: null,
+          retailPrice: 0,
+          suggestedTradeValue: 0,
+          maximumTradeValue: 0,
+          quantity,
+          sku: null,
+          searchMethod: 'none'
+        });
+        continue;
+      }
+
+      const product = searchResult.product;
+      const variant = searchResult.variant;
+      const variantPrice = parseFloat(variant.price || 0);
+      const suggestedTradeValue = calculateSuggestedTradeValue(variantPrice);
+      const maximumTradeValue = calculateMaximumTradeValue(variantPrice);
+      
+      totalSuggestedValue += suggestedTradeValue * quantity;
+      totalMaximumValue += maximumTradeValue * quantity;
+      totalRetailValue += variantPrice * quantity;
+
+      console.log(`✅ Found: ${product.title} - ${variantPrice} (Suggested: ${suggestedTradeValue})`);
+
+      // Update inventory if not in estimate mode
+      if (!estimateMode && locationId && variant.inventory_item_id) {
+        try {
+          const adjustRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/inventory_levels/adjust.json`, {
+            method: 'POST',
+            headers: {
+              'X-Shopify-Access-Token': ACCESS_TOKEN,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              location_id: locationId,
+              inventory_item_id: variant.inventory_item_id,
+              available_adjustment: parseInt(quantity)
+            })
+          });
+          
+          if (adjustRes.ok) {
+            console.log(`✅ Inventory updated: +${quantity}`);
+          } else {
+            console.error(`❌ Inventory update failed:`, await adjustRes.text());
+          }
+        } catch (inventoryErr) {
+          console.error(`❌ Inventory update error:`, inventoryErr);
+        }
+      }
+
+      results.push({
+        cardName,
+        match: product.title,
+        retailPrice: variantPrice,
+        suggestedTradeValue,
+        maximumTradeValue,
+        quantity,
+        sku: variant.sku,
+        searchMethod: searchResult.searchMethod
+      });
+    }
+
+    // Calculate final payout
+    const finalPayout = validatedOverride !== null ? validatedOverride : totalSuggestedValue;
+    const overrideUsed = validatedOverride !== null;
+
+    console.log('💰 Final calculations:', {
+      totalSuggestedValue,
+      totalMaximumValue,
+      totalRetailValue,
+      finalPayout,
+      overrideUsed
+    });
+
+    // Handle payouts (only if not estimate mode)
+    let giftCardCode = null;
+    let storeCreditTransaction = null;
+    let customer = null;
+
+    if (!estimateMode && finalPayout > 0) {
+      if (payoutMethod === "store-credit") {
+        try {
+          customer = await findOrCreateCustomer(customerEmail);
+          const reason = `Trade-in payout for ${employeeName || "Unknown"}${overrideUsed ? ` (Override)` : ''}`;
+          storeCreditTransaction = await issueStoreCredit(customer.id, finalPayout, reason);
+          console.log(`✅ Store credit issued: ${finalPayout} to ${customerEmail}`);
+        } catch (err) {
+          console.error("❌ Store credit failed:", err);
+          return res.status(500).json({ 
+            error: "Store credit creation failed", 
+            details: err.message
+          });
+        }
+      } else if (payoutMethod === "gift-card") {
+        try {
+          const giftCardRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/gift_cards.json`, {
+            method: "POST",
+            headers: {
+              "X-Shopify-Access-Token": ACCESS_TOKEN,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              gift_card: {
+                initial_value: finalPayout.toFixed(2),
+                note: `Trade-in payout for ${employeeName || "Unknown"}`,
+                currency: "CAD"
+              }
+            })
+          });
+          
+          if (!giftCardRes.ok) {
+            throw new Error(await giftCardRes.text());
+          }
+          
+          const giftCardData = await giftCardRes.json();
+          giftCardCode = giftCardData?.gift_card?.code;
+          
+          console.log(`✅ Gift card created: ${finalPayout}, Code: ${giftCardCode}`);
+        } catch (err) {
+          console.error("❌ Gift card failed:", err);
+          return res.status(500).json({ 
+            error: "Gift card creation failed", 
+            details: err.message 
+          });
+        }
+      } else if (payoutMethod === "cash") {
+        console.log(`💵 Cash payout: ${finalPayout} for ${employeeName}`);
+      }
+    }
+
+    // Return response
+    const response = {
+      success: true,
+      estimate: estimateMode,
+      employeeName,
+      payoutMethod,
+      customerEmail,
+      results,
+      suggestedTotal: totalSuggestedValue.toFixed(2),
+      maximumTotal: totalMaximumValue.toFixed(2),
+      totalRetailValue: totalRetailValue.toFixed(2),
+      finalPayout: finalPayout.toFixed(2),
+      overrideUsed,
+      overrideAmount: overrideUsed ? finalPayout.toFixed(2) : null,
+      giftCardCode,
+      storeCreditTransaction: storeCreditTransaction ? {
+        id: storeCreditTransaction.id,
+        amount: storeCreditTransaction.amount,
+        createdAt: storeCreditTransaction.createdAt
+      } : null,
+      customer: customer ? {
+        id: customer.id,
+        email: customer.email,
+        name: `${customer.first_name} ${customer.last_name}`
+      } : null,
+      timestamp: new Date().toISOString(),
+      processingStats: {
+        totalCards: cards.length,
+        cardsFound: results.filter(r => r.match).length,
+        cardsNotFound: results.filter(r => !r.match).length
+      }
+    };
+
+    console.log('✅ Processing complete');
+    console.log('=== API REQUEST END ===');
     
-    return res.status(500).json({
-      success: false,
-      error: 'Enhanced diagnostic failed',
-      details: error.message,
+    res.status(200).json(response);
+
+  } catch (err) {
+    console.error("💥 API ERROR:", err);
+    return res.status(500).json({ 
+      error: "Internal server error", 
+      details: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred',
       timestamp: new Date().toISOString()
     });
   }
