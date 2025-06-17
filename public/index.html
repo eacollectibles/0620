@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Buyback Portal</title>
-  <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+128+Text&display=swap" rel="stylesheet">
+  <!-- JsBarcode library for generating real Code 128 barcodes -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
   
   <style>
     :root {
@@ -790,24 +791,24 @@
       font-weight: 600;
     }
 
-    /* UPC Barcode - Simple CSS bars with exact UPC specs */
+    /* Code 128 Barcode - Real barcode using JsBarcode library */
     .barcode-display {
       background: white;
-      border: 2px solid black;
+      border: 1px solid #ddd;
       padding: 5px;
       margin: 5px 0;
       overflow: hidden;
       line-height: 1;
-      height: 80px;  /* Very large for easy scanning */
+      height: 80px;  /* Large for easy scanning */
       width: 100%;   /* Full label width */
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'Libre Barcode 128 Text', monospace;
-      font-size: 48px;
-      font-weight: normal;
-      letter-spacing: -2px;
-      color: black;
+    }
+
+    .barcode-svg {
+      max-width: 100%;
+      max-height: 100%;
     }
 
     .barcode-number {
@@ -1248,16 +1249,16 @@
           </div>
         </div>
 
-        <!-- UPC Barcode Section - Pokemon Card Pack Style -->
+        <!-- Code 128 Barcode Section - Real barcodes with actual SKUs -->
         <div id="barcode-section" class="barcode-section" style="display: none;">
           <div class="barcode-header">
-            <h3 style="margin: 0; color: var(--gray-800);">📊 UPC Barcode Labels</h3>
+            <h3 style="margin: 0; color: var(--gray-800);">📊 Code 128 Barcode Labels</h3>
             <div style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">
-              Avery 7666 • UPC-A Format • Pokemon Card Pack Size • Socket S740 Compatible
+              Avery 7666 • Code 128 Format • Real SKUs • Socket S740 Compatible
             </div>
           </div>
           <div id="barcode-content" class="barcode-grid">
-            <!-- UPC barcode labels will be generated here -->
+            <!-- Code 128 barcode labels will be generated here -->
           </div>
         </div>
 
@@ -1838,7 +1839,7 @@
         generateBarcodes(data.results);
       }
 
-      // UPC barcode generation - Pokemon card pack style
+      // Code 128 barcode generation - Real barcodes with actual SKUs
       function generateBarcodes(results) {
         const barcodeContent = document.getElementById('barcode-content');
         barcodeContent.innerHTML = '';
@@ -1849,28 +1850,32 @@
         if (matchedItems.length === 0) {
           barcodeContent.innerHTML = `
             <div style="grid-column: 1/-1; text-align: center; color: var(--gray-500); padding: 40px;">
-              📊 No SKUs available for UPC generation
+              📊 No SKUs available for barcode generation
             </div>
           `;
           return;
         }
 
         let labelCount = 0;
+        const barcodeIds = []; // Store IDs for rendering after insertion
+
         matchedItems.forEach(item => {
-          // Generate UPC for each quantity
+          // Generate Code 128 barcode for each quantity
           for (let i = 0; i < item.quantity; i++) {
             const barcodeLabel = document.createElement('div');
             barcodeLabel.className = 'barcode-label';
             
-            // Generate UPC code from SKU
-            const upcCode = generateUPCFromSKU(item.sku);
-            const upcDisplay = generateUPCBarcode(upcCode);
+            // Generate unique barcode container
+            const barcodeId = 'barcode-' + Math.random().toString(36).substr(2, 9);
+            barcodeIds.push({ id: barcodeId, sku: item.sku });
             
-            // Clean label with UPC format
+            // Clean label with Code 128 format
             barcodeLabel.innerHTML = `
               <div class="barcode-sku">SKU: ${item.sku}</div>
-              <div class="barcode-display">${upcDisplay}</div>
-              <div class="barcode-number">${upcCode}</div>
+              <div class="barcode-display">
+                <svg id="${barcodeId}" class="barcode-svg"></svg>
+              </div>
+              <div class="barcode-number">${item.sku}</div>
             `;
             
             barcodeContent.appendChild(barcodeLabel);
@@ -1887,44 +1892,67 @@
           barcodeContent.appendChild(emptyLabel);
           labelCount++;
         }
+
+        // Render all barcodes after DOM insertion
+        setTimeout(() => {
+          barcodeIds.forEach(barcode => {
+            renderBarcode(barcode.id, barcode.sku);
+          });
+        }, 100);
       }
 
-      // Generate UPC-A code from SKU (12 digits)
-      function generateUPCFromSKU(sku) {
-        // Convert SKU to a 12-digit UPC-A format
-        let numericSku = '';
-        
-        // Extract numbers from SKU, pad/truncate to 11 digits
-        for (let char of sku.toString()) {
-          if (char.match(/[0-9]/)) {
-            numericSku += char;
-          } else {
-            // Convert letters to numbers (A=1, B=2, etc.)
-            numericSku += (char.toUpperCase().charCodeAt(0) - 64).toString().slice(-1);
+      // Function to render Code 128 barcode
+      function renderBarcode(containerId, sku) {
+        try {
+          const element = document.getElementById(containerId);
+          if (element && window.JsBarcode) {
+            JsBarcode(element, sku, {
+              format: "CODE128",
+              width: 4,           // Thick bars for Socket S740
+              height: 60,         // Tall enough for scanning
+              displayValue: false, // Don't show text (we have it separately)
+              background: "white",
+              lineColor: "black",
+              margin: 2,
+              fontSize: 0         // No font inside barcode
+            });
+          }
+        } catch (error) {
+          console.error('Barcode generation error for', sku, ':', error);
+          // Fallback: show SKU as text if barcode fails
+          if (element) {
+            element.innerHTML = `<text x="50%" y="50%" text-anchor="middle" font-family="monospace" font-size="12">${sku}</text>`;
           }
         }
-        
-        // Pad or truncate to 11 digits
-        numericSku = numericSku.padEnd(11, '0').substring(0, 11);
-        
-        // Calculate check digit (UPC-A check digit algorithm)
-        let oddSum = 0, evenSum = 0;
-        for (let i = 0; i < 11; i++) {
-          if (i % 2 === 0) {
-            oddSum += parseInt(numericSku[i]);
-          } else {
-            evenSum += parseInt(numericSku[i]);
-          }
-        }
-        const checkDigit = (10 - ((oddSum * 3 + evenSum) % 10)) % 10;
-        
-        return numericSku + checkDigit;
       }
 
-      // Generate simple text-based barcode that browsers can render as actual bars
-      function generateUPCBarcode(upcCode) {
-        // Just return the UPC code - we'll use CSS font to make it look like a barcode
-        return upcCode;
+      // Generate real Code 128 barcode using JsBarcode library
+      function generateCode128Barcode(sku) {
+        // Create a unique container ID for this barcode
+        const barcodeId = 'barcode-' + Math.random().toString(36).substr(2, 9);
+        
+        // Return SVG container that will be populated by JsBarcode
+        return `<svg id="${barcodeId}" class="barcode-svg"></svg>`;
+      }
+
+      // Function to render the actual barcode after the HTML is inserted
+      function renderBarcode(containerId, sku) {
+        try {
+          const element = document.getElementById(containerId);
+          if (element && window.JsBarcode) {
+            JsBarcode(element, sku, {
+              format: "CODE128",
+              width: 3,           // Bar width
+              height: 60,         // Barcode height  
+              displayValue: false, // Don't show text (we have it separately)
+              background: "white",
+              lineColor: "black",
+              margin: 2
+            });
+          }
+        } catch (error) {
+          console.error('Barcode generation error:', error);
+        }
       }
 
       // Success section close and new trade buttons
