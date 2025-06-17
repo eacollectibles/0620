@@ -32,6 +32,13 @@ module.exports = async function handler(req, res) {
       estimateMode
     });
 
+    // Log card details for debugging SKU matching
+    console.log('🃏 Card details:', cards?.map(card => ({
+      name: card.cardName,
+      sku: card.sku,
+      searchMethod: card.searchMethod
+    })));
+
     // Validation
     if (payoutMethod === "store-credit" && !customerEmail && !estimateMode) {
       return res.status(400).json({ error: 'Customer email is required for store credit payouts' });
@@ -119,6 +126,75 @@ module.exports = async function handler(req, res) {
       }
     }
 
+    // FIXED: Get variant by exact SKU - for frontend confirmed searches
+    const getVariantBySku = async (sku) => {
+      console.log('🎯 Getting exact variant by SKU:', sku);
+      
+      const query = `{
+        productVariants(first: 1, query: "sku:${sku}") {
+          edges {
+            node {
+              id
+              title
+              sku
+              price
+              inventoryQuantity
+              inventoryItem {
+                id
+              }
+              product {
+                id
+                title
+              }
+            }
+          }
+        }
+      }`;
+
+      const graphqlRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/graphql.json`, {
+        method: 'POST',
+        headers: {
+          'X-Shopify-Access-Token': ACCESS_TOKEN,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query })
+      });
+
+      const json = await graphqlRes.json();
+      console.log('🎯 Exact SKU GraphQL response:', JSON.stringify(json, null, 2));
+      
+      const variantEdge = json?.data?.productVariants?.edges?.[0];
+      
+      if (variantEdge?.node) {
+        const variant = variantEdge.node;
+        const inventoryItemId = variant.inventoryItem?.id;
+        
+        // Extract numeric ID from GraphQL ID
+        const numericInventoryItemId = inventoryItemId ? inventoryItemId.replace('gid://shopify/InventoryItem/', '') : null;
+        
+        console.log('🎯 Found exact variant:', {
+          sku: variant.sku,
+          price: variant.price,
+          inventoryItemId: inventoryItemId,
+          numericInventoryItemId: numericInventoryItemId
+        });
+        
+        return {
+          found: true,
+          product: { title: variant.product.title },
+          variant: {
+            sku: variant.sku,
+            price: variant.price,
+            inventory_item_id: numericInventoryItemId
+          },
+          searchMethod: 'exact_sku'
+        };
+      }
+      
+      console.log('🎯 Exact SKU not found');
+      return { found: false };
+    };
+
     // Real Shopify search functions
     const searchByTitle = async (query) => {
       console.log('🔍 Searching by title:', query);
@@ -162,7 +238,7 @@ module.exports = async function handler(req, res) {
     };
 
     const searchBySKU = async (sku) => {
-      console.log('🔍 Searching by SKU:', sku);
+      console.log('🔍 Searching by SKU (fallback):', sku);
       
       const query = `{
         productVariants(first: 1, query: "sku:${sku}") {
@@ -287,8 +363,27 @@ module.exports = async function handler(req, res) {
       return { found: false };
     };
 
-    // Main search function - tries multiple strategies
-    const searchCard = async (cardName, sku) => {
+    // FIXED: Main search function with exact SKU priority
+    const searchCard = async (card) => {
+      const { cardName, sku, searchMethod } = card;
+      
+      console.log(`🔍 Processing card: ${cardName}`);
+      console.log(`  - SKU provided: ${sku}`);
+      console.log(`  - Search method: ${searchMethod}`);
+      
+      // PRIORITY 1: If frontend confirmed exact SKU, use it
+      if (sku && searchMethod === 'exact_sku') {
+        console.log('🎯 Using exact SKU from frontend confirmation');
+        const exactResult = await getVariantBySku(sku);
+        if (exactResult.found) {
+          console.log('✅ Exact SKU match found');
+          return exactResult;
+        } else {
+          console.warn('⚠️ Exact SKU not found, falling back to name search');
+        }
+      }
+      
+      // FALLBACK: Use original search methods
       const searchQueries = [
         { query: cardName, method: searchByTitle },
         { query: sku || cardName, method: searchBySKU },
@@ -299,6 +394,7 @@ module.exports = async function handler(req, res) {
         try {
           const result = await method(query);
           if (result.found) {
+            console.log(`✅ Found via ${result.searchMethod}: ${result.product.title}`);
             return result;
           }
         } catch (error) {
@@ -307,6 +403,7 @@ module.exports = async function handler(req, res) {
         }
       }
       
+      console.log(`❌ No matches found for: ${cardName}`);
       return { found: false };
     };
 
@@ -441,7 +538,7 @@ module.exports = async function handler(req, res) {
       }
     };
 
-    // Process cards
+    // FIXED: Process cards with exact SKU support
     let totalSuggestedValue = 0;
     let totalMaximumValue = 0;
     let totalRetailValue = 0;
@@ -450,11 +547,14 @@ module.exports = async function handler(req, res) {
     console.log('⏱️ Processing', cards.length, 'cards');
 
     for (const card of cards) {
-      const { cardName, sku = null, quantity = 1 } = card;
+      const { cardName, sku = null, quantity = 1, condition = 'NM', searchMethod = null } = card;
       
-      console.log(`🃏 Processing: ${cardName} (SKU: ${sku}, Qty: ${quantity})`);
+      console.log(`🃏 Processing: ${cardName}`);
+      console.log(`  - SKU: ${sku}`);
+      console.log(`  - Quantity: ${quantity}`);
+      console.log(`  - Search Method: ${searchMethod}`);
       
-      const searchResult = await searchCard(cardName, sku);
+      const searchResult = await searchCard(card);
       
       if (!searchResult.found) {
         console.log('❌ No match found for:', cardName);
@@ -465,6 +565,7 @@ module.exports = async function handler(req, res) {
           suggestedTradeValue: 0,
           maximumTradeValue: 0,
           quantity,
+          condition,
           sku: null,
           searchMethod: 'none'
         });
@@ -482,6 +583,8 @@ module.exports = async function handler(req, res) {
       totalRetailValue += variantPrice * quantity;
 
       console.log(`✅ Found: ${product.title} - ${variantPrice} (Suggested: ${suggestedTradeValue})`);
+      console.log(`  - Final SKU: ${variant.sku}`);
+      console.log(`  - Search Method: ${searchResult.searchMethod}`);
 
       // Update inventory if not in estimate mode
       if (!estimateMode && locationId && variant.inventory_item_id) {
@@ -536,6 +639,7 @@ module.exports = async function handler(req, res) {
         suggestedTradeValue,
         maximumTradeValue,
         quantity,
+        condition,
         sku: variant.sku,
         searchMethod: searchResult.searchMethod
       });
@@ -639,10 +743,18 @@ module.exports = async function handler(req, res) {
         totalCards: cards.length,
         cardsFound: results.filter(r => r.match).length,
         cardsNotFound: results.filter(r => !r.match).length
+      },
+      // ADDED: For debugging SKU consistency
+      debug: {
+        exactSkuMatches: results.filter(r => r.searchMethod === 'exact_sku').length,
+        titleMatches: results.filter(r => r.searchMethod === 'title').length,
+        skuMatches: results.filter(r => r.searchMethod === 'sku').length,
+        tagMatches: results.filter(r => r.searchMethod === 'tag').length
       }
     };
 
     console.log('✅ Processing complete');
+    console.log('🎯 Exact SKU matches:', response.debug.exactSkuMatches);
     console.log('=== API REQUEST END ===');
     
     res.status(200).json(response);
