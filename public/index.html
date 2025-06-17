@@ -1412,7 +1412,7 @@
         }));
 
         if (cards.length === 0) {
-          alert('Please add at least one card to estimate.');
+          updateStatus('Please add at least one card to estimate.', 'error');
           return;
         }
 
@@ -1452,7 +1452,7 @@
         } catch (error) {
           console.error('Estimate error:', error);
           updateStatus(`Error: ${error.message}`, 'error');
-          alert(`Failed to get estimate: ${error.message}`);
+          // NO MORE ALERT - just show in status
         } finally {
           estimateBtn.innerHTML = '<span>📊</span><span>Get Estimate</span>';
           estimateBtn.disabled = false;
