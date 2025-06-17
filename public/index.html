@@ -2151,7 +2151,7 @@
         }
       });
 
-      // FIXED: Function to show trade success with all details AND generate receipt
+      // FIXED: Function to show trade success with all details (NO auto-receipt generation)
       function showTradeSuccess(data, payoutMethod) {
         let successHTML = '';
 
@@ -2247,8 +2247,9 @@
         successContent.innerHTML = successHTML;
         tradeSuccess.classList.add('visible');
         
-        // Generate receipt for Star TSP100III
-        generatePOSReceipt(data, payoutMethod);
+        // Store trade data globally for receipt generation
+        window.lastTradeData = data;
+        window.lastPayoutMethod = payoutMethod;
         
         // Generate barcodes for successfully matched items
         generateBarcodes(data.results || []);
@@ -2382,11 +2383,10 @@
           </div>
         `;
 
-        // Insert receipt content
+        // Insert receipt content (ready for printing when button is clicked)
         const posReceiptDiv = document.getElementById('pos-receipt');
         posReceiptDiv.innerHTML = receiptHTML;
         posReceiptDiv.classList.add('visible');
-        receiptSection.style.display = 'block';
       }
 
       // FIXED: Code 128 barcode generation with improved SKU detection
@@ -2567,29 +2567,48 @@
         tradeSuccess.classList.remove('visible');
         document.getElementById('barcode-section').style.display = 'none';
         document.getElementById('pos-receipt-section').style.display = 'none';
+        // Clear stored trade data
+        window.lastTradeData = null;
+        window.lastPayoutMethod = null;
       });
 
       document.getElementById('new-trade').addEventListener('click', function() {
         tradeSuccess.classList.remove('visible');
         document.getElementById('barcode-section').style.display = 'none';
         document.getElementById('pos-receipt-section').style.display = 'none';
+        // Clear stored trade data
+        window.lastTradeData = null;
+        window.lastPayoutMethod = null;
         // Form is already reset above
       });
 
-      // FIXED: Print receipt functionality optimized for Star TSP100III
+      // Print receipt functionality - Generate receipt ONLY when button is clicked and print immediately
       document.getElementById('print-receipt').addEventListener('click', function() {
+        // Check if we have trade data stored
+        if (!window.lastTradeData || !window.lastPayoutMethod) {
+          alert('No trade data available for receipt generation.');
+          return;
+        }
+
+        // Generate receipt now
+        generatePOSReceipt(window.lastTradeData, window.lastPayoutMethod);
+        
+        // Show receipt section for printing
+        document.getElementById('pos-receipt-section').style.display = 'block';
+        
         // Add special class for receipt-only printing
         document.body.classList.add('receipt-print-mode');
         
         // Hide barcode section for receipt printing
         document.getElementById('barcode-section').style.display = 'none';
         
-        // Trigger print dialog
+        // Trigger print dialog immediately
         window.print();
         
-        // Remove print mode class after printing
+        // Clean up after printing
         setTimeout(() => {
           document.body.classList.remove('receipt-print-mode');
+          document.getElementById('pos-receipt-section').style.display = 'none';
         }, 1000);
       });
 
