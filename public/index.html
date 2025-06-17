@@ -733,149 +733,6 @@
       border-top: 1px solid rgba(56, 161, 105, 0.2);
     }
 
-    /* Status bar */
-    .status-bar {
-      background: white;
-      border: 1px solid var(--gray-200);
-      border-radius: var(--border-radius-lg);
-      padding: 20px 24px;
-      margin: 32px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .status-text {
-      font-weight: 500;
-      color: var(--gray-700);
-    }
-
-    /* Override section */
-    .override-section {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .override-input-container {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      background: rgba(214, 158, 46, 0.1);
-      border: 1px solid rgba(214, 158, 46, 0.3);
-      border-radius: var(--border-radius);
-      animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateX(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    .override-warning {
-      background: rgba(214, 158, 46, 0.1);
-      border: 1px solid rgba(214, 158, 46, 0.3);
-      color: var(--warning);
-      padding: 16px;
-      border-radius: var(--border-radius);
-      margin: 16px 0;
-      font-weight: 500;
-      display: none;
-    }
-
-    .override-warning.visible {
-      display: block;
-      animation: slideDown 0.3s ease;
-    }
-
-    /* Button states */
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none !important;
-    }
-
-    .btn.hidden {
-      display: none;
-    }
-
-    .btn.appearing {
-      animation: buttonAppear 0.4s ease;
-    }
-
-    @keyframes buttonAppear {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    @media (max-width: 768px) {
-      body {
-        padding: 16px;
-      }
-
-      .card-content {
-        padding: 24px;
-      }
-
-      .employee-payout-grid {
-        grid-template-columns: 1fr;
-        gap: 24px;
-      }
-
-      .card-row {
-        grid-template-columns: 1fr;
-        gap: 12px;
-      }
-
-      .actions {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .btn {
-        justify-content: center;
-      }
-
-      .estimate-totals {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* Loading states */
-    .loading {
-      opacity: 0.7;
-      pointer-events: none;
-    }
-
-    .spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid transparent;
-      border-top: 2px solid currentColor;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
     /* Barcode/Label Printing Styles - Avery 7666 Format */
     .barcode-section {
       background: white;
@@ -966,54 +823,156 @@
       display: none; /* Remove condition and trade value */
     }
 
-    /* Print styles optimized for Avery 7666 */
+    /* Status bar */
+    .status-bar {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--border-radius-lg);
+      padding: 20px 24px;
+      margin: 32px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .status-text {
+      font-weight: 500;
+      color: var(--gray-700);
+    }
+
+    /* Override section */
+    .override-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .override-input-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(214, 158, 46, 0.1);
+      border: 1px solid rgba(214, 158, 46, 0.3);
+      border-radius: var(--border-radius);
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .override-warning {
+      background: rgba(214, 158, 46, 0.1);
+      border: 1px solid rgba(214, 158, 46, 0.3);
+      color: var(--warning);
+      padding: 16px;
+      border-radius: var(--border-radius);
+      margin: 16px 0;
+      font-weight: 500;
+      display: none;
+    }
+
+    .override-warning.visible {
+      display: block;
+      animation: slideDown 0.3s ease;
+    }
+
+    /* Button states */
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .btn.hidden {
+      display: none;
+    }
+
+    .btn.appearing {
+      animation: buttonAppear 0.4s ease;
+    }
+
+    @keyframes buttonAppear {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Print styles optimized for Avery 7666 - Fixed margins */
     @media print {
       @page {
         size: letter;
-        margin: 0.5in 0.1875in;  /* Avery 7666 margins */
+        margin: 0.5in 0.1875in 0.5in 0.1875in;  /* Top, Right, Bottom, Left - Avery 7666 spec */
       }
       
       body {
-        margin: 0;
-        padding: 0;
+        margin: 0 !important;
+        padding: 0 !important;
         font-size: 8px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
       }
       
       .barcode-section {
-        border: none;
-        margin: 0;
-        padding: 0;
-        background: white;
-      }
-      
-      .barcode-header {
-        display: none;  /* Hide header when printing */
-      }
-      
-      .barcode-grid {
-        margin: 0;
-        padding: 0;
-        gap: 0;
-        grid-template-columns: repeat(3, 2.625in);
-        grid-template-rows: repeat(10, 1in);
-      }
-      
-      .barcode-label {
-        border: none;
-        width: 2.625in;
-        height: 1in;
-        margin: 0;
-        padding: 2px 4px;
+        border: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
         page-break-inside: avoid;
       }
       
+      .barcode-header {
+        display: none !important;  /* Hide header when printing */
+      }
+      
+      .barcode-grid {
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        display: grid !important;
+        grid-template-columns: repeat(3, 2.625in) !important;
+        grid-template-rows: repeat(10, 1in) !important;
+        width: 7.875in !important;  /* 3 × 2.625in */
+        height: 10in !important;    /* 10 × 1in */
+        page-break-inside: avoid;
+      }
+      
+      .barcode-label {
+        border: none !important;
+        width: 2.625in !important;
+        height: 1in !important;
+        margin: 0 !important;
+        padding: 2px 4px !important;
+        page-break-inside: avoid;
+        box-sizing: border-box !important;
+      }
+      
       .barcode-display {
-        border: none;
-        background: white;
+        border: 1px solid black !important;
+        background: white !important;
       }
       
       /* Hide everything except barcode section when printing */
       body > *:not(.container) {
+        display: none !important;
+      }
+      
+      .container > *:not(.main-card) {
         display: none !important;
       }
       
@@ -1025,11 +984,74 @@
         display: none !important;
       }
       
-      /* Ensure proper page breaks */
-      .barcode-label:nth-child(30n) {
-        page-break-after: always;
+      /* Force single page for 30 labels */
+      .barcode-section {
+        page-break-after: avoid;
+        page-break-before: avoid;
+        page-break-inside: avoid;
+      }
+      
+      /* Remove any automatic page breaks */
+      * {
+        page-break-inside: avoid !important;
       }
     }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 16px;
+      }
+
+      .card-content {
+        padding: 24px;
+      }
+
+      .employee-payout-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      .card-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .btn {
+        justify-content: center;
+      }
+
+      .estimate-totals {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Loading states */
+    .loading {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid transparent;
+      border-top: 2px solid currentColor;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Micro-interactions */
     .btn::before {
       content: '';
       position: absolute;
@@ -1685,7 +1707,7 @@
           
           // Also show an alert with key info for immediate feedback
           let alertMessage = `✅ Trade Completed Successfully!\n\n`;
-          alertMessage += `💰 Amount: ${data.finalPayout} CAD\n`;
+          alertMessage += `💰 Amount: $${data.finalPayout} CAD\n`;
           alertMessage += `👤 Employee: ${data.employeeName}\n`;
           
           if (payoutMethod === 'gift-card' && data.giftCardCode) {
@@ -1744,7 +1766,7 @@
           successHTML += `
             <div class="store-credit-display">
               <div style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">🏪 Store Credit Issued</div>
-              <div class="payout-amount">${data.finalPayout} CAD</div>
+              <div class="payout-amount">$${data.finalPayout} CAD</div>
               <div>Customer: ${data.customer.email}</div>
               <div style="margin-top: 16px; opacity: 0.9;">
                 Store credit has been added to the customer's account.
@@ -1755,7 +1777,7 @@
           successHTML += `
             <div class="cash-display">
               <div style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">💵 Cash Payout</div>
-              <div class="payout-amount">${data.finalPayout} CAD</div>
+              <div class="payout-amount">$${data.finalPayout} CAD</div>
               <div style="margin-top: 16px; opacity: 0.9;">
                 Please provide this amount in cash to the customer.
               </div>
@@ -1821,7 +1843,7 @@
         generateBarcodes(data.results);
       }
 
-      // Barcode generation function
+      // UPC barcode generation - Pokemon card pack style
       function generateBarcodes(results) {
         const barcodeContent = document.getElementById('barcode-content');
         barcodeContent.innerHTML = '';
@@ -1832,57 +1854,115 @@
         if (matchedItems.length === 0) {
           barcodeContent.innerHTML = `
             <div style="grid-column: 1/-1; text-align: center; color: var(--gray-500); padding: 40px;">
-              📊 No SKUs available for barcode generation
+              📊 No SKUs available for UPC generation
             </div>
           `;
           return;
         }
 
+        let labelCount = 0;
         matchedItems.forEach(item => {
-          // Generate barcode for each quantity
+          // Generate UPC for each quantity
           for (let i = 0; i < item.quantity; i++) {
             const barcodeLabel = document.createElement('div');
             barcodeLabel.className = 'barcode-label';
             
-            // Generate a simple barcode representation (using Code 128 style)
-            const barcodeDisplay = generateBarcodeDisplay(item.sku);
+            // Generate UPC code from SKU
+            const upcCode = generateUPCFromSKU(item.sku);
+            const upcDisplay = generateUPCBarcode(upcCode);
             
+            // Clean label with UPC format
             barcodeLabel.innerHTML = `
-              <div class="barcode-item-name">${item.match}</div>
               <div class="barcode-sku">SKU: ${item.sku}</div>
-              <div class="barcode-display">${barcodeDisplay}</div>
-              <div class="barcode-number">${item.sku}</div>
-              <div class="barcode-details">
-                Condition: ${item.condition} | Trade Value: ${item.suggestedTradeValue.toFixed(2)}<br>
-                Generated: ${new Date().toLocaleDateString()}
-              </div>
+              <div class="barcode-display">${upcDisplay}</div>
+              <div class="barcode-number">${upcCode}</div>
             `;
             
             barcodeContent.appendChild(barcodeLabel);
+            labelCount++;
           }
         });
+
+        // Fill remaining slots to complete the sheet (if less than 30 labels)
+        while (labelCount < 30 && labelCount % 30 !== 0) {
+          const emptyLabel = document.createElement('div');
+          emptyLabel.className = 'barcode-label';
+          emptyLabel.style.border = '1px dashed #e2e8f0';
+          emptyLabel.style.backgroundColor = '#f7fafc';
+          barcodeContent.appendChild(emptyLabel);
+          labelCount++;
+        }
       }
 
-      // Generate barcode display (simple representation)
-      function generateBarcodeDisplay(sku) {
-        // Create a simple barcode-like pattern
-        // In a real implementation, you'd use a proper barcode library
-        let barcode = '';
-        const chars = sku.toString();
+      // Generate UPC-A code from SKU (12 digits)
+      function generateUPCFromSKU(sku) {
+        // Convert SKU to a 12-digit UPC-A format
+        let numericSku = '';
         
-        // Start pattern
-        barcode += '|||';
-        
-        // Convert each character to a simple bar pattern
-        for (let char of chars) {
-          const code = char.charCodeAt(0);
-          const pattern = (code % 8).toString(2).padStart(3, '0');
-          barcode += pattern.replace(/0/g, ' ').replace(/1/g, '|');
-          barcode += ' ';
+        // Extract numbers from SKU, pad/truncate to 11 digits
+        for (let char of sku.toString()) {
+          if (char.match(/[0-9]/)) {
+            numericSku += char;
+          } else {
+            // Convert letters to numbers (A=1, B=2, etc.)
+            numericSku += (char.toUpperCase().charCodeAt(0) - 64).toString().slice(-1);
+          }
         }
         
-        // End pattern
-        barcode += '|||';
+        // Pad or truncate to 11 digits
+        numericSku = numericSku.padEnd(11, '0').substring(0, 11);
+        
+        // Calculate check digit (UPC-A check digit algorithm)
+        let oddSum = 0, evenSum = 0;
+        for (let i = 0; i < 11; i++) {
+          if (i % 2 === 0) {
+            oddSum += parseInt(numericSku[i]);
+          } else {
+            evenSum += parseInt(numericSku[i]);
+          }
+        }
+        const checkDigit = (10 - ((oddSum * 3 + evenSum) % 10)) % 10;
+        
+        return numericSku + checkDigit;
+      }
+
+      // Generate UPC-A barcode pattern (Pokemon card pack style)
+      function generateUPCBarcode(upcCode) {
+        // UPC-A encoding patterns for digits 0-9
+        const leftPatterns = [
+          '0001101', '0011001', '0010011', '0111101', '0100011',
+          '0110001', '0101111', '0111011', '0110111', '0001011'
+        ];
+        
+        const rightPatterns = [
+          '1110010', '1100110', '1101100', '1000010', '1011100',
+          '1001110', '1010000', '1000100', '1001000', '1110100'
+        ];
+        
+        let barcode = '';
+        
+        // Start guard
+        barcode += '101';
+        
+        // Left side (6 digits)
+        for (let i = 1; i <= 6; i++) {
+          const digit = parseInt(upcCode[i]);
+          const pattern = leftPatterns[digit];
+          barcode += pattern.replace(/0/g, ' ').replace(/1/g, '|');
+        }
+        
+        // Center guard
+        barcode += '01010';
+        
+        // Right side (5 digits + check digit)
+        for (let i = 7; i <= 11; i++) {
+          const digit = parseInt(upcCode[i]);
+          const pattern = rightPatterns[digit];
+          barcode += pattern.replace(/0/g, ' ').replace(/1/g, '|');
+        }
+        
+        // End guard
+        barcode += '101';
         
         return barcode;
       }
@@ -1905,26 +1985,43 @@
         window.print();
       });
 
-      // NEW: Print barcodes functionality
+      // NEW: Print barcodes functionality - Fixed for single page
       document.getElementById('print-barcodes').addEventListener('click', function() {
         const barcodeSection = document.getElementById('barcode-section');
         if (barcodeSection.style.display === 'none') {
           barcodeSection.style.display = 'block';
-          this.innerHTML = '<span>🖨️</span><span>Print Barcode Labels</span>';
+          this.innerHTML = '<span>🖨️</span><span>Print UPC Labels</span>';
         } else {
-          // Print only the barcode section
-          const originalDisplay = [];
-          document.querySelectorAll('body > *:not(.container)').forEach((el, i) => {
-            originalDisplay[i] = el.style.display;
-            el.style.display = 'none';
-          });
+          // Set up print-specific styling
+          const printStyle = document.createElement('style');
+          printStyle.innerHTML = `
+            @media print {
+              html, body {
+                width: 8.5in;
+                height: 11in;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+              }
+              
+              .barcode-section {
+                position: absolute;
+                top: 0.5in;
+                left: 0.1875in;
+                width: 7.875in;
+                height: 10in;
+              }
+            }
+          `;
+          document.head.appendChild(printStyle);
           
+          // Print
           window.print();
           
-          // Restore original display
-          document.querySelectorAll('body > *:not(.container)').forEach((el, i) => {
-            el.style.display = originalDisplay[i];
-          });
+          // Remove the temporary style
+          setTimeout(() => {
+            document.head.removeChild(printStyle);
+          }, 1000);
         }
       });
 
@@ -2030,11 +2127,11 @@
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center;">
               <div>
                 <div style="font-size: 12px; color: var(--gray-500);">Retail</div>
-                <div style="font-weight: 600;">$${card.retailPrice.toFixed(2)}</div>
+                <div style="font-weight: 600;">${card.retailPrice.toFixed(2)}</div>
               </div>
               <div>
                 <div style="font-size: 12px; color: var(--gray-500);">Suggested</div>
-                <div style="font-weight: 600; color: var(--accent);">$${card.suggestedTradeValue.toFixed(2)}</div>
+                <div style="font-weight: 600; color: var(--accent);">${card.suggestedTradeValue.toFixed(2)}</div>
               </div>
               <div>
                 <div style="font-size: 12px; color: var(--gray-500);">Maximum</div>
