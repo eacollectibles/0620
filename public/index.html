@@ -587,6 +587,14 @@
     <div class="api-config">
       <h3 style="margin-top: 0;">🔧 API Configuration & Status</h3>
       <div class="config-row">
+        <span class="config-label">Debug Level:</span>
+        <select class="form-select" id="debug-level" style="width: 150px;">
+          <option value="basic">Basic</option>
+          <option value="detailed">Detailed</option>
+          <option value="verbose">Verbose</option>
+        </select>
+      </div>
+      <div class="config-row">
         <span class="config-label">API URL:</span>
         <input type="text" class="form-input" id="api-url" value="/api/buybackstep4" style="flex: 1;">
         <button class="btn btn-secondary" id="test-connection">Test Connection</button>
@@ -729,6 +737,11 @@
             <button type="button" class="btn btn-primary" id="clear-logs">
               <span>🗑️</span>
               <span>Clear Debug Logs</span>
+            </button>
+
+            <button type="button" class="btn btn-secondary" id="test-different-endpoints">
+              <span>🔗</span>
+              <span>Test Different URLs</span>
             </button>
           </div>
         </form>
@@ -1029,7 +1042,18 @@
           });
 
           if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            // Try to get error details from response
+            let errorDetails = `HTTP ${response.status}: ${response.statusText}`;
+            try {
+              const errorText = await response.text();
+              if (errorText) {
+                errorDetails += ` - ${errorText}`;
+                this.logger.log('error', 'Server error response', { errorText });
+              }
+            } catch (e) {
+              this.logger.log('warn', 'Could not read error response body');
+            }
+            throw new Error(errorDetails);
           }
 
           const data = await response.json();
@@ -1317,6 +1341,24 @@
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner"></span> Testing...';
         
+        // First try a simple GET request to see if the API is even reachable
+        searchClient.logger.log('info', 'Testing if API endpoint exists...');
+        
+        try {
+          const simpleTest = await fetch(searchClient.apiUrl, {
+            method: 'GET',
+            mode: 'no-cors' // Try no-cors to bypass CORS issues
+          });
+          
+          searchClient.logger.log('info', 'Simple fetch result', {
+            status: simpleTest.status,
+            type: simpleTest.type,
+            ok: simpleTest.ok
+          });
+        } catch (error) {
+          searchClient.logger.log('error', 'Simple fetch failed', { message: error.message });
+        }
+        
         await searchClient.testAllMethods();
         
         btn.disabled = false;
@@ -1337,6 +1379,51 @@
       // Clear logs button
       document.getElementById('clear-logs').addEventListener('click', function() {
         searchClient.logger.clear();
+      });
+
+      // Test different endpoints button
+      document.getElementById('test-different-endpoints').addEventListener('click', async function() {
+        const endpoints = [
+          '/api/buybackstep4',
+          '/api/margin-analytics',
+          '/api/test',
+          '/api/health',
+          '/health',
+          '/ping'
+        ];
+
+        searchClient.logger.log('info', 'Testing different endpoints...');
+
+        for (const endpoint of endpoints) {
+          try {
+            searchClient.logger.log('info', `Testing endpoint: ${endpoint}`);
+            
+            const response = await fetch(endpoint, {
+              method: 'GET',
+              mode: 'cors',
+              headers: { 'Accept': 'application/json' }
+            });
+
+            searchClient.logger.log('info', `${endpoint} result:`, {
+              status: response.status,
+              statusText: response.statusText,
+              ok: response.ok,
+              type: response.type
+            });
+
+            if (response.ok) {
+              try {
+                const data = await response.text();
+                searchClient.logger.log('info', `${endpoint} response:`, data.substring(0, 200));
+              } catch (e) {
+                searchClient.logger.log('info', `${endpoint} response: (not readable as text)`);
+              }
+            }
+
+          } catch (error) {
+            searchClient.logger.log('error', `${endpoint} failed:`, { message: error.message });
+          }
+        }
       });
 
       // Show/hide customer email
