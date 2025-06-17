@@ -915,45 +915,52 @@
       }
     }
 
-    /* Print styles optimized for Avery 7666 - FIXED: Only labels print */
+    /* Print styles - FIXED: Only barcode labels print, no blank pages */
     @media print {
       @page {
         size: letter;
-        margin: 0.5in 0.1875in 0.5in 0.1875in;  /* Avery 7666 spec */
+        margin: 0.5in 0.1875in 0.5in 0.1875in;
       }
       
-      body {
-        margin: 0 !important;
-        padding: 0 !important;
-        font-size: 8px;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-        background: white !important;
-      }
-      
-      /* Hide EVERYTHING except barcode labels when printing */
-      * {
+      /* Hide absolutely everything first */
+      body, body * {
         visibility: hidden !important;
+        display: none !important;
       }
       
+      /* Only show barcode elements */
+      #barcode-section,
+      #barcode-section *,
       .barcode-grid,
       .barcode-grid *,
       .barcode-label,
-      .barcode-label * {
+      .barcode-label *,
+      .barcode-svg,
+      .barcode-svg * {
         visibility: visible !important;
+        display: block !important;
       }
       
-      .barcode-section {
-        position: absolute !important;
+      .barcode-grid {
+        display: grid !important;
+      }
+      
+      .barcode-display {
+        display: flex !important;
+      }
+      
+      /* Position barcode section to fill page */
+      #barcode-section {
+        position: fixed !important;
         top: 0 !important;
         left: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
+        width: 100vw !important;
+        height: 100vh !important;
         background: white !important;
-        border: none !important;
         margin: 0 !important;
         padding: 0 !important;
-        overflow: visible !important;
+        border: none !important;
+        z-index: 9999 !important;
       }
       
       .barcode-header {
@@ -969,27 +976,24 @@
         margin: 0 !important;
         padding: 0 !important;
         gap: 0 !important;
-        display: grid !important;
         grid-template-columns: repeat(3, 2.625in) !important;
         grid-template-rows: repeat(10, 1in) !important;
         background: white !important;
       }
       
       .barcode-label {
-        border: none !important;
         width: 2.625in !important;
         height: 1in !important;
         margin: 0 !important;
         padding: 2px 4px !important;
-        page-break-inside: avoid !important;
-        box-sizing: border-box !important;
+        border: none !important;
         background: white !important;
-        overflow: hidden !important;
+        page-break-inside: avoid !important;
       }
       
-      .barcode-display {
-        border: 1px solid black !important;
-        background: white !important;
+      .barcode-svg {
+        max-width: 100% !important;
+        max-height: 100% !important;
       }
     }
 
@@ -1973,15 +1977,96 @@
         window.print();
       });
 
-      // NEW: Print barcodes functionality - FIXED: Only labels print
+      // Print barcodes functionality - FIXED: No blank pages
       document.getElementById('print-barcodes').addEventListener('click', function() {
         const barcodeSection = document.getElementById('barcode-section');
         if (barcodeSection.style.display === 'none') {
           barcodeSection.style.display = 'block';
-          this.innerHTML = '<span>🖨️</span><span>Print UPC Labels</span>';
+          this.innerHTML = '<span>🖨️</span><span>Print Code 128 Labels</span>';
         } else {
-          // Print with clean labels only
-          window.print();
+          // Create a new window with only the barcode content
+          const printWindow = window.open('', '_blank');
+          const barcodeHTML = document.getElementById('barcode-content').innerHTML;
+          
+          printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <title>Barcode Labels</title>
+              <style>
+                @page {
+                  size: letter;
+                  margin: 0.5in 0.1875in 0.5in 0.1875in;
+                }
+                body {
+                  margin: 0;
+                  padding: 0;
+                  background: white;
+                  font-family: Arial, sans-serif;
+                }
+                .barcode-grid {
+                  display: grid;
+                  grid-template-columns: repeat(3, 2.625in);
+                  grid-template-rows: repeat(10, 1in);
+                  gap: 0;
+                  width: 7.875in;
+                  height: 10in;
+                }
+                .barcode-label {
+                  width: 2.625in;
+                  height: 1in;
+                  padding: 2px 4px;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: center;
+                  align-items: center;
+                  text-align: center;
+                  background: white;
+                  box-sizing: border-box;
+                  font-family: monospace;
+                }
+                .barcode-sku {
+                  font-size: 7px;
+                  color: black;
+                  margin-bottom: 2px;
+                  font-weight: 600;
+                }
+                .barcode-display {
+                  height: 60px;
+                  width: 95%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  margin: 3px 0;
+                }
+                .barcode-svg {
+                  max-width: 100%;
+                  max-height: 100%;
+                }
+                .barcode-number {
+                  font-size: 6px;
+                  color: black;
+                  margin-top: 1px;
+                  font-weight: 500;
+                  font-family: monospace;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="barcode-grid">
+                ${barcodeHTML}
+              </div>
+              <script>
+                window.onload = function() {
+                  window.print();
+                  window.close();
+                };
+              </script>
+            </body>
+            </html>
+          `);
+          
+          printWindow.document.close();
         }
       });
 
