@@ -450,21 +450,6 @@
       border: 1px solid var(--gray-300);
     }
 
-    .btn.appearing {
-      animation: buttonAppear 0.4s ease;
-    }
-
-    @keyframes buttonAppear {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
     .status-bar {
       background: white;
       border: 1px solid var(--gray-200);
@@ -916,151 +901,6 @@
     // Initialize search client
     const searchClient = new SearchClient();
 
-    // Store the last trade data for label printing
-    let lastTradeData = null;
-
-    // Print inventory labels function
-    function printInventoryLabels(tradeData) {
-      if (!tradeData || !tradeData.results || tradeData.results.length === 0) {
-        alert('No cards available for label printing.');
-        return;
-      }
-
-      // Generate labels for each card (repeated by quantity)
-      const labels = [];
-      tradeData.results.forEach(card => {
-        for (let i = 0; i < card.quantity; i++) {
-          labels.push({
-            sku: card.sku || `CARD-${Date.now()}-${i}`,
-            cardName: card.cardName,
-            condition: card.condition || 'NM'
-          });
-        }
-      });
-
-      const labelHTML = generateLabelSheet(labels, tradeData);
-      const printWindow = window.open('', '_blank');
-      printWindow.document.write(labelHTML);
-      printWindow.document.close();
-      printWindow.focus();
-      printWindow.print();
-    }
-
-    // Generate the label sheet HTML
-    function generateLabelSheet(labels, tradeData) {
-      const tradeId = Date.now().toString();
-      const tradeDate = new Date().toLocaleDateString();
-      
-      return `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Inventory Labels - Trade ${tradeId}</title>
-          <style>
-            @page { 
-              margin: 0.5in; 
-              size: letter;
-            }
-            
-            body {
-              font-family: Arial, sans-serif;
-              margin: 0;
-              padding: 0;
-            }
-            
-            .header {
-              text-align: center;
-              margin-bottom: 20px;
-              font-size: 12pt;
-              border-bottom: 2px solid #000;
-              padding-bottom: 10px;
-            }
-            
-            .label-sheet {
-              display: grid;
-              grid-template-columns: repeat(3, 1fr);
-              gap: 4mm;
-              margin: 0;
-            }
-            
-            .inventory-label {
-              width: 60mm;
-              height: 25mm;
-              border: 1px solid #000;
-              padding: 2mm;
-              box-sizing: border-box;
-              page-break-inside: avoid;
-              display: flex;
-              flex-direction: column;
-              justify-content: space-between;
-            }
-            
-            .barcode-container {
-              text-align: center;
-              flex-grow: 1;
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-            }
-            
-            .barcode {
-              height: 12mm;
-              width: 100%;
-              background: repeating-linear-gradient(
-                to right,
-                #000 0px,
-                #000 1px,
-                #fff 1px,
-                #fff 2px
-              );
-              margin: 2mm 0;
-            }
-            
-            .sku-text {
-              font-size: 8pt;
-              font-weight: bold;
-              text-align: center;
-              font-family: 'Courier New', monospace;
-            }
-            
-            .card-info {
-              font-size: 6pt;
-              text-align: center;
-              margin-top: 1mm;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-            }
-            
-            @media print {
-              .header { color: #000; }
-              .inventory-label { border: 1px solid #000; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <strong>INVENTORY LABELS</strong><br>
-            Trade ID: ${tradeId} | Date: ${tradeDate} | Employee: ${tradeData.employeeName || 'N/A'}<br>
-            Total Labels: ${labels.length}
-          </div>
-          
-          <div class="label-sheet">
-            ${labels.map(label => `
-              <div class="inventory-label">
-                <div class="barcode-container">
-                  <div class="barcode"></div>
-                  <div class="sku-text">${label.sku}</div>
-                </div>
-                <div class="card-info">${label.cardName.substring(0, 20)}${label.cardName.length > 20 ? '...' : ''} (${label.condition})</div>
-              </div>
-            `).join('')}
-          </div>
-        </body>
-        </html>
-      `;
-    }
-
     // Search functionality
     function setupCardSearch(input) {
       let searchTimeout;
@@ -1120,3 +960,240 @@
             <div class="suggestion-actions">
               <button type="button" class="suggestion-btn confirm-btn">✅ Confirm</button>
               <button type="button" class="suggestion-btn reject-btn">❌ Reject</button>
+            </div>
+          </div>
+        `;
+      } else {
+        suggestion.innerHTML = `
+          <div class="suggestion-content">
+            <div class="suggestion-info">
+              <div class="suggestion-name">❌ "${query}" not found</div>
+              <div class="suggestion-details">
+                <span>Not in your Shopify inventory</span>
+              </div>
+            </div>
+            <div class="suggestion-actions">
+              <button type="button" class="suggestion-btn" style="background: var(--warning); color: white;">⚠️ Continue</button>
+              <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
+            </div>
+          </div>
+        `;
+      }
+
+      container.appendChild(suggestion);
+
+      // Handle confirm
+      suggestion.querySelector('.confirm-btn, .suggestion-btn')?.addEventListener('click', function() {
+        input.value = result.name;
+        input.dataset.confirmedResult = JSON.stringify(result);
+        input.classList.add(result.found ? 'confirmed' : 'not-found');
+        suggestion.remove();
+      });
+
+      // Handle reject
+      suggestion.querySelector('.reject-btn').addEventListener('click', function() {
+        suggestion.remove();
+        input.focus();
+      });
+
+      // Auto-remove
+      setTimeout(() => {
+        if (suggestion.parentNode) suggestion.remove();
+      }, 10000);
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      // Setup search for existing inputs
+      document.querySelectorAll('.card-input').forEach(setupCardSearch);
+
+      // Show/hide customer email
+      document.querySelectorAll('input[name="payoutMethod"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          const emailSection = document.getElementById('customer-email');
+          if (this.value === 'store-credit') {
+            emailSection.classList.add('visible');
+          } else {
+            emailSection.classList.remove('visible');
+          }
+        });
+      });
+
+      // Add card functionality
+      document.getElementById('add-card').addEventListener('click', function() {
+        const cardList = document.getElementById('card-list');
+        const newRow = document.createElement('div');
+        newRow.className = 'card-row';
+        newRow.innerHTML = `
+          <div class="card-input-container">
+            <input type="text" class="card-input" name="cardName" placeholder="Enter card name, SKU, or card number" required>
+          </div>
+          <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
+          <select class="form-select" name="cardCondition" required style="width: 120px;">
+            <option value="NM">Near Mint</option>
+            <option value="LP">Lightly Played</option>
+            <option value="MP">Moderately Played</option>
+          </select>
+          <button type="button" class="remove-btn">✖</button>
+        `;
+        cardList.appendChild(newRow);
+
+        // Setup search for new input
+        setupCardSearch(newRow.querySelector('.card-input'));
+
+        // Setup remove button
+        newRow.querySelector('.remove-btn').addEventListener('click', function() {
+          newRow.remove();
+        });
+      });
+
+      // Remove button for existing cards
+      document.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          btn.closest('.card-row').remove();
+        });
+      });
+
+      // Print labels button handler
+      document.getElementById('print-labels').addEventListener('click', function() {
+        if (lastTradeData) {
+          printInventoryLabels(lastTradeData);
+        } else {
+          alert('No trade data available for label printing.');
+        }
+      });
+
+      // Estimate button
+      document.getElementById('estimate-trade').addEventListener('click', function() {
+        const cards = document.querySelectorAll('.card-row');
+        const confirmedCards = Array.from(cards).filter(row => {
+          const input = row.querySelector('.card-input');
+          return input.dataset.confirmedResult;
+        });
+
+        if (confirmedCards.length === 0) {
+          alert('Please search and confirm at least one card before estimating.');
+          return;
+        }
+
+        if (confirmedCards.length !== cards.length) {
+          alert('Please confirm all card searches before estimating.');
+          return;
+        }
+
+        // Show submit button after estimate
+        document.getElementById('submit-trade').style.display = 'inline-flex';
+        
+        const statusText = document.querySelector('.status-text');
+        statusText.textContent = `Estimate complete! ${confirmedCards.length} cards confirmed.`;
+        statusText.style.color = 'var(--success)';
+      });
+
+      // Form submission
+      document.getElementById('trade-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const employeeName = document.getElementById('employeeName').value;
+        const payoutMethod = document.querySelector('input[name="payoutMethod"]:checked')?.value;
+        const customerEmail = document.getElementById('customerEmail').value;
+
+        if (!employeeName || !payoutMethod) {
+          alert('Please select an employee and payout method.');
+          return;
+        }
+
+        if (payoutMethod === 'store-credit' && !customerEmail) {
+          alert('Customer email is required for store credit.');
+          return;
+        }
+
+        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
+          const input = row.querySelector('.card-input');
+          const quantity = parseInt(row.querySelector('[name="cardQuantity"]').value) || 1;
+          const result = JSON.parse(input.dataset.confirmedResult || '{}');
+          
+          return {
+            cardName: result.name || input.value,
+            sku: result.sku || null,
+            quantity: quantity
+          };
+        });
+
+        const submitBtn = document.getElementById('submit-trade');
+        submitBtn.innerHTML = '<span class="spinner"></span><span>Processing...</span>';
+        submitBtn.disabled = true;
+
+        try {
+          const response = await fetch(searchClient.apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              cards: cards,
+              employeeName: employeeName,
+              payoutMethod: payoutMethod,
+              customerEmail: customerEmail || undefined
+            })
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            submitBtn.innerHTML = '<span>✅</span><span>Trade Complete</span>';
+            submitBtn.disabled = false;
+            
+            const statusText = document.querySelector('.status-text');
+            statusText.textContent = 'Trade completed successfully! 🎉';
+            statusText.style.color = 'var(--success)';
+
+            // Show success details
+            let successMessage = `Trade completed!\n\nFinal Payout: ${data.finalPayout}\nPayout Method: ${data.payoutMethod.replace('-', ' ').toUpperCase()}`;
+            
+            if (data.giftCardCode) {
+              successMessage += `\nGift Card Code: ${data.giftCardCode}`;
+            }
+            
+            if (data.customer?.email) {
+              successMessage += `\nStore Credit issued to: ${data.customer.email}`;
+            }
+
+            alert(successMessage);
+
+            // Reset form after success
+            setTimeout(() => {
+              if (confirm('Reset form for next trade?')) {
+                location.reload();
+              }
+            }, 2000);
+
+          } else {
+            throw new Error(data.error || 'Trade processing failed');
+          }
+
+        } catch (error) {
+          console.error('Trade error:', error);
+          submitBtn.innerHTML = '<span>✅</span><span>Process Trade</span>';
+          submitBtn.disabled = false;
+          
+          const statusText = document.querySelector('.status-text');
+          statusText.textContent = `Trade failed: ${error.message}`;
+          statusText.style.color = 'var(--error)';
+          
+          alert('Trade processing failed: ' + error.message);
+        }
+      });
+
+      // Update metrics periodically
+      setInterval(() => {
+        document.getElementById('total-searches').textContent = searchClient.stats.totalSearches;
+        document.getElementById('cache-rate').textContent = 
+          searchClient.stats.totalSearches > 0 ? 
+          Math.round((searchClient.stats.cacheHits / searchClient.stats.totalSearches) * 100) + '%' : 
+          '0%';
+      }, 1000);
+
+      console.log('🚀 Trade-In Portal initialized - connecting to real API');
+      console.log('🔗 API URL:', searchClient.apiUrl);
+    });
+  </script>
+</body>
+</html>
