@@ -1078,6 +1078,29 @@
         <div class="status-bar" id="status-bar">
           <div class="status-text">Ready to process trades...</div>
         </div>
+
+        <!-- Trade Success Results -->
+        <div id="trade-success" class="trade-success">
+          <div class="success-header">
+            <div class="success-title">🎉 Trade Completed Successfully!</div>
+            <button type="button" class="btn btn-secondary" id="close-success" style="padding: 8px 12px;">✖ Close</button>
+          </div>
+          
+          <div id="success-content" class="success-content">
+            <!-- Success content will be inserted here -->
+          </div>
+
+          <div class="success-actions">
+            <button type="button" class="btn btn-primary" id="new-trade">
+              <span>🔄</span>
+              <span>Process Another Trade</span>
+            </button>
+            <button type="button" class="btn btn-secondary" id="print-receipt">
+              <span>🖨️</span>
+              <span>Print Receipt</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
