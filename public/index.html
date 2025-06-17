@@ -926,8 +926,8 @@
   </div>
 
   <script>
-    // REAL API configuration - update this to your actual Vercel endpoint
-    const API_URL = '/api/trade'; 
+    // REAL API configuration - updated to match your actual file name
+    const API_URL = '/api/buybackstep4'; 
 
     document.addEventListener('DOMContentLoaded', function() {
       const customerEmail = document.getElementById('customer-email');
@@ -1037,6 +1037,8 @@
             showSearchLoading(container, query);
 
             // Make REAL API call to your Vercel backend
+            console.log('Making API call to:', `${API_URL}?estimate=true`);
+            
             const response = await fetch(`${API_URL}?estimate=true`, {
               method: 'POST',
               headers: {
@@ -1049,10 +1051,22 @@
               })
             });
 
+            console.log('Response status:', response.status);
+            console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+            // Check if response is actually JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+              // Get the actual response text to see what we're getting
+              const responseText = await response.text();
+              console.error('❌ Non-JSON response:', responseText);
+              throw new Error(`Server returned ${contentType}: ${responseText.substring(0, 200)}...`);
+            }
+
             const data = await response.json();
             
             if (!response.ok) {
-              throw new Error(data.error || 'Search failed');
+              throw new Error(data.error || `HTTP ${response.status}: ${response.statusText}`);
             }
 
             // Process the REAL search result from your Shopify store
