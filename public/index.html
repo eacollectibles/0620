@@ -789,24 +789,45 @@
       font-weight: 600;
     }
 
-    /* UPC Barcode - Much larger for Socket S740 scanning */
+    /* UPC Barcode - True barcode format for Socket S740 scanning */
     .barcode-display {
       background: white;
-      border: 1px solid var(--gray-200);
-      padding: 2px 4px;
+      border: none;
+      padding: 2px 0;
       margin: 3px 0;
-      font-family: 'Courier New', monospace;
-      font-size: 24px;  /* Much larger for reliable scanning */
-      letter-spacing: -1px;  /* Tight spacing for UPC bars */
       overflow: hidden;
       line-height: 1;
-      height: 48px;  /* Taller barcode - about 0.67" */
-      width: 95%;    /* Nearly full width - about 2.5" */
+      height: 48px;  /* Tall enough for scanning */
+      width: 95%;    /* Nearly full width */
       display: flex;
-      align-items: center;
+      align-items: stretch;
       justify-content: center;
-      border-left: 4px solid black;  /* Thicker UPC start guard */
-      border-right: 4px solid black; /* Thicker UPC end guard */
+    }
+
+    .barcode-bars {
+      display: flex;
+      align-items: stretch;
+      height: 100%;
+      background: white;
+    }
+
+    .bar {
+      height: 100%;
+      border: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .bar.black {
+      background-color: black;
+    }
+
+    .bar.white {
+      background-color: white;
+    }
+
+    .bar.guard {
+      height: 110%; /* Guard bars are slightly taller */
     }
 
     .barcode-number {
@@ -1920,45 +1941,61 @@
         return numericSku + checkDigit;
       }
 
-      // Generate UPC-A barcode pattern (Pokemon card pack style)
+      // Generate UPC-A barcode pattern (True barcode format)
       function generateUPCBarcode(upcCode) {
-        // UPC-A encoding patterns for digits 0-9
+        // UPC-A encoding patterns for digits 0-9 (L-patterns for left side)
         const leftPatterns = [
           '0001101', '0011001', '0010011', '0111101', '0100011',
           '0110001', '0101111', '0111011', '0110111', '0001011'
         ];
         
+        // R-patterns for right side
         const rightPatterns = [
           '1110010', '1100110', '1101100', '1000010', '1011100',
           '1001110', '1010000', '1000100', '1001000', '1110100'
         ];
         
-        let barcode = '';
+        let binaryPattern = '';
         
-        // Start guard
-        barcode += '101';
+        // Start guard (101)
+        binaryPattern += '101';
         
-        // Left side (6 digits)
+        // Left side digits (positions 1-6)
         for (let i = 1; i <= 6; i++) {
           const digit = parseInt(upcCode[i]);
-          const pattern = leftPatterns[digit];
-          barcode += pattern.replace(/0/g, ' ').replace(/1/g, '|');
+          binaryPattern += leftPatterns[digit];
         }
         
-        // Center guard
-        barcode += '01010';
+        // Center guard (01010)
+        binaryPattern += '01010';
         
-        // Right side (5 digits + check digit)
+        // Right side digits (positions 7-12)
         for (let i = 7; i <= 11; i++) {
           const digit = parseInt(upcCode[i]);
-          const pattern = rightPatterns[digit];
-          barcode += pattern.replace(/0/g, ' ').replace(/1/g, '|');
+          binaryPattern += rightPatterns[digit];
         }
         
-        // End guard
-        barcode += '101';
+        // End guard (101)
+        binaryPattern += '101';
         
-        return barcode;
+        // Convert binary pattern to actual HTML bars
+        let barcodeHTML = '<div class="barcode-bars">';
+        
+        for (let i = 0; i < binaryPattern.length; i++) {
+          const bit = binaryPattern[i];
+          const isGuard = (i < 3) || (i >= binaryPattern.length - 3) || 
+                         (i >= 45 && i <= 49); // Guard positions
+          
+          const barClass = bit === '1' ? 'bar black' : 'bar white';
+          const guardClass = isGuard ? ' guard' : '';
+          const width = 1; // Each bit is 1 unit wide
+          
+          barcodeHTML += `<div class="${barClass}${guardClass}" style="width: ${width}px; min-width: ${width}px;"></div>`;
+        }
+        
+        barcodeHTML += '</div>';
+        
+        return barcodeHTML;
       }
 
       // Success section close and new trade buttons
