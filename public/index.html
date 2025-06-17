@@ -782,37 +782,37 @@
     }
 
     .barcode-sku {
-      font-size: 8px;
+      font-size: 7px;
       color: var(--gray-800);
-      margin-bottom: 4px;
+      margin-bottom: 2px;
       white-space: nowrap;
       font-weight: 600;
     }
 
-    /* UPC Barcode - Pokemon card pack size */
+    /* UPC Barcode - Much larger for Socket S740 scanning */
     .barcode-display {
       background: white;
       border: 1px solid var(--gray-200);
       padding: 2px 4px;
       margin: 3px 0;
       font-family: 'Courier New', monospace;
-      font-size: 16px;  /* Large enough for UPC scanning */
+      font-size: 24px;  /* Much larger for reliable scanning */
       letter-spacing: -1px;  /* Tight spacing for UPC bars */
       overflow: hidden;
       line-height: 1;
-      height: 32px;  /* Pokemon pack UPC height (~0.45") */
-      width: 90%;    /* Pokemon pack UPC width (~1.5") */
+      height: 48px;  /* Taller barcode - about 0.67" */
+      width: 95%;    /* Nearly full width - about 2.5" */
       display: flex;
       align-items: center;
       justify-content: center;
-      border-left: 3px solid black;  /* UPC start guard */
-      border-right: 3px solid black; /* UPC end guard */
+      border-left: 4px solid black;  /* Thicker UPC start guard */
+      border-right: 4px solid black; /* Thicker UPC end guard */
     }
 
     .barcode-number {
-      font-size: 7px;
+      font-size: 6px;
       color: var(--gray-800);
-      margin-top: 2px;
+      margin-top: 1px;
       letter-spacing: 1px;
       white-space: nowrap;
       font-weight: 500;
