@@ -902,7 +902,7 @@
       background: white;
     }
 
-    /* Avery 7666 Individual Label - 1" x 2-5/8" (72pt x 189pt) */
+    /* Avery 7666 Individual Label - 1" x 2-5/8" optimized for Socket S740 scanning */
     .barcode-label {
       width: 2.625in;  /* 2-5/8" */
       height: 1in;     /* 1" */
@@ -923,56 +923,46 @@
     }
 
     .barcode-item-name {
-      font-weight: 600;
-      font-size: 7px;
-      margin-bottom: 1px;
-      color: var(--gray-800);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      width: 100%;
+      display: none; /* Remove item name to maximize barcode space */
     }
 
     .barcode-sku {
-      font-size: 6px;
-      color: var(--gray-600);
-      margin-bottom: 2px;
+      font-size: 8px;
+      color: var(--gray-800);
+      margin-bottom: 3px;
       white-space: nowrap;
+      font-weight: 600;
     }
 
     .barcode-display {
       background: white;
       border: none;
-      padding: 1px;
-      margin: 1px 0;
+      padding: 2px;
+      margin: 2px 0;
       font-family: 'Courier New', monospace;
-      font-size: 8px;
+      font-size: 14px;  /* Larger for better scanning */
       letter-spacing: 0px;
       overflow: hidden;
       word-break: break-all;
-      line-height: 0.8;
-      height: 12px;
+      line-height: 0.9;
+      height: 20px;  /* Taller barcode for Socket S740 */
       display: flex;
       align-items: center;
       justify-content: center;
+      width: 100%;
     }
 
     .barcode-number {
-      font-size: 6px;
-      color: var(--gray-700);
-      margin-top: 1px;
+      font-size: 7px;
+      color: var(--gray-800);
+      margin-top: 2px;
       letter-spacing: 0.5px;
       white-space: nowrap;
+      font-weight: 500;
     }
 
     .barcode-details {
-      font-size: 5px;
-      color: var(--gray-500);
-      margin-top: 1px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      width: 100%;
+      display: none; /* Remove condition and trade value */
     }
 
     /* Print styles optimized for Avery 7666 */
@@ -1240,16 +1230,16 @@
           </div>
         </div>
 
-        <!-- Barcode Section - Hidden by default, Avery 7666 Format -->
+        <!-- Barcode Section - Socket S740 Optimized Avery 7666 Format -->
         <div id="barcode-section" class="barcode-section" style="display: none;">
           <div class="barcode-header">
-            <h3 style="margin: 0; color: var(--gray-800);">📊 Avery 7666 Barcode Labels</h3>
+            <h3 style="margin: 0; color: var(--gray-800);">📊 SKU Barcode Labels</h3>
             <div style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">
-              30 labels per sheet • 1" x 2⅝" • Ready to print and scan
+              Avery 7666 • Optimized for Socket Mobile S740 Scanner • SKU Only
             </div>
           </div>
           <div id="barcode-content" class="barcode-grid">
-            <!-- Barcode labels will be generated here in Avery 7666 format -->
+            <!-- Barcode labels will be generated here in Socket S740 optimized format -->
           </div>
         </div>
 
