@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trade-In Processing</title>
+  <title>Trade-In Processing - Debug Mode</title>
   
   <style>
     :root {
@@ -46,6 +46,46 @@
       max-width: 1200px;
       margin: 0 auto;
     }
+
+    .debug-panel {
+      background: #1a1a1a;
+      color: #00ff00;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      padding: 16px;
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #333;
+    }
+
+    .debug-panel h4 {
+      color: #00ffff;
+      margin: 0 0 10px 0;
+      font-size: 14px;
+    }
+
+    .log-entry {
+      margin-bottom: 4px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .log-timestamp {
+      color: #888;
+      flex-shrink: 0;
+    }
+
+    .log-level {
+      flex-shrink: 0;
+      width: 50px;
+    }
+
+    .log-level.info { color: #00ff00; }
+    .log-level.warn { color: #ffff00; }
+    .log-level.error { color: #ff0000; }
 
     .main-card {
       background: white;
@@ -266,6 +306,11 @@
       background: rgba(214, 158, 46, 0.05);
     }
 
+    .card-input.error {
+      border-color: var(--error);
+      background: rgba(229, 62, 62, 0.05);
+    }
+
     .search-suggestion {
       position: absolute;
       top: 100%;
@@ -385,188 +430,6 @@
       transform: scale(1.05);
     }
 
-    /* Trade Estimate Section Styles */
-    .trade-estimate {
-      background: linear-gradient(135deg, rgba(56, 161, 105, 0.05) 0%, rgba(56, 161, 105, 0.02) 100%);
-      border: 2px solid var(--success);
-      border-radius: var(--border-radius-lg);
-      margin: 32px 0;
-      overflow: hidden;
-      opacity: 0;
-      max-height: 0;
-      transition: all 0.4s ease;
-    }
-
-    .trade-estimate.visible {
-      opacity: 1;
-      max-height: 1000px;
-    }
-
-    .estimate-header {
-      background: var(--success);
-      color: white;
-      padding: 20px 32px;
-      font-weight: 600;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .estimate-content {
-      padding: 32px;
-    }
-
-    .estimate-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 32px;
-    }
-
-    .card-breakdown {
-      background: white;
-      border-radius: var(--border-radius);
-      border: 1px solid var(--gray-200);
-      overflow: hidden;
-    }
-
-    .breakdown-header {
-      background: var(--gray-100);
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--gray-200);
-      font-weight: 600;
-      color: var(--gray-700);
-    }
-
-    .breakdown-list {
-      max-height: 400px;
-      overflow-y: auto;
-    }
-
-    .breakdown-item {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--gray-100);
-      display: grid;
-      grid-template-columns: 1fr auto auto auto;
-      gap: 16px;
-      align-items: center;
-    }
-
-    .breakdown-item:last-child {
-      border-bottom: none;
-    }
-
-    .breakdown-item:hover {
-      background: var(--gray-50);
-    }
-
-    .card-name {
-      font-weight: 500;
-      color: var(--gray-800);
-    }
-
-    .card-details {
-      font-size: 12px;
-      color: var(--gray-500);
-      margin-top: 2px;
-    }
-
-    .value-pill {
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 500;
-      text-align: center;
-      min-width: 60px;
-    }
-
-    .retail-value {
-      background: rgba(49, 130, 206, 0.1);
-      color: var(--accent);
-    }
-
-    .trade-value {
-      background: rgba(56, 161, 105, 0.1);
-      color: var(--success);
-    }
-
-    .quantity-badge {
-      background: var(--gray-200);
-      color: var(--gray-700);
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 500;
-      min-width: 30px;
-      text-align: center;
-    }
-
-    .payout-summary {
-      background: white;
-      border-radius: var(--border-radius);
-      border: 1px solid var(--gray-200);
-      height: fit-content;
-    }
-
-    .summary-header {
-      background: var(--primary);
-      color: white;
-      padding: 16px 20px;
-      font-weight: 600;
-    }
-
-    .summary-content {
-      padding: 24px 20px;
-    }
-
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--gray-100);
-    }
-
-    .summary-row:last-child {
-      border-bottom: none;
-      font-weight: 600;
-      font-size: 18px;
-      color: var(--success);
-      padding-top: 16px;
-      border-top: 2px solid var(--gray-200);
-    }
-
-    .summary-label {
-      color: var(--gray-600);
-      font-size: 14px;
-    }
-
-    .summary-value {
-      font-weight: 500;
-      color: var(--gray-800);
-    }
-
-    .bonus-info {
-      background: linear-gradient(135deg, rgba(214, 158, 46, 0.05) 0%, rgba(214, 158, 46, 0.02) 100%);
-      border: 1px solid var(--warning);
-      border-radius: var(--border-radius);
-      padding: 16px;
-      margin-top: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      color: var(--warning);
-    }
-
-    .actions {
-      display: flex;
-      gap: 16px;
-      align-items: center;
-      margin-top: 32px;
-      flex-wrap: wrap;
-    }
-
     .btn {
       display: inline-flex;
       align-items: center;
@@ -613,57 +476,58 @@
       color: white;
     }
 
-    .btn-warning {
-      background: var(--warning);
-      color: white;
-    }
-
     .btn-secondary {
       background: var(--gray-100);
       color: var(--gray-700);
       border: 1px solid var(--gray-300);
     }
 
-    .status-bar {
-      background: white;
-      border: 1px solid var(--gray-200);
-      border-radius: var(--border-radius-lg);
-      padding: 20px 24px;
-      margin: 32px 0;
+    .actions {
       display: flex;
-      justify-content: space-between;
+      gap: 16px;
       align-items: center;
-      box-shadow: var(--shadow);
+      margin-top: 32px;
+      flex-wrap: wrap;
     }
 
-    .status-text {
-      font-weight: 500;
+    .api-config {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--border-radius);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .config-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .config-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .config-label {
+      min-width: 120px;
+      font-weight: 600;
       color: var(--gray-700);
     }
 
-    .status-metrics {
-      display: flex;
-      gap: 16px;
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-left: 8px;
     }
 
-    .metric {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 14px;
-      color: var(--gray-600);
+    .status-indicator.connected {
+      background: var(--success);
     }
 
-    .metric.good {
-      color: var(--success);
-    }
-
-    .metric.warning {
-      color: var(--warning);
-    }
-
-    .metric.error {
-      color: var(--error);
+    .status-indicator.disconnected {
+      background: var(--error);
     }
 
     .spinner {
@@ -700,329 +564,57 @@
         gap: 12px;
       }
 
-      .estimate-grid {
-        grid-template-columns: 1fr;
-        gap: 24px;
-      }
-
-      .breakdown-item {
-        grid-template-columns: 1fr;
-        gap: 8px;
-        text-align: left;
-      }
-
-      .actions {
+      .config-row {
         flex-direction: column;
-        align-items: stretch;
+        align-items: flex-start;
       }
 
-      .btn {
-        justify-content: center;
-      }
-    }
-
-    /* Analytics Modal Styles */
-    .analytics-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.75);
-      z-index: 10000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-      padding: 20px;
-    }
-
-    .analytics-modal.visible {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .analytics-content {
-      background: white;
-      border-radius: var(--border-radius-lg);
-      width: 100%;
-      max-width: 1200px;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: var(--shadow-lg);
-      transform: scale(0.9);
-      transition: transform 0.3s ease;
-    }
-
-    .analytics-modal.visible .analytics-content {
-      transform: scale(1);
-    }
-
-    .analytics-header {
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-      color: white;
-      padding: 24px 32px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
-    }
-
-    .analytics-title {
-      font-size: 24px;
-      font-weight: 700;
-      margin: 0;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .close-modal {
-      background: rgba(255, 255, 255, 0.2);
-      border: none;
-      color: white;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-    }
-
-    .close-modal:hover {
-      background: rgba(255, 255, 255, 0.3);
-      transform: scale(1.1);
-    }
-
-    .analytics-body {
-      padding: 32px;
-    }
-
-    .metrics-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-      margin-bottom: 32px;
-    }
-
-    .metric-box {
-      background: var(--gray-50);
-      border: 1px solid var(--gray-200);
-      border-radius: var(--border-radius);
-      padding: 20px;
-      text-align: center;
-    }
-
-    .metric-icon {
-      font-size: 24px;
-      margin-bottom: 8px;
-    }
-
-    .metric-number {
-      font-size: 28px;
-      font-weight: 700;
-      margin: 8px 0;
-    }
-
-    .metric-number.positive {
-      color: var(--success);
-    }
-
-    .metric-number.negative {
-      color: var(--error);
-    }
-
-    .metric-number.warning {
-      color: var(--warning);
-    }
-
-    .metric-description {
-      font-size: 14px;
-      color: var(--gray-600);
-      margin: 0;
-    }
-
-    .metric-trend {
-      font-size: 12px;
-      margin-top: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-    }
-
-    .metric-trend.up {
-      color: var(--success);
-    }
-
-    .metric-trend.down {
-      color: var(--error);
-    }
-
-    .analytics-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 24px;
-      margin-bottom: 24px;
-    }
-
-    .chart-section {
-      background: var(--gray-50);
-      border: 1px solid var(--gray-200);
-      border-radius: var(--border-radius);
-      padding: 20px;
-    }
-
-    .chart-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--gray-700);
-      margin: 0 0 16px 0;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .chart-mock {
-      height: 250px;
-      background: white;
-      border-radius: var(--border-radius);
-      border: 2px dashed var(--gray-300);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--gray-500);
-      font-size: 14px;
-      text-align: center;
-    }
-
-    .top-cards {
-      background: var(--gray-50);
-      border: 1px solid var(--gray-200);
-      border-radius: var(--border-radius);
-      padding: 20px;
-    }
-
-    .card-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    .card-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--gray-200);
-    }
-
-    .card-item:last-child {
-      border-bottom: none;
-    }
-
-    .card-info {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .card-rank {
-      background: var(--primary);
-      color: white;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      font-weight: 600;
-    }
-
-    .card-rank.gold {
-      background: #d69e2e;
-    }
-
-    .card-rank.silver {
-      background: #718096;
-    }
-
-    .card-rank.bronze {
-      background: #c05621;
-    }
-
-    .card-name-small {
-      font-weight: 500;
-      color: var(--gray-800);
-      font-size: 14px;
-    }
-
-    .card-margin {
-      font-weight: 600;
-      color: var(--success);
-      font-size: 14px;
-    }
-
-    .loading-spinner {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 40px;
-      color: var(--gray-500);
-    }
-
-    .spinner-large {
-      width: 32px;
-      height: 32px;
-      border: 3px solid var(--gray-200);
-      border-top: 3px solid var(--accent);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-right: 12px;
-    }
-
-    @media (max-width: 768px) {
-      .analytics-modal {
-        padding: 10px;
-      }
-      
-      .analytics-header {
-        padding: 16px 20px;
-      }
-      
-      .analytics-title {
-        font-size: 20px;
-      }
-      
-      .analytics-body {
-        padding: 20px;
-      }
-      
-      .analytics-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .metrics-row {
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 16px;
+      .config-label {
+        min-width: auto;
       }
     }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- Debug Panel -->
+    <div class="debug-panel" id="debug-panel">
+      <h4>🐛 Debug Console</h4>
+      <div id="debug-logs">Debug logs will appear here...</div>
+    </div>
+
+    <!-- API Configuration Panel -->
+    <div class="api-config">
+      <h3 style="margin-top: 0;">🔧 API Configuration & Status</h3>
+      <div class="config-row">
+        <span class="config-label">API URL:</span>
+        <input type="text" class="form-input" id="api-url" value="/api/buybackstep4" style="flex: 1;">
+        <button class="btn btn-secondary" id="test-connection">Test Connection</button>
+        <div class="status-indicator disconnected" id="connection-status"></div>
+      </div>
+      <div class="config-row">
+        <span class="config-label">CORS Mode:</span>
+        <select class="form-select" id="cors-mode" style="width: 200px;">
+          <option value="cors">CORS</option>
+          <option value="no-cors">No-CORS</option>
+          <option value="same-origin">Same-Origin</option>
+        </select>
+      </div>
+      <div class="config-row">
+        <span class="config-label">Mock Mode:</span>
+        <label style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="mock-mode">
+          <span>Use mock responses (for testing)</span>
+        </label>
+      </div>
+    </div>
+
     <!-- Main Card -->
     <div class="main-card">
       <!-- Card Header -->
       <div class="card-header">
-        <h1 class="card-title">Trade-In Processing</h1>
-        <p class="card-subtitle">Process card trades with intelligent search optimization</p>
+        <h1 class="card-title">Trade-In Processing (Debug Mode)</h1>
+        <p class="card-subtitle">Enhanced debugging for card search issues</p>
       </div>
 
       <!-- Card Content -->
@@ -1104,7 +696,7 @@
               <div class="cards-list" id="card-list">
                 <div class="card-row">
                   <div class="card-input-container">
-                    <input type="text" class="card-input" name="cardName" placeholder="Enter card name, SKU, or card number" required>
+                    <input type="text" class="card-input" name="cardName" placeholder="Try: Lightning Bolt, Black Lotus, or Force of Will" required>
                   </div>
                   <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
                   <select class="form-select" name="cardCondition" required style="width: 120px;">
@@ -1118,264 +710,221 @@
             </div>
           </div>
 
-          <!-- Trade Estimate Section (Hidden by default) -->
-          <div class="trade-estimate" id="trade-estimate">
-            <div class="estimate-header">
-              <span>💰</span>
-              <span>Trade Estimate</span>
-            </div>
-            <div class="estimate-content">
-              <div class="estimate-grid">
-                <div class="card-breakdown">
-                  <div class="breakdown-header">Card Breakdown</div>
-                  <div class="breakdown-list" id="breakdown-list">
-                    <!-- Cards will be populated here -->
-                  </div>
-                </div>
-                
-                <div class="payout-summary">
-                  <div class="summary-header">Payout Summary</div>
-                  <div class="summary-content">
-                    <div class="summary-row">
-                      <span class="summary-label">Total Retail Value:</span>
-                      <span class="summary-value" id="total-retail">$0.00</span>
-                    </div>
-                    <div class="summary-row">
-                      <span class="summary-label">Base Trade Value:</span>
-                      <span class="summary-value" id="base-trade">$0.00</span>
-                    </div>
-                    <div class="summary-row">
-                      <span class="summary-label">Payout Method:</span>
-                      <span class="summary-value" id="payout-method-display">--</span>
-                    </div>
-                    <div class="summary-row">
-                      <span class="summary-label">Final Payout:</span>
-                      <span class="summary-value" id="final-payout">$0.00</span>
-                    </div>
-                    
-                    <div class="bonus-info" id="bonus-info" style="display: none;">
-                      <span>⚡</span>
-                      <span>Store credit includes 25% bonus!</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <!-- Actions -->
           <div class="actions">
-            <button type="button" class="btn btn-accent" id="estimate-trade">
-              <span>📊</span>
-              <span>Get Estimate</span>
+            <button type="button" class="btn btn-accent" id="test-search">
+              <span>🔍</span>
+              <span>Test Search</span>
             </button>
             
-            <button type="submit" class="btn btn-success" id="submit-trade" style="display: none;">
-              <span>✅</span>
-              <span>Process Trade</span>
-            </button>
-            
-            <button type="button" class="btn btn-primary" id="print-labels" style="display: none;">
-              <span>🏷️</span>
-              <span>Print Labels</span>
-            </button>
-
-            <button type="button" class="btn btn-secondary" id="view-analytics">
-              <span>📈</span>
-              <span>View Analytics</span>
+            <button type="button" class="btn btn-primary" id="clear-logs">
+              <span>🗑️</span>
+              <span>Clear Debug Logs</span>
             </button>
           </div>
         </form>
-
-        <!-- Status Bar -->
-        <div class="status-bar" id="status-bar">
-          <div class="status-text">Ready to process trades...</div>
-          <div class="status-metrics">
-            <div class="metric good">
-              <span>💾</span>
-              <span id="cache-rate">0%</span>
-            </div>
-            <div class="metric good">
-              <span>⚡</span>
-              <span id="avg-speed">0ms</span>
-            </div>
-            <div class="metric">
-              <span>🔍</span>
-              <span id="total-searches">0</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Analytics Modal -->
-  <div class="analytics-modal" id="analytics-modal">
-    <div class="analytics-content">
-      <div class="analytics-header">
-        <h2 class="analytics-title">
-          <span>📈</span>
-          <span>Profit Margin Analytics</span>
-        </h2>
-        <button class="close-modal" id="close-analytics">✖</button>
-      </div>
-      
-      <div class="analytics-body" id="analytics-body">
-        <!-- Loading state -->
-        <div class="loading-spinner" id="analytics-loading">
-          <div class="spinner-large"></div>
-          <span>Loading analytics data...</span>
-        </div>
-        
-        <!-- Analytics content will be populated here -->
-        <div id="analytics-data" style="display: none;">
-          <!-- Key Metrics -->
-          <div class="metrics-row">
-            <div class="metric-box">
-              <div class="metric-icon">💰</div>
-              <div class="metric-number positive" id="overall-margin">67.2%</div>
-              <div class="metric-description">Overall Margin</div>
-              <div class="metric-trend up">
-                <span>↗️</span>
-                <span>+3.2% vs last month</span>
-              </div>
-            </div>
-
-            <div class="metric-box">
-              <div class="metric-icon">📈</div>
-              <div class="metric-number positive" id="monthly-profit">$12,847</div>
-              <div class="metric-description">Monthly Profit</div>
-              <div class="metric-trend up">
-                <span>↗️</span>
-                <span>+8.1% vs last month</span>
-              </div>
-            </div>
-
-            <div class="metric-box">
-              <div class="metric-icon">⏱️</div>
-              <div class="metric-number warning" id="avg-days">23.4</div>
-              <div class="metric-description">Avg Days to Sell</div>
-              <div class="metric-trend down">
-                <span>↘️</span>
-                <span>+2.1 days vs last month</span>
-              </div>
-            </div>
-
-            <div class="metric-box">
-              <div class="metric-icon">📦</div>
-              <div class="metric-number negative" id="dead-inventory">$3,245</div>
-              <div class="metric-description">Dead Inventory Cost</div>
-              <div class="metric-trend down">
-                <span>↘️</span>
-                <span>-12% vs last month</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Charts and Top Cards -->
-          <div class="analytics-grid">
-            <div class="chart-section">
-              <h3 class="chart-title">
-                <span>📊</span>
-                <span>Margin Trends (Last 6 Months)</span>
-              </h3>
-              <div class="chart-mock">
-                📈 Interactive margin trend chart<br>
-                (Line chart showing monthly margin %, profit $, and volume)<br>
-                <em>Chart would be rendered here with real data</em>
-              </div>
-            </div>
-
-            <div class="top-cards">
-              <h3 class="chart-title">
-                <span>🏆</span>
-                <span>Top Performing Cards</span>
-              </h3>
-              <ul class="card-list">
-                <li class="card-item">
-                  <div class="card-info">
-                    <div class="card-rank gold">1</div>
-                    <div class="card-name-small">Black Lotus (Alpha)</div>
-                  </div>
-                  <div class="card-margin">284%</div>
-                </li>
-                <li class="card-item">
-                  <div class="card-info">
-                    <div class="card-rank silver">2</div>
-                    <div class="card-name-small">Tarmogoyf</div>
-                  </div>
-                  <div class="card-margin">156%</div>
-                </li>
-                <li class="card-item">
-                  <div class="card-info">
-                    <div class="card-rank bronze">3</div>
-                    <div class="card-name-small">Force of Will</div>
-                  </div>
-                  <div class="card-margin">134%</div>
-                </li>
-                <li class="card-item">
-                  <div class="card-info">
-                    <div class="card-rank">4</div>
-                    <div class="card-name-small">Snapcaster Mage</div>
-                  </div>
-                  <div class="card-margin">89%</div>
-                </li>
-                <li class="card-item">
-                  <div class="card-info">
-                    <div class="card-rank">5</div>
-                    <div class="card-name-small">Lightning Bolt</div>
-                  </div>
-                  <div class="card-margin">76%</div>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
 
   <script>
-    // Simple search client for your real API
+    // Debug Logger
+    class DebugLogger {
+      constructor() {
+        this.logs = [];
+        this.maxLogs = 50;
+      }
+
+      log(level, message, data = null) {
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = { timestamp, level, message, data };
+        
+        this.logs.unshift(logEntry);
+        if (this.logs.length > this.maxLogs) {
+          this.logs.pop();
+        }
+        
+        this.updateDisplay();
+        console[level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log'](`[${timestamp}] ${message}`, data || '');
+      }
+
+      updateDisplay() {
+        const container = document.getElementById('debug-logs');
+        if (!container) return;
+        
+        container.innerHTML = this.logs.map(log => `
+          <div class="log-entry">
+            <span class="log-timestamp">${log.timestamp}</span>
+            <span class="log-level ${log.level}">[${log.level.toUpperCase()}]</span>
+            <span>${log.message}</span>
+            ${log.data ? `<span style="color: #888;"> | ${JSON.stringify(log.data).substring(0, 100)}${JSON.stringify(log.data).length > 100 ? '...' : ''}</span>` : ''}
+          </div>
+        `).join('');
+      }
+
+      clear() {
+        this.logs = [];
+        this.updateDisplay();
+      }
+    }
+
+    // Search Client
     class SearchClient {
       constructor() {
-        this.apiUrl = '/api/buybackstep4'; // Change this to your actual API URL
-        this.searchCache = new Map();
-        this.stats = { totalSearches: 0, cacheHits: 0 };
+        this.apiUrl = '/api/buybackstep4';
+        this.mockMode = false;
+        this.corsMode = 'cors';
+        this.logger = new DebugLogger();
+      }
+
+      setApiUrl(url) {
+        this.apiUrl = url;
+        this.logger.log('info', `API URL updated: ${url}`);
+      }
+
+      setCorsMode(mode) {
+        this.corsMode = mode;
+        this.logger.log('info', `CORS mode set to: ${mode}`);
+      }
+
+      setMockMode(enabled) {
+        this.mockMode = enabled;
+        this.logger.log('info', `Mock mode ${enabled ? 'enabled' : 'disabled'}`);
+      }
+
+      async testConnection() {
+        this.logger.log('info', 'Testing API connection...');
+        
+        try {
+          const testPayload = {
+            cards: [{ cardName: 'Test Card', sku: null, quantity: 1 }],
+            employeeName: 'Test',
+            payoutMethod: 'cash'
+          };
+
+          this.logger.log('info', 'Sending test request', { url: this.apiUrl, cors: this.corsMode });
+
+          const response = await fetch(this.apiUrl, {
+            method: 'POST',
+            mode: this.corsMode,
+            headers: { 
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(testPayload)
+          });
+
+          this.logger.log('info', 'Response received', {
+            status: response.status,
+            statusText: response.statusText,
+            ok: response.ok
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          this.logger.log('info', 'Connection test successful', data);
+          return true;
+
+        } catch (error) {
+          this.logger.log('error', 'Connection test failed', { message: error.message });
+          return false;
+        }
+      }
+
+      generateMockResponse(query) {
+        const mockCards = [
+          { name: 'Lightning Bolt', sku: 'MTG-LB-001', retail: 5.99, trade: 3.50 },
+          { name: 'Black Lotus', sku: 'MTG-BL-001', retail: 25000.00, trade: 18000.00 },
+          { name: 'Force of Will', sku: 'MTG-FOW-001', retail: 89.99, trade: 65.00 },
+          { name: 'Tarmogoyf', sku: 'MTG-TG-001', retail: 45.99, trade: 32.00 },
+          { name: 'Snapcaster Mage', sku: 'MTG-SM-001', retail: 28.99, trade: 20.50 }
+        ];
+
+        const match = mockCards.find(card => 
+          card.name.toLowerCase().includes(query.toLowerCase()) ||
+          query.toLowerCase().includes(card.name.toLowerCase())
+        );
+
+        if (match) {
+          return {
+            success: true,
+            results: [{
+              cardName: query,
+              match: match.name,
+              sku: match.sku,
+              retailPrice: match.retail,
+              suggestedTradeValue: match.trade,
+              maximumTradeValue: match.trade * 1.2,
+              quantity: 1,
+              condition: 'NM'
+            }]
+          };
+        } else {
+          return {
+            success: true,
+            results: [{
+              cardName: query,
+              match: null,
+              sku: null,
+              retailPrice: 0,
+              suggestedTradeValue: 0,
+              maximumTradeValue: 0,
+              quantity: 1,
+              condition: 'NM'
+            }]
+          };
+        }
       }
 
       async searchCard(query) {
-        this.stats.totalSearches++;
-        console.log('🔍 Searching for:', query);
+        this.logger.log('info', `Starting search for: "${query}"`);
+
+        if (this.mockMode) {
+          this.logger.log('info', 'Using mock response');
+          const mockResponse = this.generateMockResponse(query);
+          return this.processMockResponse(mockResponse, query);
+        }
 
         try {
+          const payload = {
+            cards: [{ cardName: query, sku: null, quantity: 1 }],
+            employeeName: 'Preview',
+            payoutMethod: 'cash'
+          };
+
+          this.logger.log('info', 'Sending API request', { url: this.apiUrl, payload });
+
           const response = await fetch(this.apiUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              cards: [{ cardName: query, sku: null, quantity: 1 }],
-              employeeName: 'Preview',
-              payoutMethod: 'cash'
-            })
+            mode: this.corsMode,
+            headers: { 
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
           });
 
-          const data = await response.json();
-          console.log('📥 API Response:', data);
+          this.logger.log('info', 'Response status', {
+            status: response.status,
+            statusText: response.statusText,
+            ok: response.ok
+          });
 
-          if (data.success && data.results && data.results.length > 0) {
-            const result = data.results[0];
-            return {
-              found: !!result.match,
-              name: result.match || result.cardName,
-              sku: result.sku || 'NOT-FOUND',
-              retailPrice: parseFloat(result.retailPrice) || 0,
-              suggestedTrade: parseFloat(result.suggestedTradeValue) || 0,
-              maxTrade: parseFloat(result.maximumTradeValue) || 0,
-              searchMethod: 'none'
-            };
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
+
+          const data = await response.json();
+          this.logger.log('info', 'API response received', data);
+
+          return this.processApiResponse(data, query);
+
         } catch (error) {
-          console.error('Search error:', error);
+          this.logger.log('error', 'Search failed', { query, error: error.message });
+          
           return {
             found: false,
             name: query,
@@ -1383,250 +932,64 @@
             retailPrice: 0,
             suggestedTrade: 0,
             maxTrade: 0,
-            searchMethod: 'none',
+            searchMethod: 'error',
             error: error.message
           };
         }
       }
 
-      // Helper function to extract card number from SKU
-      extractCardNumber(sku) {
-        if (!sku) return null;
-        const cardNumberMatch = sku.match(/#?(\d+(?:\/\d+)?)/);
-        return cardNumberMatch ? `#${cardNumberMatch[1]}` : null;
-      }
-    }
+      processApiResponse(data, query) {
+        this.logger.log('info', 'Processing API response', {
+          success: data.success,
+          resultsCount: data.results ? data.results.length : 0
+        });
 
-    // Store the last trade data for label printing
-    let lastTradeData = null;
-
-    // Store estimate data globally
-    let currentEstimate = null;
-
-    // Print inventory labels function
-    function printInventoryLabels(tradeData) {
-      if (!tradeData || !tradeData.results || tradeData.results.length === 0) {
-        alert('No cards available for label printing.');
-        return;
-      }
-
-      // Generate labels for each card (repeated by quantity)
-      const labels = [];
-      tradeData.results.forEach(card => {
-        for (let i = 0; i < card.quantity; i++) {
-          labels.push({
-            sku: card.sku || `CARD-${Date.now()}-${i}`,
-            cardName: card.cardName,
-            condition: card.condition || 'NM'
-          });
-        }
-      });
-
-      const labelHTML = generateLabelSheet(labels, tradeData);
-      const printWindow = window.open('', '_blank');
-      printWindow.document.write(labelHTML);
-      printWindow.document.close();
-      printWindow.focus();
-      printWindow.print();
-    }
-
-    // Generate the label sheet HTML
-    function generateLabelSheet(labels, tradeData) {
-      const tradeId = Date.now().toString();
-      const tradeDate = new Date().toLocaleDateString();
-      
-      return `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Inventory Labels - Trade ${tradeId}</title>
-          <style>
-            @page { 
-              margin: 0.5in; 
-              size: letter;
-            }
-            
-            body {
-              font-family: Arial, sans-serif;
-              margin: 0;
-              padding: 0;
-            }
-            
-            .header {
-              text-align: center;
-              margin-bottom: 20px;
-              font-size: 12pt;
-              border-bottom: 2px solid #000;
-              padding-bottom: 10px;
-            }
-            
-            .label-sheet {
-              display: grid;
-              grid-template-columns: repeat(3, 1fr);
-              gap: 4mm;
-              margin: 0;
-            }
-            
-            .inventory-label {
-              width: 60mm;
-              height: 25mm;
-              border: 1px solid #000;
-              padding: 2mm;
-              box-sizing: border-box;
-              page-break-inside: avoid;
-              display: flex;
-              flex-direction: column;
-              justify-content: space-between;
-            }
-            
-            .barcode-container {
-              text-align: center;
-              flex-grow: 1;
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-            }
-            
-            .barcode {
-              height: 12mm;
-              width: 100%;
-              background: repeating-linear-gradient(
-                to right,
-                #000 0px,
-                #000 1px,
-                #fff 1px,
-                #fff 2px
-              );
-              margin: 2mm 0;
-            }
-            
-            .sku-text {
-              font-size: 8pt;
-              font-weight: bold;
-              text-align: center;
-              font-family: 'Courier New', monospace;
-            }
-            
-            .card-info {
-              font-size: 6pt;
-              text-align: center;
-              margin-top: 1mm;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-            }
-            
-            @media print {
-              .header { color: #000; }
-              .inventory-label { border: 1px solid #000; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <strong>INVENTORY LABELS</strong><br>
-            Trade ID: ${tradeId} | Date: ${tradeDate} | Employee: ${tradeData.employeeName || 'N/A'}<br>
-            Total Labels: ${labels.length}
-          </div>
+        if (data.success && data.results && data.results.length > 0) {
+          const result = data.results[0];
           
-          <div class="label-sheet">
-            ${labels.map(label => `
-              <div class="inventory-label">
-                <div class="barcode-container">
-                  <div class="barcode"></div>
-                  <div class="sku-text">${label.sku}</div>
-                </div>
-                <div class="card-info">${label.cardName.substring(0, 20)}${label.cardName.length > 20 ? '...' : ''} (${label.condition})</div>
-              </div>
-            `).join('')}
-          </div>
-        </body>
-        </html>
-      `;
-    }
+          this.logger.log('info', 'Card result details', {
+            cardName: result.cardName,
+            match: result.match,
+            sku: result.sku,
+            retailPrice: result.retailPrice,
+            suggestedTradeValue: result.suggestedTradeValue
+          });
 
-    // Calculate payout bonus based on method
-    function calculatePayoutBonus(baseValue, method) {
-      switch (method) {
-        case 'store-credit':
-          return baseValue * 0.25; // 25% bonus for store credit
-        case 'gift-card':
-          return baseValue * 0.10; // 10% bonus for gift card
-        case 'cash':
-        default:
-          return 0; // No bonus for cash
-      }
-    }
-
-    // Display trade estimate
-    function displayTradeEstimate(cards, payoutMethod) {
-      const estimateSection = document.getElementById('trade-estimate');
-      const breakdownList = document.getElementById('breakdown-list');
-      const bonusInfo = document.getElementById('bonus-info');
-
-      // Clear existing breakdown
-      breakdownList.innerHTML = '';
-
-      let totalRetail = 0;
-      let totalTrade = 0;
-
-      // Populate card breakdown
-      cards.forEach(cardData => {
-        const { result, quantity, condition } = cardData;
-        const itemRetail = result.retailPrice * quantity;
-        const itemTrade = result.suggestedTrade * quantity;
-        
-        totalRetail += itemRetail;
-        totalTrade += itemTrade;
-
-        const breakdownItem = document.createElement('div');
-        breakdownItem.className = 'breakdown-item';
-        breakdownItem.innerHTML = `
-          <div>
-            <div class="card-name">${result.name}</div>
-            <div class="card-details">SKU: ${result.sku} • Condition: ${condition}</div>
-          </div>
-          <div class="quantity-badge">×${quantity}</div>
-          <div class="value-pill retail-value">${itemRetail.toFixed(2)}</div>
-          <div class="value-pill trade-value">${itemTrade.toFixed(2)}</div>
-        `;
-        breakdownList.appendChild(breakdownItem);
-      });
-
-      // Calculate bonus and final payout
-      const bonus = calculatePayoutBonus(totalTrade, payoutMethod);
-      const finalPayout = totalTrade + bonus;
-
-      // Update summary
-      document.getElementById('total-retail').textContent = `${totalRetail.toFixed(2)}`;
-      document.getElementById('base-trade').textContent = `${totalTrade.toFixed(2)}`;
-      document.getElementById('payout-method-display').textContent = payoutMethod.replace('-', ' ').toUpperCase();
-      document.getElementById('final-payout').textContent = `${finalPayout.toFixed(2)}`;
-
-      // Show bonus info if applicable
-      if (bonus > 0) {
-        bonusInfo.style.display = 'flex';
-        const bonusPercent = Math.round((bonus / totalTrade) * 100);
-        bonusInfo.innerHTML = `
-          <span>⚡</span>
-          <span>${payoutMethod.replace('-', ' ')} includes ${bonusPercent}% bonus (+${bonus.toFixed(2)})!</span>
-        `;
-      } else {
-        bonusInfo.style.display = 'none';
+          return {
+            found: !!result.match,
+            name: result.match || result.cardName,
+            sku: result.sku || 'NOT-FOUND',
+            retailPrice: parseFloat(result.retailPrice) || 0,
+            suggestedTrade: parseFloat(result.suggestedTradeValue) || 0,
+            maxTrade: parseFloat(result.maximumTradeValue) || 0,
+            searchMethod: 'api'
+          };
+        } else {
+          this.logger.log('warn', 'No results in API response', data);
+          return {
+            found: false,
+            name: query,
+            sku: 'NOT-FOUND',
+            retailPrice: 0,
+            suggestedTrade: 0,
+            maxTrade: 0,
+            searchMethod: 'api'
+          };
+        }
       }
 
-      // Store estimate data
-      currentEstimate = {
-        cards: cards,
-        totalRetail: totalRetail,
-        totalTrade: totalTrade,
-        bonus: bonus,
-        finalPayout: finalPayout,
-        payoutMethod: payoutMethod
-      };
-
-      // Show the estimate section
-      estimateSection.classList.add('visible');
+      processMockResponse(data, query) {
+        const result = data.results[0];
+        return {
+          found: !!result.match,
+          name: result.match || result.cardName,
+          sku: result.sku || 'MOCK-SKU',
+          retailPrice: result.retailPrice,
+          suggestedTrade: result.suggestedTradeValue,
+          maxTrade: result.maximumTradeValue,
+          searchMethod: 'mock'
+        };
+      }
     }
 
     // Initialize search client
@@ -1638,7 +1001,12 @@
 
       input.addEventListener('input', function() {
         const query = this.value.trim();
-        if (query.length < 3) return;
+        searchClient.logger.log('info', `Input changed: "${query}"`);
+        
+        if (query.length < 3) {
+          searchClient.logger.log('info', 'Query too short, skipping search');
+          return;
+        }
 
         clearTimeout(searchTimeout);
         const container = this.closest('.card-input-container');
@@ -1647,32 +1015,43 @@
         const existing = container.querySelector('.search-suggestion');
         if (existing) existing.remove();
 
+        // Reset input styling
+        this.classList.remove('confirmed', 'not-found', 'error');
+
         // Show searching indicator
         const searching = document.createElement('div');
         searching.className = 'search-suggestion';
         searching.innerHTML = `
           <div class="suggestion-content">
             <div class="suggestion-info">
-              <div class="suggestion-name">🔍 Searching...</div>
+              <div class="suggestion-name">🔍 Searching for "${query}"...</div>
+              <div class="suggestion-details">
+                <span class="search-badge">SEARCHING</span>
+              </div>
             </div>
           </div>
         `;
         container.appendChild(searching);
 
         searchTimeout = setTimeout(async () => {
+          searchClient.logger.log('info', `Executing search for: "${query}"`);
+          
           try {
             const result = await searchClient.searchCard(query);
             searching.remove();
             showSearchResult(container, input, result, query);
           } catch (error) {
+            searchClient.logger.log('error', 'Search execution failed', error);
             searching.remove();
-            console.error('Search failed:', error);
+            showErrorResult(container, input, error, query);
           }
         }, 1000);
       });
     }
 
     function showSearchResult(container, input, result, query) {
+      searchClient.logger.log('info', 'Displaying search result', result);
+      
       const suggestion = document.createElement('div');
       suggestion.className = 'search-suggestion';
       
@@ -1683,7 +1062,7 @@
               <div class="suggestion-name">✅ ${result.name}</div>
               <div class="suggestion-details">
                 <span>SKU: ${result.sku}</span>
-                <span class="search-badge">${result.searchMethod.toUpperCase()}</span>
+                <span class="search-badge ${result.searchMethod === 'mock' ? 'cached' : ''}">${result.searchMethod.toUpperCase()}</span>
                 <span>Retail: ${result.retailPrice.toFixed(2)}</span>
                 <span>Trade: ${result.suggestedTrade.toFixed(2)}</span>
               </div>
@@ -1700,7 +1079,9 @@
             <div class="suggestion-info">
               <div class="suggestion-name">❌ "${query}" not found</div>
               <div class="suggestion-details">
-                <span>Not in your Shopify inventory</span>
+                <span>Not found in database</span>
+                <span class="search-badge">${result.searchMethod.toUpperCase()}</span>
+                ${result.error ? `<span style="color: var(--error);">Error: ${result.error}</span>` : ''}
               </div>
             </div>
             <div class="suggestion-actions">
@@ -1715,6 +1096,7 @@
 
       // Handle confirm
       suggestion.querySelector('.confirm-btn, .suggestion-btn')?.addEventListener('click', function() {
+        searchClient.logger.log('info', 'User confirmed result', { query, result });
         input.value = result.name;
         input.dataset.confirmedResult = JSON.stringify(result);
         input.classList.add(result.found ? 'confirmed' : 'not-found');
@@ -1723,20 +1105,107 @@
 
       // Handle reject
       suggestion.querySelector('.reject-btn').addEventListener('click', function() {
+        searchClient.logger.log('info', 'User rejected result', { query });
         suggestion.remove();
         input.focus();
       });
 
-      // Auto-remove
+      // Auto-remove after 15 seconds
+      setTimeout(() => {
+        if (suggestion.parentNode) {
+          searchClient.logger.log('info', 'Auto-removing suggestion after timeout');
+          suggestion.remove();
+        }
+      }, 15000);
+    }
+
+    function showErrorResult(container, input, error, query) {
+      searchClient.logger.log('error', 'Showing error result', { query, error });
+      
+      input.classList.add('error');
+      
+      const suggestion = document.createElement('div');
+      suggestion.className = 'search-suggestion';
+      suggestion.style.borderColor = 'var(--error)';
+      
+      suggestion.innerHTML = `
+        <div class="suggestion-content">
+          <div class="suggestion-info">
+            <div class="suggestion-name" style="color: var(--error);">💥 Search Error</div>
+            <div class="suggestion-details">
+              <span style="color: var(--error);">${error.message}</span>
+            </div>
+          </div>
+          <div class="suggestion-actions">
+            <button type="button" class="suggestion-btn reject-btn">❌ Close</button>
+          </div>
+        </div>
+      `;
+
+      container.appendChild(suggestion);
+
+      suggestion.querySelector('.reject-btn').addEventListener('click', function() {
+        suggestion.remove();
+        input.classList.remove('error');
+      });
+
       setTimeout(() => {
         if (suggestion.parentNode) suggestion.remove();
+        input.classList.remove('error');
       }, 10000);
     }
 
     // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
+      searchClient.logger.log('info', 'Trade-In Portal Debug Mode initialized');
+
       // Setup search for existing inputs
       document.querySelectorAll('.card-input').forEach(setupCardSearch);
+
+      // API Configuration handlers
+      document.getElementById('api-url').addEventListener('change', function() {
+        searchClient.setApiUrl(this.value);
+      });
+
+      document.getElementById('cors-mode').addEventListener('change', function() {
+        searchClient.setCorsMode(this.value);
+      });
+
+      document.getElementById('mock-mode').addEventListener('change', function() {
+        searchClient.setMockMode(this.checked);
+      });
+
+      // Test connection button
+      document.getElementById('test-connection').addEventListener('click', async function() {
+        const btn = this;
+        const statusIndicator = document.getElementById('connection-status');
+        
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> Testing...';
+        statusIndicator.className = 'status-indicator';
+        
+        const success = await searchClient.testConnection();
+        
+        btn.disabled = false;
+        btn.innerHTML = 'Test Connection';
+        statusIndicator.className = `status-indicator ${success ? 'connected' : 'disconnected'}`;
+      });
+
+      // Test search button
+      document.getElementById('test-search').addEventListener('click', function() {
+        const firstInput = document.querySelector('.card-input');
+        if (firstInput.value.trim()) {
+          searchClient.logger.log('info', 'Manual test search triggered');
+          firstInput.dispatchEvent(new Event('input'));
+        } else {
+          alert('Please enter a card name in the first input field to test search.');
+        }
+      });
+
+      // Clear logs button
+      document.getElementById('clear-logs').addEventListener('click', function() {
+        searchClient.logger.clear();
+      });
 
       // Show/hide customer email
       document.querySelectorAll('input[name="payoutMethod"]').forEach(radio => {
@@ -1776,299 +1245,33 @@
         newRow.querySelector('.remove-btn').addEventListener('click', function() {
           newRow.remove();
         });
+
+        searchClient.logger.log('info', 'New card row added');
       });
 
       // Remove button for existing cards
       document.querySelectorAll('.remove-btn').forEach(btn => {
         btn.addEventListener('click', function() {
           btn.closest('.card-row').remove();
+          searchClient.logger.log('info', 'Card row removed');
         });
       });
 
-      // Print labels button handler
-      document.getElementById('print-labels').addEventListener('click', function() {
-        if (lastTradeData) {
-          printInventoryLabels(lastTradeData);
-        } else {
-          alert('No trade data available for label printing.');
-        }
+      // Log initial state
+      searchClient.logger.log('info', 'Initial configuration', {
+        apiUrl: searchClient.apiUrl,
+        corsMode: searchClient.corsMode,
+        mockMode: searchClient.mockMode
       });
 
-      // Analytics modal handlers
-      document.getElementById('view-analytics').addEventListener('click', function() {
-        openAnalyticsModal();
-      });
-
-      document.getElementById('close-analytics').addEventListener('click', function() {
-        closeAnalyticsModal();
-      });
-
-      // Close modal when clicking outside
-      document.getElementById('analytics-modal').addEventListener('click', function(e) {
-        if (e.target === this) {
-          closeAnalyticsModal();
-        }
-      });
-
-      // Close modal with Escape key
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-          closeAnalyticsModal();
-        }
-      });
-
-      // Estimate button
-      document.getElementById('estimate-trade').addEventListener('click', function() {
-        const cards = document.querySelectorAll('.card-row');
-        const payoutMethod = document.querySelector('input[name="payoutMethod"]:checked')?.value;
-
-        if (!payoutMethod) {
-          alert('Please select a payout method before estimating.');
-          return;
-        }
-
-        const confirmedCards = Array.from(cards).filter(row => {
-          const input = row.querySelector('.card-input');
-          return input.dataset.confirmedResult;
-        });
-
-        if (confirmedCards.length === 0) {
-          alert('Please search and confirm at least one card before estimating.');
-          return;
-        }
-
-        if (confirmedCards.length !== cards.length) {
-          alert('Please confirm all card searches before estimating.');
-          return;
-        }
-
-        // Prepare card data for estimate
-        const cardData = confirmedCards.map(row => {
-          const input = row.querySelector('.card-input');
-          const quantity = parseInt(row.querySelector('[name="cardQuantity"]').value) || 1;
-          const condition = row.querySelector('[name="cardCondition"]').value;
-          const result = JSON.parse(input.dataset.confirmedResult);
-          
-          return { result, quantity, condition };
-        });
-
-        // Display the estimate
-        displayTradeEstimate(cardData, payoutMethod);
-
-        // Show submit button after estimate
-        document.getElementById('submit-trade').style.display = 'inline-flex';
-        
-        const statusText = document.querySelector('.status-text');
-        statusText.textContent = `Estimate complete! ${confirmedCards.length} cards confirmed.`;
-        statusText.style.color = 'var(--success)';
-      });
-
-      // Form submission
-      document.getElementById('trade-form').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const employeeName = document.getElementById('employeeName').value;
-        const payoutMethod = document.querySelector('input[name="payoutMethod"]:checked')?.value;
-        const customerEmail = document.getElementById('customerEmail').value;
-
-        if (!employeeName || !payoutMethod) {
-          alert('Please select an employee and payout method.');
-          return;
-        }
-
-        if (payoutMethod === 'store-credit' && !customerEmail) {
-          alert('Customer email is required for store credit.');
-          return;
-        }
-
-        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
-          const input = row.querySelector('.card-input');
-          const quantity = parseInt(row.querySelector('[name="cardQuantity"]').value) || 1;
-          const condition = row.querySelector('[name="cardCondition"]').value;
-          const result = JSON.parse(input.dataset.confirmedResult || '{}');
-          
-          return {
-            cardName: result.name || input.value,
-            sku: result.sku || null,
-            quantity: quantity,
-            condition: condition
-          };
-        });
-
-        const submitBtn = document.getElementById('submit-trade');
-        submitBtn.innerHTML = '<span class="spinner"></span><span>Processing...</span>';
-        submitBtn.disabled = true;
-
-        try {
-          const response = await fetch(searchClient.apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              cards: cards,
-              employeeName: employeeName,
-              payoutMethod: payoutMethod,
-              customerEmail: customerEmail || undefined
-            })
-          });
-
-          const data = await response.json();
-
-          if (data.success) {
-            lastTradeData = data; // Store for label printing
-            
-            submitBtn.innerHTML = '<span>✅</span><span>Trade Complete</span>';
-            submitBtn.disabled = false;
-            
-            // Show print labels button
-            document.getElementById('print-labels').style.display = 'inline-flex';
-            
-            const statusText = document.querySelector('.status-text');
-            statusText.textContent = 'Trade completed successfully! 🎉';
-            statusText.style.color = 'var(--success)';
-
-            // Show success details
-            let successMessage = `Trade completed!\n\nFinal Payout: ${data.finalPayout}\nPayout Method: ${data.payoutMethod.replace('-', ' ').toUpperCase()}`;
-            
-            if (data.giftCardCode) {
-              successMessage += `\nGift Card Code: ${data.giftCardCode}`;
-            }
-            
-            if (data.customer?.email) {
-              successMessage += `\nStore Credit issued to: ${data.customer.email}`;
-            }
-
-            alert(successMessage);
-
-            // Reset form after success
-            setTimeout(() => {
-              if (confirm('Reset form for next trade?')) {
-                location.reload();
-              }
-            }, 2000);
-
-          } else {
-            throw new Error(data.error || 'Trade processing failed');
-          }
-
-        } catch (error) {
-          console.error('Trade error:', error);
-          submitBtn.innerHTML = '<span>✅</span><span>Process Trade</span>';
-          submitBtn.disabled = false;
-          
-          const statusText = document.querySelector('.status-text');
-          statusText.textContent = `Trade failed: ${error.message}`;
-          statusText.style.color = 'var(--error)';
-          
-          alert('Trade processing failed: ' + error.message);
-        }
-      });
-
-      // Update metrics periodically
-      setInterval(() => {
-        document.getElementById('total-searches').textContent = searchClient.stats.totalSearches;
-        document.getElementById('cache-rate').textContent = 
-          searchClient.stats.totalSearches > 0 ? 
-          Math.round((searchClient.stats.cacheHits / searchClient.stats.totalSearches) * 100) + '%' : 
-          '0%';
-      }, 1000);
-
-      console.log('🚀 Trade-In Portal initialized - connecting to real API');
-      console.log('🔗 API URL:', searchClient.apiUrl);
+      console.log('🚀 Trade-In Portal Debug Mode Ready');
+      console.log('💡 Steps to debug your issue:');
+      console.log('  1. Check debug panel for real-time logs');
+      console.log('  2. Test connection to verify API endpoint');  
+      console.log('  3. Enable mock mode to test UI without backend');
+      console.log('  4. Try searching for: Lightning Bolt, Black Lotus, Force of Will');
+      console.log('  5. Check browser Network tab for HTTP requests');
     });
-
-    // Analytics Modal Functions
-    async function openAnalyticsModal() {
-      const modal = document.getElementById('analytics-modal');
-      const loading = document.getElementById('analytics-loading');
-      const data = document.getElementById('analytics-data');
-      
-      // Show modal
-      modal.classList.add('visible');
-      loading.style.display = 'flex';
-      data.style.display = 'none';
-      
-      try {
-        // Simulate API call (replace with real endpoint)
-        await new Promise(resolve => setTimeout(resolve, 1500)); // Mock delay
-        
-        // In real implementation, you'd fetch from /api/margin-analytics
-        const analyticsData = await fetchAnalyticsData();
-        
-        // Update UI with real data
-        updateAnalyticsDisplay(analyticsData);
-        
-        // Show data, hide loading
-        loading.style.display = 'none';
-        data.style.display = 'block';
-        
-      } catch (error) {
-        console.error('Failed to load analytics:', error);
-        loading.innerHTML = `
-          <div style="color: var(--error); text-align: center;">
-            <div>❌ Failed to load analytics data</div>
-            <div style="font-size: 14px; margin-top: 8px;">${error.message}</div>
-          </div>
-        `;
-      }
-    }
-
-    function closeAnalyticsModal() {
-      const modal = document.getElementById('analytics-modal');
-      modal.classList.remove('visible');
-    }
-
-    // Mock function to simulate fetching analytics data
-    async function fetchAnalyticsData() {
-      // This would be replaced with actual API call:
-      // const response = await fetch('/api/margin-analytics');
-      // return response.json();
-      
-      // Mock data for demonstration
-      return {
-        overallMargin: 67.2,
-        monthlyProfit: 12847,
-        avgDaysToSell: 23.4,
-        deadInventoryCost: 3245,
-        topCards: [
-          { name: 'Black Lotus (Alpha)', margin: 284 },
-          { name: 'Tarmogoyf (Future Sight)', margin: 156 },
-          { name: 'Force of Will (Alliances)', margin: 134 },
-          { name: 'Snapcaster Mage', margin: 89 },
-          { name: 'Lightning Bolt (Beta)', margin: 76 }
-        ],
-        trends: {
-          marginTrend: '+3.2%',
-          profitTrend: '+8.1%',
-          daysTrend: '+2.1',
-          inventoryTrend: '-12%'
-        }
-      };
-    }
-
-    // Update analytics display with real data
-    function updateAnalyticsDisplay(data) {
-      // Update main metrics
-      document.getElementById('overall-margin').textContent = `${data.overallMargin}%`;
-      document.getElementById('monthly-profit').textContent = `${data.monthlyProfit.toLocaleString()}`;
-      document.getElementById('avg-days').textContent = data.avgDaysToSell;
-      document.getElementById('dead-inventory').textContent = `${data.deadInventoryCost.toLocaleString()}`;
-      
-      // In a real implementation, you'd also update:
-      // - Trend indicators
-      // - Top performing cards list
-      // - Chart data
-      // - Additional metrics
-    }
   </script>
 </body>
-</html>result.searchMethod || 'none'
-            };
-          } else {
-            return {
-              found: false,
-              name: query,
-              sku: 'NOT-FOUND',
-              retailPrice: 0,
-              suggestedTrade: 0,
-              maxTrade: 0,
-              searchMethod:
+</html>
