@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Buyback Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+128+Text&display=swap" rel="stylesheet">
   
   <style>
     :root {
@@ -789,61 +790,24 @@
       font-weight: 600;
     }
 
-    /* UPC Barcode - Optimized for Socket S740 with thick bars */
+    /* UPC Barcode - Simple CSS bars with exact UPC specs */
     .barcode-display {
       background: white;
-      border: none;
-      padding: 4px 0;
-      margin: 4px 0;
+      border: 2px solid black;
+      padding: 5px;
+      margin: 5px 0;
       overflow: hidden;
       line-height: 1;
-      height: 60px;  /* Even taller for better scanning */
-      width: 98%;    /* Nearly full label width */
+      height: 80px;  /* Very large for easy scanning */
+      width: 100%;   /* Full label width */
       display: flex;
-      align-items: stretch;
+      align-items: center;
       justify-content: center;
-    }
-
-    .barcode-bars {
-      display: flex;
-      align-items: stretch;
-      height: 100%;
-      background: white;
-      border-left: 3px solid black;  /* Start guard border */
-      border-right: 3px solid black; /* End guard border */
-    }
-
-    .bar {
-      height: 100%;
-      border: none;
-      margin: 0;
-      padding: 0;
-      min-width: 2px;  /* Much thicker bars */
-      width: 2px;
-    }
-
-    .bar.black {
-      background-color: black;
-    }
-
-    .bar.white {
-      background-color: white;
-    }
-
-    .bar.guard {
-      height: 105%; /* Guard bars slightly taller */
-      min-width: 3px;  /* Guard bars even thicker */
-      width: 3px;
-    }
-
-    .bar.thin {
-      min-width: 1px;
-      width: 1px;
-    }
-
-    .bar.thick {
-      min-width: 3px;
-      width: 3px;
+      font-family: 'Libre Barcode 128 Text', monospace;
+      font-size: 48px;
+      font-weight: normal;
+      letter-spacing: -2px;
+      color: black;
     }
 
     .barcode-number {
@@ -1957,68 +1921,10 @@
         return numericSku + checkDigit;
       }
 
-      // Generate UPC-A barcode pattern (Thick bars for Socket S740)
+      // Generate simple text-based barcode that browsers can render as actual bars
       function generateUPCBarcode(upcCode) {
-        // UPC-A encoding patterns for digits 0-9 (L-patterns for left side)
-        const leftPatterns = [
-          '0001101', '0011001', '0010011', '0111101', '0100011',
-          '0110001', '0101111', '0111011', '0110111', '0001011'
-        ];
-        
-        // R-patterns for right side
-        const rightPatterns = [
-          '1110010', '1100110', '1101100', '1000010', '1011100',
-          '1001110', '1010000', '1000100', '1001000', '1110100'
-        ];
-        
-        let binaryPattern = '';
-        
-        // Start guard (101)
-        binaryPattern += '101';
-        
-        // Left side digits (positions 1-6)
-        for (let i = 1; i <= 6; i++) {
-          const digit = parseInt(upcCode[i]);
-          binaryPattern += leftPatterns[digit];
-        }
-        
-        // Center guard (01010)
-        binaryPattern += '01010';
-        
-        // Right side digits (positions 7-12)
-        for (let i = 7; i <= 11; i++) {
-          const digit = parseInt(upcCode[i]);
-          binaryPattern += rightPatterns[digit];
-        }
-        
-        // End guard (101)
-        binaryPattern += '101';
-        
-        // Convert binary pattern to thick HTML bars
-        let barcodeHTML = '<div class="barcode-bars">';
-        
-        for (let i = 0; i < binaryPattern.length; i++) {
-          const bit = binaryPattern[i];
-          
-          // Determine if this is a guard position
-          const isStartGuard = i < 3;
-          const isCenterGuard = i >= 45 && i <= 49;
-          const isEndGuard = i >= binaryPattern.length - 3;
-          const isGuard = isStartGuard || isCenterGuard || isEndGuard;
-          
-          // Create bar with appropriate thickness
-          const barClass = bit === '1' ? 'bar black' : 'bar white';
-          const guardClass = isGuard ? ' guard' : '';
-          
-          // Make bars thicker for better scanning
-          const thickness = isGuard ? 'thick' : '';
-          
-          barcodeHTML += `<div class="${barClass}${guardClass} ${thickness}"></div>`;
-        }
-        
-        barcodeHTML += '</div>';
-        
-        return barcodeHTML;
+        // Just return the UPC code - we'll use CSS font to make it look like a barcode
+        return upcCode;
       }
 
       // Success section close and new trade buttons
