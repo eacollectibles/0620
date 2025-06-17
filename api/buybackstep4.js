@@ -41,6 +41,20 @@ module.exports = async function handler(req, res) {
     // Your Shopify credentials from environment variables
     const SHOPIFY_DOMAIN = process.env.SHOPIFY_DOMAIN;
     const ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
+    
+    // Debug: Check if environment variables are loaded
+    console.log('🔑 Environment Variables Check:');
+    console.log('  SHOPIFY_DOMAIN:', SHOPIFY_DOMAIN ? `✅ ${SHOPIFY_DOMAIN}` : '❌ Missing');
+    console.log('  ACCESS_TOKEN:', ACCESS_TOKEN ? `✅ ${ACCESS_TOKEN.substring(0, 10)}...` : '❌ Missing');
+    
+    if (!SHOPIFY_DOMAIN || !ACCESS_TOKEN) {
+      return res.status(500).json({
+        success: false,
+        error: 'Missing required environment variables',
+        details: 'SHOPIFY_DOMAIN and SHOPIFY_ACCESS_TOKEN must be set in Vercel environment variables',
+        timestamp: new Date().toISOString()
+      });
+    }
 
     // DIAGNOSTIC: Get first 10 products to see structure
     const diagnosticUrl = `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/products.json?` +
