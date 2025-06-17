@@ -735,6 +735,175 @@
       border-top: 1px solid rgba(56, 161, 105, 0.2);
     }
 
+    /* POS Receipt Styles - Optimized for Star TSP100III thermal printer */
+    .pos-receipt {
+      background: white;
+      border: 2px solid var(--gray-300);
+      border-radius: var(--border-radius-lg);
+      padding: 24px;
+      margin: 20px 0;
+      display: none;
+      page-break-inside: avoid;
+      max-width: 280px; /* Star TSP100III typical receipt width for screen preview */
+      margin: 20px auto;
+      font-family: 'Courier New', monospace; /* Monospace for thermal printer compatibility */
+    }
+
+    .pos-receipt.visible {
+      display: block;
+    }
+
+    .receipt-header {
+      text-align: center;
+      border-bottom: 2px solid #000;
+      padding-bottom: 16px;
+      margin-bottom: 16px;
+    }
+
+    .receipt-store-name {
+      font-size: 20px;
+      font-weight: bold;
+      font-family: var(--font-mono);
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .receipt-store-info {
+      font-size: 12px;
+      line-height: 1.4;
+      font-family: var(--font-mono);
+    }
+
+    .receipt-transaction-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      margin: 16px 0;
+      padding: 8px 0;
+      border-bottom: 1px dashed #000;
+    }
+
+    .receipt-title {
+      text-align: center;
+      font-size: 16px;
+      font-weight: bold;
+      font-family: var(--font-mono);
+      margin: 16px 0;
+      letter-spacing: 1px;
+    }
+
+    .receipt-items {
+      margin: 16px 0;
+    }
+
+    .receipt-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .receipt-item-name {
+      flex: 1;
+      margin-right: 8px;
+      word-wrap: break-word;
+    }
+
+    .receipt-item-details {
+      font-size: 10px;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    .receipt-item-value {
+      text-align: right;
+      white-space: nowrap;
+      min-width: 60px;
+    }
+
+    .receipt-totals {
+      border-top: 2px solid #000;
+      padding-top: 8px;
+      margin-top: 16px;
+    }
+
+    .receipt-total-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      margin-bottom: 4px;
+    }
+
+    .receipt-total-line.final {
+      font-size: 16px;
+      font-weight: bold;
+      border-top: 1px solid #000;
+      padding-top: 8px;
+      margin-top: 8px;
+    }
+
+    .receipt-payout {
+      text-align: center;
+      font-size: 14px;
+      font-family: var(--font-mono);
+      font-weight: bold;
+      margin: 16px 0;
+      padding: 12px;
+      border: 2px solid #000;
+      background: #f0f0f0;
+    }
+
+    .receipt-gift-card {
+      text-align: center;
+      font-family: var(--font-mono);
+      margin: 16px 0;
+      padding: 12px;
+      border: 2px dashed #000;
+    }
+
+    .receipt-gift-card-code {
+      font-size: 18px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      margin: 8px 0;
+    }
+
+    .receipt-footer {
+      text-align: center;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px dashed #000;
+    }
+
+    .receipt-footer p {
+      margin: 4px 0;
+      line-height: 1.3;
+    }
+
+    .receipt-signature {
+      margin-top: 24px;
+      border-top: 1px solid #000;
+      padding-top: 16px;
+    }
+
+    .receipt-signature-line {
+      border-bottom: 1px solid #000;
+      height: 40px;
+      margin: 8px 0 4px 0;
+    }
+
+    .receipt-signature-label {
+      font-size: 10px;
+      font-family: var(--font-mono);
+    }
+
     /* Barcode/Label Printing Styles - Avery 7666 Format */
     .barcode-section {
       background: white;
@@ -944,35 +1113,149 @@
       border: 1px solid #ced4da;
     }
 
-    /* Print styles optimized for Avery 7666 - FIXED: Only labels print */
+    /* Print styles optimized for Star TSP100III thermal receipt printer */
     @media print {
-      @page {
-        size: letter;
-        margin: 0.5in 0.1875in 0.5in 0.1875in;  /* Avery 7666 spec */
-      }
-      
-      body {
+      /* Only apply receipt print styles when receipt-print-mode is active */
+      .receipt-print-mode {
         margin: 0 !important;
         padding: 0 !important;
-        font-size: 8px;
+      }
+      
+      .receipt-print-mode @page {
+        size: 72mm auto; /* Star TSP100III paper width (72mm/2.83") */
+        margin: 2mm 1mm; /* Minimal margins for TSP100III */
+      }
+      
+      .receipt-print-mode body {
+        margin: 0 !important;
+        padding: 0 !important;
+        font-size: 11px;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
         background: white !important;
+        width: 72mm;
+        font-family: 'Courier New', monospace !important;
       }
       
-      /* Hide EVERYTHING except barcode labels when printing */
-      * {
+      /* Hide everything except receipt when printing */
+      .receipt-print-mode * {
         visibility: hidden !important;
       }
       
-      .barcode-grid,
-      .barcode-grid *,
-      .barcode-label,
-      .barcode-label * {
+      .receipt-print-mode .pos-receipt,
+      .receipt-print-mode .pos-receipt * {
         visibility: visible !important;
       }
       
-      .barcode-section {
+      .receipt-print-mode .pos-receipt {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 72mm !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 4px 2mm !important;
+        border: none !important;
+        border-radius: 0 !important;
+        background: white !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        font-family: 'Courier New', monospace !important;
+      }
+      
+      .receipt-print-mode .receipt-store-name {
+        font-size: 16px !important;
+        font-weight: bold !important;
+      }
+      
+      .receipt-print-mode .receipt-store-info {
+        font-size: 9px !important;
+        line-height: 1.2 !important;
+      }
+      
+      .receipt-print-mode .receipt-transaction-info {
+        font-size: 9px !important;
+        margin: 6px 0 !important;
+      }
+      
+      .receipt-print-mode .receipt-title {
+        font-size: 12px !important;
+        margin: 6px 0 !important;
+      }
+      
+      .receipt-print-mode .receipt-item {
+        font-size: 9px !important;
+        margin-bottom: 3px !important;
+        line-height: 1.2 !important;
+      }
+      
+      .receipt-print-mode .receipt-item-details {
+        font-size: 7px !important;
+      }
+      
+      .receipt-print-mode .receipt-total-line {
+        font-size: 9px !important;
+        margin-bottom: 2px !important;
+      }
+      
+      .receipt-print-mode .receipt-total-line.final {
+        font-size: 11px !important;
+        font-weight: bold !important;
+      }
+      
+      .receipt-print-mode .receipt-payout {
+        font-size: 10px !important;
+        margin: 6px 0 !important;
+        padding: 4px !important;
+      }
+      
+      .receipt-print-mode .receipt-gift-card {
+        margin: 6px 0 !important;
+        padding: 4px !important;
+      }
+      
+      .receipt-print-mode .receipt-gift-card-code {
+        font-size: 12px !important;
+        letter-spacing: 1px !important;
+      }
+      
+      .receipt-print-mode .receipt-footer {
+        font-size: 7px !important;
+        margin-top: 8px !important;
+        padding-top: 6px !important;
+        line-height: 1.2 !important;
+      }
+      
+      .receipt-print-mode .receipt-signature {
+        margin-top: 12px !important;
+        padding-top: 6px !important;
+      }
+      
+      .receipt-print-mode .receipt-signature-line {
+        height: 25px !important;
+        margin: 4px 0 2px 0 !important;
+      }
+      
+      .receipt-print-mode .receipt-signature-label {
+        font-size: 7px !important;
+      }
+
+      /* Barcode print styles */
+      .barcode-print-mode * {
+        visibility: hidden !important;
+      }
+      
+      .barcode-print-mode .barcode-section,
+      .barcode-print-mode .barcode-section * {
+        visibility: visible !important;
+      }
+      
+      .barcode-print-mode @page {
+        size: letter;
+        margin: 0.5in 0.1875in 0.5in 0.1875in;
+      }
+      
+      .barcode-print-mode .barcode-section {
         position: absolute !important;
         top: 0 !important;
         left: 0 !important;
@@ -985,11 +1268,11 @@
         overflow: visible !important;
       }
       
-      .barcode-header {
+      .barcode-print-mode .barcode-header {
         display: none !important;
       }
       
-      .barcode-grid {
+      .barcode-print-mode .barcode-grid {
         position: absolute !important;
         top: 0.5in !important;
         left: 0.1875in !important;
@@ -1004,24 +1287,24 @@
         background: white !important;
       }
       
-      .barcode-label {
+      .barcode-print-mode .barcode-label {
         border: none !important;
         width: 2.625in !important;
         height: 1in !important;
         margin: 0 !important;
-        padding: 6px 8px !important; /* Safe printable margins */
+        padding: 6px 8px !important;
         page-break-inside: avoid !important;
         box-sizing: border-box !important;
         background: white !important;
         overflow: hidden !important;
       }
       
-      .barcode-display {
-        border: none !important; /* Remove border for cleaner print */
+      .barcode-print-mode .barcode-display {
+        border: none !important;
         background: white !important;
         padding: 0 !important;
         margin: 1px 0 !important;
-        height: 40px !important; /* Smaller for actual printable area */
+        height: 40px !important;
       }
     }
 
@@ -1254,7 +1537,7 @@
           </div>
         </form>
 
-        <!-- Trade Success Results - FIXED: Only one section now -->
+        <!-- Trade Success Results -->
         <div id="trade-success" class="trade-success">
           <div class="success-header">
             <div class="success-title">🎉 Trade Completed Successfully!</div>
@@ -1278,6 +1561,13 @@
               <span>📊</span>
               <span>Print Barcodes</span>
             </button>
+          </div>
+        </div>
+
+        <!-- POS Receipt Section - Star TSP100III optimized -->
+        <div id="pos-receipt-section" class="pos-receipt" style="display: none;">
+          <div id="pos-receipt">
+            <!-- Receipt content will be generated here -->
           </div>
         </div>
 
@@ -1822,7 +2112,7 @@
           
           // Also show an alert with key info for immediate feedback
           let alertMessage = `✅ Trade Completed Successfully!\n\n`;
-          alertMessage += `💰 Amount: $${data.finalPayout} CAD\n`;
+          alertMessage += `💰 Amount: ${data.finalPayout} CAD\n`;
           alertMessage += `👤 Employee: ${data.employeeName}\n`;
           
           if (payoutMethod === 'gift-card' && data.giftCardCode) {
@@ -1861,7 +2151,7 @@
         }
       });
 
-      // FIXED: Function to show trade success with all details
+      // FIXED: Function to show trade success with all details AND generate receipt
       function showTradeSuccess(data, payoutMethod) {
         let successHTML = '';
 
@@ -1957,8 +2247,146 @@
         successContent.innerHTML = successHTML;
         tradeSuccess.classList.add('visible');
         
-        // Generate barcodes for successfully matched items - FIXED: Better SKU handling
+        // Generate receipt for Star TSP100III
+        generatePOSReceipt(data, payoutMethod);
+        
+        // Generate barcodes for successfully matched items
         generateBarcodes(data.results || []);
+      }
+
+      // NEW: Generate POS Receipt optimized for Star TSP100III thermal printer
+      function generatePOSReceipt(data, payoutMethod) {
+        const receiptSection = document.getElementById('pos-receipt-section');
+        const currentDate = new Date();
+        const dateStr = currentDate.toLocaleDateString('en-CA');
+        const timeStr = currentDate.toLocaleTimeString('en-CA', { hour12: false });
+        
+        let receiptHTML = `
+          <div class="receipt-header">
+            <div class="receipt-store-name">CARD GAME STORE</div>
+            <div class="receipt-store-info">
+              123 Main Street<br>
+              Toronto, ON M5V 3A8<br>
+              Tel: (416) 555-0123
+            </div>
+          </div>
+
+          <div class="receipt-transaction-info">
+            <div>Date: ${dateStr}</div>
+            <div>Time: ${timeStr}</div>
+          </div>
+          <div class="receipt-transaction-info">
+            <div>Employee: ${data.employeeName}</div>
+            <div>Trans #: ${Math.random().toString(36).substr(2, 8).toUpperCase()}</div>
+          </div>
+
+          <div class="receipt-title">*** TRADE-IN RECEIPT ***</div>
+
+          <div class="receipt-items">
+        `;
+
+        // Add each traded card
+        if (data.results && data.results.length > 0) {
+          data.results.forEach(card => {
+            if (card.match) { // Only show successfully matched cards
+              receiptHTML += `
+                <div class="receipt-item">
+                  <div class="receipt-item-name">
+                    ${card.match}
+                    <div class="receipt-item-details">
+                      Qty: ${card.quantity} • ${card.condition}
+                      ${card.sku ? ` • SKU: ${card.sku}` : ''}
+                    </div>
+                  </div>
+                  <div class="receipt-item-value">${(card.suggestedTradeValue * card.quantity).toFixed(2)}</div>
+                </div>
+              `;
+            }
+          });
+        }
+
+        receiptHTML += `
+          </div>
+
+          <div class="receipt-totals">
+            <div class="receipt-total-line">
+              <span>Subtotal:</span>
+              <span>${data.suggestedTotal}</span>
+            </div>
+            <div class="receipt-total-line">
+              <span>Total Retail Value:</span>
+              <span>${data.totalRetailValue}</span>
+            </div>
+        `;
+
+        if (data.overrideUsed) {
+          receiptHTML += `
+            <div class="receipt-total-line">
+              <span>Override Applied:</span>
+              <span>${data.overrideAmount}</span>
+            </div>
+          `;
+        }
+
+        receiptHTML += `
+            <div class="receipt-total-line final">
+              <span>TRADE-IN VALUE:</span>
+              <span>${data.finalPayout}</span>
+            </div>
+          </div>
+        `;
+
+        // Add payout method specific information
+        if (payoutMethod === 'gift-card' && data.giftCardCode) {
+          receiptHTML += `
+            <div class="receipt-gift-card">
+              <div style="font-weight: bold; margin-bottom: 4px;">GIFT CARD ISSUED</div>
+              <div class="receipt-gift-card-code">${data.giftCardCode}</div>
+              <div style="font-size: 9px; margin-top: 4px;">
+                Save this code! Valid for online<br>
+                and in-store purchases.
+              </div>
+            </div>
+          `;
+        } else if (payoutMethod === 'store-credit') {
+          receiptHTML += `
+            <div class="receipt-payout">
+              STORE CREDIT: ${data.finalPayout}<br>
+              Customer: ${data.customerEmail || 'N/A'}
+            </div>
+          `;
+        } else if (payoutMethod === 'cash') {
+          receiptHTML += `
+            <div class="receipt-payout">
+              CASH PAYOUT: ${data.finalPayout}
+            </div>
+          `;
+        }
+
+        receiptHTML += `
+          <div class="receipt-footer">
+            <p>Thank you for your business!</p>
+            <p>Visit us online: www.cardgamestore.com</p>
+            <p>Follow us @CardGameStore</p>
+            <p>----------------------------------------</p>
+            <p>No returns on trade-ins.</p>
+            <p>Gift cards expire 24 months from issue.</p>
+            <p>Store credit never expires.</p>
+          </div>
+
+          <div class="receipt-signature">
+            <div class="receipt-signature-label">Customer Signature:</div>
+            <div class="receipt-signature-line"></div>
+            <div class="receipt-signature-label">Employee Signature:</div>
+            <div class="receipt-signature-line"></div>
+          </div>
+        `;
+
+        // Insert receipt content
+        const posReceiptDiv = document.getElementById('pos-receipt');
+        posReceiptDiv.innerHTML = receiptHTML;
+        posReceiptDiv.classList.add('visible');
+        receiptSection.style.display = 'block';
       }
 
       // FIXED: Code 128 barcode generation with improved SKU detection
@@ -2138,18 +2566,31 @@
       document.getElementById('close-success').addEventListener('click', function() {
         tradeSuccess.classList.remove('visible');
         document.getElementById('barcode-section').style.display = 'none';
+        document.getElementById('pos-receipt-section').style.display = 'none';
       });
 
       document.getElementById('new-trade').addEventListener('click', function() {
         tradeSuccess.classList.remove('visible');
         document.getElementById('barcode-section').style.display = 'none';
+        document.getElementById('pos-receipt-section').style.display = 'none';
         // Form is already reset above
       });
 
+      // FIXED: Print receipt functionality optimized for Star TSP100III
       document.getElementById('print-receipt').addEventListener('click', function() {
+        // Add special class for receipt-only printing
+        document.body.classList.add('receipt-print-mode');
+        
         // Hide barcode section for receipt printing
         document.getElementById('barcode-section').style.display = 'none';
+        
+        // Trigger print dialog
         window.print();
+        
+        // Remove print mode class after printing
+        setTimeout(() => {
+          document.body.classList.remove('receipt-print-mode');
+        }, 1000);
       });
 
       // FIXED: Print barcodes functionality - Only labels print
@@ -2159,8 +2600,20 @@
           barcodeSection.style.display = 'block';
           this.innerHTML = '<span>🖨️</span><span>Print UPC Labels</span>';
         } else {
+          // Add special class for barcode-only printing
+          document.body.classList.add('barcode-print-mode');
+          
+          // Hide receipt for barcode printing
+          document.getElementById('pos-receipt-section').style.display = 'none';
+          
           // Print with clean labels only
           window.print();
+          
+          // Remove print mode class after printing
+          setTimeout(() => {
+            document.body.classList.remove('barcode-print-mode');
+            document.getElementById('pos-receipt-section').style.display = 'block';
+          }, 1000);
         }
       });
 
