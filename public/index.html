@@ -591,7 +591,7 @@
       color: var(--accent);
     }
 
-    /* Trade Success Results */
+    /* Trade Success Results - FIXED: Only one section */
     .trade-success {
       background: linear-gradient(135deg, rgba(56, 161, 105, 0.05) 0%, rgba(56, 161, 105, 0.02) 100%);
       border: 2px solid var(--success);
@@ -606,7 +606,7 @@
 
     .trade-success.visible {
       opacity: 1;
-      max-height: 1000px;
+      max-height: 2000px;
     }
 
     .success-header {
@@ -1051,7 +1051,7 @@
           </div>
         </form>
 
-        <!-- Trade Success Results -->
+        <!-- Trade Success Results - FIXED: Only one section now -->
         <div id="trade-success" class="trade-success">
           <div class="success-header">
             <div class="success-title">🎉 Trade Completed Successfully!</div>
@@ -1059,7 +1059,7 @@
           </div>
           
           <div id="success-content" class="success-content">
-            <!-- Success content will be inserted here -->
+            <!-- Success content will be inserted here dynamically -->
           </div>
 
           <div class="success-actions">
@@ -1078,71 +1078,12 @@
         <div class="status-bar" id="status-bar">
           <div class="status-text">Ready to process trades...</div>
         </div>
-
-        <!-- Trade Success Results -->
-        <div id="trade-success" class="trade-success">
-          <div class="success-header">
-            <div class="success-title">🎉 Trade Completed Successfully!</div>
-            <button type="button" class="btn btn-secondary" id="close-success" style="padding: 8px 12px;">✖ Close</button>
-          </div>
-          
-          <div id="success-content" class="success-content">
-            <!-- Success content will be inserted here -->
-          </div>
-
-          <div class="success-actions">
-            <button type="button" class="btn btn-primary" id="new-trade">
-              <span>🔄</span>
-              <span>Process Another Trade</span>
-            </button>
-            <button type="button" class="btn btn-secondary" id="print-receipt">
-              <span>🖨️</span>
-              <span>Print Receipt</span>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   </div>
 
   <script>
-    // DISABLE ALL NOTIFICATIONS AND ALERTS
-    // Override alert function to prevent any popups
-    window.alert = function() { 
-      console.log('Alert blocked:', arguments); 
-    };
-    
-    // Override confirm function 
-    window.confirm = function() { 
-      console.log('Confirm blocked:', arguments); 
-      return true; 
-    };
-    
-    // Disable browser notifications
-    try {
-      if ('Notification' in window) {
-        Notification.permission = 'denied';
-      }
-    } catch (e) {
-      console.log('Notification API not available');
-    }
-    
-    // Disable service worker notifications if any (with error handling)
-    try {
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for(let registration of registrations) {
-            registration.unregister();
-          }
-        }).catch(function(error) {
-          console.log('Service worker cleanup failed:', error);
-        });
-      }
-    } catch (e) {
-      console.log('Service worker API not available in this context');
-    }
-
-    // REAL API configuration - updated to match your actual file name
+    // REAL API configuration
     const API_URL = '/api/buybackstep4'; 
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -1155,6 +1096,8 @@
       const overrideContainer = document.getElementById('override-input-container');
       const overrideCancel = document.getElementById('override-cancel');
       const overrideTotal = document.getElementById('overrideTotal');
+      const tradeSuccess = document.getElementById('trade-success');
+      const successContent = document.getElementById('success-content');
 
       // Show/hide customer email section
       document.querySelectorAll('input[name="payoutMethod"]').forEach(radio => {
@@ -1201,7 +1144,7 @@
         });
       });
 
-      // Setup REAL search for existing inputs (replaces demo functionality)
+      // Setup REAL search for existing inputs
       document.querySelectorAll('.card-input').forEach(setupRealSearch);
 
       // REAL search functionality that connects to your Vercel API
@@ -1268,12 +1211,10 @@
             });
 
             console.log('Response status:', response.status);
-            console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
             // Check if response is actually JSON
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
-              // Get the actual response text to see what we're getting
               const responseText = await response.text();
               console.error('❌ Non-JSON response:', responseText);
               throw new Error(`Server returned ${contentType}: ${responseText.substring(0, 200)}...`);
@@ -1364,7 +1305,7 @@
           container.appendChild(suggestion);
           currentSuggestion = suggestion;
 
-          // Handle suggestion actions - Fixed event listeners
+          // Handle suggestion actions
           const confirmBtn = suggestion.querySelector('.confirm-btn');
           const continueBtn = suggestion.querySelector('.continue-btn');
           const rejectBtn = suggestion.querySelector('.reject-btn');
@@ -1373,8 +1314,6 @@
             confirmBtn.addEventListener('click', function(e) {
               e.preventDefault();
               e.stopPropagation();
-              console.log('Confirm button clicked', result);
-              
               input.classList.remove('not-found');
               input.classList.add('confirmed');
               input.value = result.match;
@@ -1388,8 +1327,6 @@
             continueBtn.addEventListener('click', function(e) {
               e.preventDefault();
               e.stopPropagation();
-              console.log('Continue button clicked');
-              
               input.classList.remove('confirmed');
               input.classList.add('not-found');
               input.setAttribute('data-search-result', JSON.stringify({ match: null, retailPrice: 0 }));
@@ -1402,8 +1339,6 @@
             rejectBtn.addEventListener('click', function(e) {
               e.preventDefault();
               e.stopPropagation();
-              console.log('Reject button clicked');
-              
               suggestion.remove();
               currentSuggestion = null;
               input.focus();
@@ -1511,14 +1446,13 @@
         } catch (error) {
           console.error('Estimate error:', error);
           updateStatus(`Error: ${error.message}`, 'error');
-          // NO MORE ALERT - just show in status
         } finally {
           estimateBtn.innerHTML = '<span>📊</span><span>Get Estimate</span>';
           estimateBtn.disabled = false;
         }
       });
 
-      // REAL form submission
+      // REAL form submission - FIXED: Now shows trade success properly
       document.getElementById('trade-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -1530,13 +1464,13 @@
         }));
 
         if (cards.length === 0) {
-          alert('Please add at least one card to process.');
+          updateStatus('Please add at least one card to process.', 'error');
           return;
         }
 
         const payoutMethod = formData.get('payoutMethod');
         if (payoutMethod === 'store-credit' && !formData.get('customerEmail')) {
-          alert('Customer email is required for store credit payouts.');
+          updateStatus('Customer email is required for store credit payouts.', 'error');
           return;
         }
 
@@ -1573,33 +1507,8 @@
             throw new Error(data.error || 'Failed to process trade');
           }
 
-          // Show success message with details based on payout method
-          let successMessage = `Trade processed successfully!\n\n`;
-          successMessage += `💰 Amount: ${data.finalPayout} CAD\n`;
-          successMessage += `👤 Employee: ${data.employeeName}\n`;
-          successMessage += `📦 Cards processed: ${data.processingStats.cardsFound}/${data.processingStats.totalCards}\n\n`;
-
-          if (payoutMethod === 'gift-card' && data.giftCardCode) {
-            successMessage += `🎁 GIFT CARD CREATED!\n`;
-            successMessage += `📋 Gift Card Code: ${data.giftCardCode}\n\n`;
-            successMessage += `⚠️ IMPORTANT: Please save this code!\n`;
-            successMessage += `Give this gift card code to the customer.`;
-          } else if (payoutMethod === 'store-credit' && data.customer) {
-            successMessage += `🏪 STORE CREDIT ISSUED!\n`;
-            successMessage += `📧 Customer: ${data.customer.email}\n`;
-            successMessage += `💳 Store credit has been added to their account.`;
-          } else if (payoutMethod === 'cash') {
-            successMessage += `💵 CASH PAYOUT\n`;
-            successMessage += `Please provide ${data.finalPayout} CAD in cash to the customer.`;
-          }
-
-          // Show the alert with all the details
-          alert(successMessage);
-          
-          // Also log to console for record keeping
-          if (data.giftCardCode) {
-            console.log('🎁 GIFT CARD CODE:', data.giftCardCode);
-          }
+          // FIXED: Show success information in the trade success section
+          showTradeSuccess(data, payoutMethod);
           
           updateStatus('Trade completed successfully!', 'success');
 
@@ -1619,11 +1528,118 @@
         } catch (error) {
           console.error('Trade error:', error);
           updateStatus(`Error: ${error.message}`, 'error');
-          alert(`Failed to process trade: ${error.message}`);
         } finally {
           submitBtn.innerHTML = '<span>✅</span><span>Process Trade</span>';
           submitBtn.disabled = false;
         }
+      });
+
+      // FIXED: Function to show trade success with all details
+      function showTradeSuccess(data, payoutMethod) {
+        let successHTML = '';
+
+        // Create payout-specific display
+        if (payoutMethod === 'gift-card' && data.giftCardCode) {
+          successHTML += `
+            <div class="gift-card-display">
+              <div class="gift-card-title">🎁 Gift Card Created</div>
+              <div class="gift-card-code">${data.giftCardCode}</div>
+              <div class="gift-card-instructions">
+                Please save this code and give it to the customer.<br>
+                This gift card can be used for online or in-store purchases.
+              </div>
+            </div>
+          `;
+        } else if (payoutMethod === 'store-credit' && data.customer) {
+          successHTML += `
+            <div class="store-credit-display">
+              <div style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">🏪 Store Credit Issued</div>
+              <div class="payout-amount">$${data.finalPayout} CAD</div>
+              <div>Customer: ${data.customer.email}</div>
+              <div style="margin-top: 16px; opacity: 0.9;">
+                Store credit has been added to the customer's account.
+              </div>
+            </div>
+          `;
+        } else if (payoutMethod === 'cash') {
+          successHTML += `
+            <div class="cash-display">
+              <div style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">💵 Cash Payout</div>
+              <div class="payout-amount">$${data.finalPayout} CAD</div>
+              <div style="margin-top: 16px; opacity: 0.9;">
+                Please provide this amount in cash to the customer.
+              </div>
+            </div>
+          `;
+        }
+
+        // Add processing details
+        successHTML += `
+          <div class="success-card">
+            <h4 style="margin: 0 0 16px 0; color: var(--gray-800);">📦 Processing Summary</h4>
+            <div class="success-details">
+              <div class="detail-item">
+                <div class="detail-label">Employee</div>
+                <div class="detail-value">${data.employeeName}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Cards Processed</div>
+                <div class="detail-value">${data.processingStats.cardsFound}/${data.processingStats.totalCards}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Final Amount</div>
+                <div class="detail-value">$${data.finalPayout} CAD</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Trade ID</div>
+                <div class="detail-value">${data.tradeId || 'Generated'}</div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Add card details if available
+        if (data.results && data.results.length > 0) {
+          successHTML += `
+            <div class="success-card">
+              <h4 style="margin: 0 0 16px 0; color: var(--gray-800);">🃏 Cards Processed</h4>
+          `;
+          
+          data.results.forEach(card => {
+            successHTML += `
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--gray-200);">
+                <div>
+                  <div style="font-weight: 600;">${card.match || card.cardName} ${card.match ? '✅' : '❌'}</div>
+                  <div style="font-size: 14px; color: var(--gray-500);">Qty: ${card.quantity} • ${card.condition}</div>
+                </div>
+                <div style="text-align: right;">
+                  <div style="font-weight: 600;">$${card.suggestedTradeValue.toFixed(2)}</div>
+                  <div style="font-size: 12px; color: var(--gray-500);">Trade Value</div>
+                </div>
+              </div>
+            `;
+          });
+          
+          successHTML += `</div>`;
+        }
+
+        // Insert content and show
+        successContent.innerHTML = successHTML;
+        tradeSuccess.classList.add('visible');
+      }
+
+      // Success section close and new trade buttons
+      document.getElementById('close-success').addEventListener('click', function() {
+        tradeSuccess.classList.remove('visible');
+      });
+
+      document.getElementById('new-trade').addEventListener('click', function() {
+        tradeSuccess.classList.remove('visible');
+        // Form is already reset above
+      });
+
+      document.getElementById('print-receipt').addEventListener('click', function() {
+        window.print();
       });
 
       // Override functionality
@@ -1736,7 +1752,7 @@
               </div>
               <div>
                 <div style="font-size: 12px; color: var(--gray-500);">Maximum</div>
-                <div style="font-weight: 600; color: var(--success);">$${card.maximumTradeValue.toFixed(2)}</div>
+                <div style="font-weight: 600; color: var(--success);">${card.maximumTradeValue.toFixed(2)}</div>
               </div>
             </div>
           `;
@@ -1744,9 +1760,9 @@
         });
 
         // Update totals
-        document.getElementById('total-retail').textContent = `$${data.totalRetailValue}`;
-        document.getElementById('total-suggested').textContent = `$${data.suggestedTotal}`;
-        document.getElementById('total-maximum').textContent = `$${data.maximumTotal}`;
+        document.getElementById('total-retail').textContent = `${data.totalRetailValue}`;
+        document.getElementById('total-suggested').textContent = `${data.suggestedTotal}`;
+        document.getElementById('total-maximum').textContent = `${data.maximumTotal}`;
 
         // Show results
         estimateResults.classList.add('visible');
