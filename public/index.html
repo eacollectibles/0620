@@ -913,11 +913,11 @@
       }
     }
 
-    /* Print styles optimized for Avery 7666 - Fixed margins */
+    /* Print styles optimized for Avery 7666 - FIXED: Only labels print */
     @media print {
       @page {
         size: letter;
-        margin: 0.5in 0.1875in 0.5in 0.1875in;  /* Top, Right, Bottom, Left - Avery 7666 spec */
+        margin: 0.5in 0.1875in 0.5in 0.1875in;  /* Avery 7666 spec */
       }
       
       body {
@@ -926,30 +926,51 @@
         font-size: 8px;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
+        background: white !important;
+      }
+      
+      /* Hide EVERYTHING except barcode labels when printing */
+      * {
+        visibility: hidden !important;
+      }
+      
+      .barcode-grid,
+      .barcode-grid *,
+      .barcode-label,
+      .barcode-label * {
+        visibility: visible !important;
       }
       
       .barcode-section {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        background: white !important;
         border: none !important;
         margin: 0 !important;
         padding: 0 !important;
-        background: white !important;
-        page-break-inside: avoid;
+        overflow: visible !important;
       }
       
       .barcode-header {
-        display: none !important;  /* Hide header when printing */
+        display: none !important;
       }
       
       .barcode-grid {
+        position: absolute !important;
+        top: 0.5in !important;
+        left: 0.1875in !important;
+        width: 7.875in !important;
+        height: 10in !important;
         margin: 0 !important;
         padding: 0 !important;
         gap: 0 !important;
         display: grid !important;
         grid-template-columns: repeat(3, 2.625in) !important;
         grid-template-rows: repeat(10, 1in) !important;
-        width: 7.875in !important;  /* 3 × 2.625in */
-        height: 10in !important;    /* 10 × 1in */
-        page-break-inside: avoid;
+        background: white !important;
       }
       
       .barcode-label {
@@ -958,42 +979,15 @@
         height: 1in !important;
         margin: 0 !important;
         padding: 2px 4px !important;
-        page-break-inside: avoid;
+        page-break-inside: avoid !important;
         box-sizing: border-box !important;
+        background: white !important;
+        overflow: hidden !important;
       }
       
       .barcode-display {
         border: 1px solid black !important;
         background: white !important;
-      }
-      
-      /* Hide everything except barcode section when printing */
-      body > *:not(.container) {
-        display: none !important;
-      }
-      
-      .container > *:not(.main-card) {
-        display: none !important;
-      }
-      
-      .main-card > *:not(.card-content) {
-        display: none !important;
-      }
-      
-      .card-content > *:not(.barcode-section) {
-        display: none !important;
-      }
-      
-      /* Force single page for 30 labels */
-      .barcode-section {
-        page-break-after: avoid;
-        page-break-before: avoid;
-        page-break-inside: avoid;
-      }
-      
-      /* Remove any automatic page breaks */
-      * {
-        page-break-inside: avoid !important;
       }
     }
 
@@ -1985,43 +1979,15 @@
         window.print();
       });
 
-      // NEW: Print barcodes functionality - Fixed for single page
+      // NEW: Print barcodes functionality - FIXED: Only labels print
       document.getElementById('print-barcodes').addEventListener('click', function() {
         const barcodeSection = document.getElementById('barcode-section');
         if (barcodeSection.style.display === 'none') {
           barcodeSection.style.display = 'block';
           this.innerHTML = '<span>🖨️</span><span>Print UPC Labels</span>';
         } else {
-          // Set up print-specific styling
-          const printStyle = document.createElement('style');
-          printStyle.innerHTML = `
-            @media print {
-              html, body {
-                width: 8.5in;
-                height: 11in;
-                margin: 0;
-                padding: 0;
-                overflow: hidden;
-              }
-              
-              .barcode-section {
-                position: absolute;
-                top: 0.5in;
-                left: 0.1875in;
-                width: 7.875in;
-                height: 10in;
-              }
-            }
-          `;
-          document.head.appendChild(printStyle);
-          
-          // Print
+          // Print with clean labels only
           window.print();
-          
-          // Remove the temporary style
-          setTimeout(() => {
-            document.head.removeChild(printStyle);
-          }, 1000);
         }
       });
 
