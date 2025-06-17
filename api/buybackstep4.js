@@ -1,6 +1,6 @@
-// buybackstep4.js - Real Shopify Integration
+// buybackstep4.js - DIAGNOSTIC VERSION to see what's in your Shopify
 module.exports = async function handler(req, res) {
-  console.log('=== SHOPIFY CARD SEARCH API START ===');
+  console.log('=== SHOPIFY DIAGNOSTIC API START ===');
   console.log('Method:', req.method);
   console.log('Body:', req.body);
 
@@ -17,7 +17,7 @@ module.exports = async function handler(req, res) {
     if (req.method === 'GET') {
       return res.status(200).json({
         success: true,
-        message: 'Shopify Card Search API is running',
+        message: 'Shopify Diagnostic API is running',
         timestamp: new Date().toISOString()
       });
     }
@@ -36,254 +36,167 @@ module.exports = async function handler(req, res) {
     }
 
     const cardName = cards[0]?.cardName;
-    console.log('🔍 Searching Shopify for:', cardName);
+    console.log('🔍 DIAGNOSTIC SEARCH for:', cardName);
 
     // Your Shopify credentials
     const SHOPIFY_DOMAIN = "ke40sv-my.myshopify.com";
     const ACCESS_TOKEN = "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";
 
-    // Search Shopify products
-    const searchShopifyProducts = async (query) => {
-      console.log('📦 Querying Shopify API for:', query);
+    // DIAGNOSTIC: Get first 10 products to see structure
+    const diagnosticUrl = `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/products.json?` +
+      `limit=10&` +
+      `fields=id,title,variants,product_type,tags,handle`;
+
+    console.log('🔗 DIAGNOSTIC URL:', diagnosticUrl);
+
+    const diagnosticResponse = await fetch(diagnosticUrl, {
+      headers: {
+        'X-Shopify-Access-Token': ACCESS_TOKEN,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!diagnosticResponse.ok) {
+      const errorText = await diagnosticResponse.text();
+      console.log('❌ Shopify API error:', diagnosticResponse.status, errorText);
+      throw new Error(`Shopify API failed: ${diagnosticResponse.status}`);
+    }
+
+    const diagnosticData = await diagnosticResponse.json();
+    console.log('📊 DIAGNOSTIC: Found', diagnosticData.products?.length || 0, 'products');
+
+    // Log detailed info about first few products
+    const products = diagnosticData.products || [];
+    const diagnosticInfo = [];
+
+    products.slice(0, 5).forEach((product, index) => {
+      console.log(`\n🔍 PRODUCT ${index + 1}:`);
+      console.log(`  Title: "${product.title}"`);
+      console.log(`  Handle: "${product.handle}"`);
+      console.log(`  Tags: "${product.tags}"`);
+      console.log(`  Product Type: "${product.product_type}"`);
+      console.log(`  Variants (${product.variants?.length || 0}):`);
       
-      try {
-        // Try direct title search first
-        const titleSearchUrl = `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/products.json?` +
-          `title=${encodeURIComponent(query)}&` +
-          `limit=50&` +
-          `fields=id,title,variants,product_type,tags,handle`;
-
-        console.log('🔗 Shopify URL:', titleSearchUrl);
-
-        const response = await fetch(titleSearchUrl, {
-          headers: {
-            'X-Shopify-Access-Token': ACCESS_TOKEN,
-            'Content-Type': 'application/json'
-          }
+      const variantInfo = [];
+      product.variants?.forEach((variant, vIndex) => {
+        console.log(`    Variant ${vIndex + 1}:`);
+        console.log(`      SKU: "${variant.sku || 'NO SKU'}"`);
+        console.log(`      Price: $${variant.price || 'NO PRICE'}"`);
+        console.log(`      Title: "${variant.title || 'NO TITLE'}"`);
+        
+        variantInfo.push({
+          sku: variant.sku,
+          price: variant.price,
+          title: variant.title
         });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.log('❌ Shopify API error:', response.status, errorText);
-          throw new Error(`Shopify API failed: ${response.status} - ${errorText}`);
-        }
-
-        const data = await response.json();
-        console.log(`📦 Shopify returned ${data.products?.length || 0} products from title search`);
-
-        let products = data.products || [];
-
-        // If no results from title search, try broader search
-        if (products.length === 0) {
-          console.log('🔍 No title matches, trying broader search...');
-          
-          const broadSearchUrl = `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/products.json?` +
-            `limit=250&` +
-            `fields=id,title,variants,product_type,tags,handle`;
-
-          const broadResponse = await fetch(broadSearchUrl, {
-            headers: {
-              'X-Shopify-Access-Token': ACCESS_TOKEN,
-              'Content-Type': 'application/json'
-            }
-          });
-
-          if (broadResponse.ok) {
-            const broadData = await broadResponse.json();
-            
-            // Filter products that match the search term
-            products = broadData.products?.filter(product => {
-              const titleMatch = product.title.toLowerCase().includes(query.toLowerCase());
-              const skuMatch = product.variants.some(variant => 
-                variant.sku && variant.sku.toLowerCase().includes(query.toLowerCase())
-              );
-              const handleMatch = product.handle.includes(query.toLowerCase().replace(/\s+/g, '-'));
-              
-              return titleMatch || skuMatch || handleMatch;
-            }) || [];
-            
-            console.log(`📦 Broader search found ${products.length} matching products`);
-          }
-        }
-
-        return products;
-
-      } catch (error) {
-        console.error('❌ Shopify search error:', error);
-        throw error;
-      }
-    };
-
-    // Find the best matching product
-    const findBestMatch = (products, query) => {
-      if (!products || products.length === 0) {
-        console.log('❌ No products to match against');
-        return null;
-      }
-
-      console.log('🎯 Finding best match for:', query);
-
-      // 1. Try exact title match
-      let bestMatch = products.find(p => 
-        p.title.toLowerCase() === query.toLowerCase()
-      );
-
-      if (bestMatch) {
-        console.log('✅ Exact title match:', bestMatch.title);
-        return bestMatch;
-      }
-
-      // 2. Try partial title match
-      bestMatch = products.find(p => 
-        p.title.toLowerCase().includes(query.toLowerCase()) ||
-        query.toLowerCase().includes(p.title.toLowerCase())
-      );
-
-      if (bestMatch) {
-        console.log('✅ Partial title match:', bestMatch.title);
-        return bestMatch;
-      }
-
-      // 3. Try SKU match (for card numbers like "001/182")
-      if (query.includes('/') || query.includes('#')) {
-        bestMatch = products.find(p => 
-          p.variants.some(v => 
-            v.sku && (
-              v.sku.includes(query) || 
-              query.includes(v.sku) ||
-              v.sku.toLowerCase().includes(query.toLowerCase())
-            )
-          )
-        );
-
-        if (bestMatch) {
-          console.log('✅ SKU match:', bestMatch.title);
-          return bestMatch;
-        }
-      }
-
-      // 4. Try handle match
-      const queryHandle = query.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      bestMatch = products.find(p => 
-        p.handle.includes(queryHandle) || queryHandle.includes(p.handle)
-      );
-
-      if (bestMatch) {
-        console.log('✅ Handle match:', bestMatch.title);
-        return bestMatch;
-      }
-
-      console.log('❌ No match found for:', query);
-      return null;
-    };
-
-    // Calculate trade values based on payout method
-    const calculateTradeValues = (retailPrice, payoutMethod) => {
-      const baseTradeRate = 0.6; // 60% base
-      const maxTradeRate = 0.75; // 75% max
-      
-      const baseTradeValue = retailPrice * baseTradeRate;
-      const maxTradeValue = retailPrice * maxTradeRate;
-      
-      let suggestedTradeValue = baseTradeValue;
-      
-      // Apply payout bonuses
-      switch (payoutMethod) {
-        case 'store-credit':
-          suggestedTradeValue = baseTradeValue * 1.25; // 25% bonus
-          break;
-        case 'gift-card':
-          suggestedTradeValue = baseTradeValue * 1.10; // 10% bonus
-          break;
-        case 'cash':
-        default:
-          suggestedTradeValue = baseTradeValue; // No bonus
-          break;
-      }
-
-      return {
-        baseTradeValue: parseFloat(baseTradeValue.toFixed(2)),
-        suggestedTradeValue: parseFloat(Math.min(suggestedTradeValue, maxTradeValue).toFixed(2)),
-        maximumTradeValue: parseFloat(maxTradeValue.toFixed(2))
-      };
-    };
-
-    // Execute the search
-    const products = await searchShopifyProducts(cardName);
-    const bestMatch = findBestMatch(products, cardName);
-
-    let result;
-    
-    if (bestMatch && bestMatch.variants && bestMatch.variants.length > 0) {
-      const variant = bestMatch.variants[0];
-      const retailPrice = parseFloat(variant.price) || 0;
-      const tradeValues = calculateTradeValues(retailPrice, payoutMethod);
-      
-      console.log('✅ FOUND MATCH:', {
-        title: bestMatch.title,
-        sku: variant.sku,
-        price: retailPrice,
-        suggestedTrade: tradeValues.suggestedTradeValue
       });
+
+      diagnosticInfo.push({
+        title: product.title,
+        handle: product.handle,
+        tags: product.tags,
+        productType: product.product_type,
+        variants: variantInfo
+      });
+    });
+
+    // Now try to find your specific search
+    console.log(`\n🎯 SEARCHING FOR: "${cardName}"`);
+    
+    let foundProducts = [];
+    
+    // Search all products for the query
+    const allProductsUrl = `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/products.json?` +
+      `limit=250&` +
+      `fields=id,title,variants,product_type,tags,handle`;
+
+    const allResponse = await fetch(allProductsUrl, {
+      headers: {
+        'X-Shopify-Access-Token': ACCESS_TOKEN,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (allResponse.ok) {
+      const allData = await allResponse.json();
+      const allProducts = allData.products || [];
       
-      result = {
+      console.log(`📦 Searching through ${allProducts.length} total products`);
+      
+      // Test different search strategies
+      const searchStrategies = [
+        { name: 'Exact Title', test: (p) => p.title.toLowerCase() === cardName.toLowerCase() },
+        { name: 'Title Contains', test: (p) => p.title.toLowerCase().includes(cardName.toLowerCase()) },
+        { name: 'SKU Exact', test: (p) => p.variants.some(v => v.sku === cardName) },
+        { name: 'SKU Contains', test: (p) => p.variants.some(v => v.sku && v.sku.toLowerCase().includes(cardName.toLowerCase())) },
+        { name: 'Tags Contains', test: (p) => p.tags && p.tags.toLowerCase().includes(cardName.toLowerCase()) },
+        { name: 'Handle Contains', test: (p) => p.handle.includes(cardName.toLowerCase().replace(/\s+/g, '-')) }
+      ];
+
+      searchStrategies.forEach(strategy => {
+        const matches = allProducts.filter(strategy.test);
+        console.log(`🔍 ${strategy.name}: ${matches.length} matches`);
+        
+        if (matches.length > 0) {
+          matches.slice(0, 3).forEach(match => {
+            console.log(`  ✅ "${match.title}"`);
+            match.variants?.forEach(v => {
+              if (v.sku) console.log(`    SKU: "${v.sku}"`);
+            });
+          });
+          foundProducts = foundProducts.concat(matches);
+        }
+      });
+    }
+
+    // Remove duplicates
+    foundProducts = foundProducts.filter((product, index, self) => 
+      index === self.findIndex(p => p.id === product.id)
+    );
+
+    const response = {
+      success: true,
+      diagnostic: {
+        searchQuery: cardName,
+        totalProductsInStore: products.length > 0 ? 'At least ' + products.length : 'Unknown',
+        sampleProducts: diagnosticInfo,
+        searchResults: foundProducts.length,
+        foundProducts: foundProducts.slice(0, 3).map(p => ({
+          title: p.title,
+          handle: p.handle,
+          tags: p.tags,
+          variants: p.variants?.map(v => ({ sku: v.sku, price: v.price }))
+        }))
+      },
+      results: foundProducts.length > 0 ? [{
         cardName: cardName,
-        match: bestMatch.title,
-        sku: variant.sku || `SHOPIFY-${variant.id}`,
-        retailPrice: retailPrice,
-        suggestedTradeValue: tradeValues.suggestedTradeValue,
-        maximumTradeValue: tradeValues.maximumTradeValue,
-        baseTradeValue: tradeValues.baseTradeValue,
-        productId: bestMatch.id,
-        variantId: variant.id,
-        quantity: cards[0]?.quantity || 1,
-        condition: 'NM',
-        searchMethod: 'shopify_real'
-      };
-    } else {
-      console.log('❌ NO MATCH FOUND in Shopify for:', cardName);
-      result = {
+        match: foundProducts[0].title,
+        sku: foundProducts[0].variants?.[0]?.sku || null,
+        retailPrice: parseFloat(foundProducts[0].variants?.[0]?.price) || 0,
+        suggestedTradeValue: 0,
+        maximumTradeValue: 0,
+        searchMethod: 'diagnostic'
+      }] : [{
         cardName: cardName,
         match: null,
         sku: null,
         retailPrice: 0,
         suggestedTradeValue: 0,
         maximumTradeValue: 0,
-        baseTradeValue: 0,
-        quantity: cards[0]?.quantity || 1,
-        condition: 'NM',
-        searchMethod: 'shopify_real'
-      };
-    }
-
-    const response = {
-      success: true,
-      results: [result],
-      searchInfo: {
-        query: cardName,
-        totalProducts: products.length,
-        matchFound: !!bestMatch,
-        employee: employeeName,
-        payoutMethod: payoutMethod,
-        searchMethod: 'shopify_api',
-        timestamp: new Date().toISOString()
-      },
-      shopifyInfo: {
-        domain: SHOPIFY_DOMAIN,
-        productsSearched: products.length,
-        apiCallsUsed: products.length > 0 ? (products.length === 1 ? 1 : 2) : 1
-      }
+        searchMethod: 'diagnostic'
+      }],
+      timestamp: new Date().toISOString()
     };
 
-    console.log('📋 Sending Shopify search response');
+    console.log('📋 DIAGNOSTIC COMPLETE');
     return res.status(200).json(response);
 
   } catch (error) {
-    console.error('💥 SHOPIFY API ERROR:', error);
+    console.error('💥 DIAGNOSTIC ERROR:', error);
     
     return res.status(500).json({
       success: false,
-      error: 'Shopify search failed',
+      error: 'Diagnostic failed',
       details: error.message,
       timestamp: new Date().toISOString()
     });
