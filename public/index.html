@@ -752,21 +752,21 @@
       padding-bottom: 16px;
     }
 
-    /* Custom 1.5" Grid Layout - 5 columns x 10 rows = 50 labels per sheet */
+    /* Avery 5160 Grid Layout - 3 columns x 10 rows = 30 labels per sheet */
     .barcode-grid {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 0;
       margin: 20px 0;
       background: white;
     }
 
-    /* Custom 1.5" Individual Label - UPC format like Pokemon card packs */
+    /* Avery 5160 Individual Label - 2⅝" x 1" with proper printable area */
     .barcode-label {
-      width: 1.5in;    /* 1.5" */
-      height: 1in;     /* 1" */
+      width: 2.625in;  /* 2⅝" - exact Avery 5160 width */
+      height: 1in;     /* 1" - exact Avery 5160 height */
       border: 1px dashed var(--gray-300);
-      padding: 4px;
+      padding: 6px 8px; /* More realistic margins for printable area */
       font-family: var(--font-mono);
       display: flex;
       flex-direction: column;
@@ -784,23 +784,24 @@
     }
 
     .barcode-sku {
-      font-size: 7px;
+      font-size: 6px;
       color: var(--gray-800);
-      margin-bottom: 2px;
+      margin-bottom: 1px;
       white-space: nowrap;
       font-weight: 600;
+      line-height: 1;
     }
 
     /* Code 128 Barcode - Real barcode using JsBarcode library */
     .barcode-display {
       background: white;
       border: 1px solid #ddd;
-      padding: 5px;
-      margin: 5px 0;
+      padding: 2px;
+      margin: 2px 0;
       overflow: hidden;
       line-height: 1;
-      height: 80px;  /* Large for easy scanning */
-      width: 100%;   /* Full label width */
+      height: 50px;  /* Smaller to fit within 1" label */
+      width: calc(100% - 8px);   /* Account for label padding */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -812,13 +813,14 @@
     }
 
     .barcode-number {
-      font-size: 6px;
+      font-size: 5px;
       color: var(--gray-800);
       margin-top: 1px;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
       white-space: nowrap;
       font-weight: 500;
       font-family: 'Courier New', monospace;
+      line-height: 1;
     }
 
     .barcode-details {
@@ -1007,7 +1009,7 @@
         width: 2.625in !important;
         height: 1in !important;
         margin: 0 !important;
-        padding: 2px 4px !important;
+        padding: 6px 8px !important; /* Safe printable margins */
         page-break-inside: avoid !important;
         box-sizing: border-box !important;
         background: white !important;
@@ -1015,8 +1017,11 @@
       }
       
       .barcode-display {
-        border: 1px solid black !important;
+        border: none !important; /* Remove border for cleaner print */
         background: white !important;
+        padding: 0 !important;
+        margin: 1px 0 !important;
+        height: 40px !important; /* Smaller for actual printable area */
       }
     }
 
@@ -1289,7 +1294,7 @@
           <div class="barcode-header">
             <h3 style="margin: 0; color: var(--gray-800);">📊 Code 128 Barcode Labels</h3>
             <div style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">
-              Custom 1.5" x 1" • Code 128 Format • Real SKUs • Socket S740 Compatible
+              Avery 5160 • 2⅝" x 1" • Code 128 Format • Socket S740 Compatible
             </div>
           </div>
           <div id="barcode-content" class="barcode-grid">
@@ -1996,8 +2001,8 @@
           }
         });
 
-        // Fill remaining slots to complete the sheet (if less than 50 labels)
-        while (labelCount < 50 && labelCount % 50 !== 0) {
+        // Fill remaining slots to complete the sheet (if less than 30 labels)
+        while (labelCount < 30 && labelCount % 30 !== 0) {
           const emptyLabel = document.createElement('div');
           emptyLabel.className = 'barcode-label';
           emptyLabel.style.border = '1px dashed #e2e8f0';
@@ -2047,12 +2052,12 @@
 
           JsBarcode(element, sku, {
             format: "CODE128",
-            width: 3,           // Slightly thinner bars for narrower label
-            height: 55,         // Slightly shorter for 1.5" width
+            width: 2,           // Thinner bars to fit in printable area
+            height: 35,         // Shorter to fit with text in 1" label
             displayValue: false, // Don't show text (we have it separately)
             background: "white",
             lineColor: "black",
-            margin: 1,          // Smaller margin for compact label
+            margin: 1,          // Minimal margin for maximum barcode area
             fontSize: 0,        // No font inside barcode
             textMargin: 0       // No text margin
           });
