@@ -1959,6 +1959,93 @@
         }
       }
 
+      // Code 128 barcode generation - Real barcodes with actual SKUs
+      function generateBarcodes(results) {
+        const barcodeContent = document.getElementById('barcode-content');
+        barcodeContent.innerHTML = '';
+
+        // Only generate barcodes for items that were successfully matched
+        const matchedItems = results.filter(item => item.match && item.sku);
+        
+        if (matchedItems.length === 0) {
+          barcodeContent.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; color: var(--gray-500); padding: 40px;">
+              📊 No SKUs available for barcode generation
+            </div>
+          `;
+          return;
+        }
+
+        let labelCount = 0;
+        const barcodeIds = []; // Store IDs for rendering after insertion
+
+        matchedItems.forEach(item => {
+          // Generate Code 128 barcode for each quantity
+          for (let i = 0; i < item.quantity; i++) {
+            const barcodeLabel = document.createElement('div');
+            barcodeLabel.className = 'barcode-label';
+            
+            // Generate unique barcode container
+            const barcodeId = 'barcode-' + Math.random().toString(36).substr(2, 9);
+            barcodeIds.push({ id: barcodeId, sku: item.sku });
+            
+            // Clean label with Code 128 format
+            barcodeLabel.innerHTML = `
+              <div class="barcode-sku">SKU: ${item.sku}</div>
+              <div class="barcode-display">
+                <svg id="${barcodeId}" class="barcode-svg"></svg>
+              </div>
+              <div class="barcode-number">${item.sku}</div>
+            `;
+            
+            barcodeContent.appendChild(barcodeLabel);
+            labelCount++;
+          }
+        });
+
+        // Fill remaining slots to complete the sheet (if less than 30 labels)
+        while (labelCount < 30 && labelCount % 30 !== 0) {
+          const emptyLabel = document.createElement('div');
+          emptyLabel.className = 'barcode-label';
+          emptyLabel.style.border = '1px dashed #e2e8f0';
+          emptyLabel.style.backgroundColor = '#f7fafc';
+          barcodeContent.appendChild(emptyLabel);
+          labelCount++;
+        }
+
+        // Render all barcodes after DOM insertion
+        setTimeout(() => {
+          barcodeIds.forEach(barcode => {
+            renderBarcode(barcode.id, barcode.sku);
+          });
+        }, 100);
+      }
+
+      // Function to render Code 128 barcode
+      function renderBarcode(containerId, sku) {
+        try {
+          const element = document.getElementById(containerId);
+          if (element && window.JsBarcode) {
+            JsBarcode(element, sku, {
+              format: "CODE128",
+              width: 4,           // Thick bars for Socket S740
+              height: 60,         // Tall enough for scanning
+              displayValue: false, // Don't show text (we have it separately)
+              background: "white",
+              lineColor: "black",
+              margin: 2,
+              fontSize: 0         // No font inside barcode
+            });
+          }
+        } catch (error) {
+          console.error('Barcode generation error for', sku, ':', error);
+          // Fallback: show SKU as text if barcode fails
+          if (element) {
+            element.innerHTML = `<text x="50%" y="50%" text-anchor="middle" font-family="monospace" font-size="12">${sku}</text>`;
+          }
+        }
+      }
+
       // Success section close and new trade buttons
       document.getElementById('close-success').addEventListener('click', function() {
         tradeSuccess.classList.remove('visible');
