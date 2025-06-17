@@ -766,7 +766,7 @@
       width: 2.625in;  /* 2⅝" - exact Avery 5160 width */
       height: 1in;     /* 1" - exact Avery 5160 height */
       border: 1px dashed var(--gray-300);
-      padding: 6px 8px; /* More realistic margins for printable area */
+      padding: 4px 6px; /* FIXED: Reduced padding to give more space */
       font-family: var(--font-mono);
       display: flex;
       flex-direction: column;
@@ -776,7 +776,7 @@
       background: white;
       box-sizing: border-box;
       page-break-inside: avoid;
-      overflow: hidden;
+      overflow: visible; /* FIXED: Allow content to show */
     }
 
     .barcode-item-name {
@@ -796,12 +796,12 @@
     .barcode-display {
       background: white;
       border: 1px solid #ddd;
-      padding: 2px;
-      margin: 2px 0;
-      overflow: hidden;
+      padding: 1px;
+      margin: 1px 0;
+      overflow: visible;  /* FIXED: Allow barcode to show fully */
       line-height: 1;
-      height: 50px;  /* Smaller to fit within 1" label */
-      width: calc(100% - 8px);   /* Account for label padding */
+      height: 60px;  /* FIXED: Increased height for better barcode visibility */
+      width: calc(100% - 4px);   /* FIXED: Less padding deduction */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -2052,12 +2052,12 @@
 
           JsBarcode(element, sku, {
             format: "CODE128",
-            width: 2,           // Thinner bars to fit in printable area
-            height: 35,         // Shorter to fit with text in 1" label
+            width: 1.8,         /* FIXED: Slightly thinner bars for better fit */
+            height: 45,         /* FIXED: Better height for visibility */
             displayValue: false, // Don't show text (we have it separately)
             background: "white",
             lineColor: "black",
-            margin: 1,          // Minimal margin for maximum barcode area
+            margin: 0,          /* FIXED: Zero margin for maximum space */
             fontSize: 0,        // No font inside barcode
             textMargin: 0       // No text margin
           });
