@@ -590,6 +590,7 @@
         <span class="config-label">API URL:</span>
         <input type="text" class="form-input" id="api-url" value="/api/buybackstep4" style="flex: 1;">
         <button class="btn btn-secondary" id="test-connection">Test Connection</button>
+        <button class="btn btn-secondary" id="test-all-methods">Test All Methods</button>
         <div class="status-indicator disconnected" id="connection-status"></div>
       </div>
       <div class="config-row">
@@ -804,6 +805,64 @@
       setMockMode(enabled) {
         this.mockMode = enabled;
         this.logger.log('info', `Mock mode ${enabled ? 'enabled' : 'disabled'}`);
+      }
+
+      async testAllMethods() {
+        const methods = ['GET', 'POST', 'PUT', 'PATCH'];
+        this.logger.log('info', 'Testing all HTTP methods...');
+        
+        for (const method of methods) {
+          this.logger.log('info', `Testing ${method} method...`);
+          
+          try {
+            const testPayload = {
+              cards: [{ cardName: 'Test Card', sku: null, quantity: 1 }],
+              employeeName: 'Test',
+              payoutMethod: 'cash'
+            };
+
+            const requestConfig = {
+              method: method,
+              mode: this.corsMode,
+              headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              }
+            };
+
+            let finalUrl = this.apiUrl;
+
+            if (method === 'GET') {
+              const params = new URLSearchParams({
+                cardName: 'Test Card',
+                employeeName: 'Test',
+                payoutMethod: 'cash'
+              });
+              finalUrl = this.apiUrl.includes('?') ? 
+                `${this.apiUrl}&${params}` : 
+                `${this.apiUrl}?${params}`;
+            } else {
+              requestConfig.body = JSON.stringify(testPayload);
+            }
+
+            const response = await fetch(finalUrl, requestConfig);
+            
+            this.logger.log('info', `${method} result:`, {
+              status: response.status,
+              statusText: response.statusText,
+              ok: response.ok
+            });
+
+            if (response.ok) {
+              this.logger.log('info', `✅ ${method} method works!`);
+              const data = await response.json();
+              this.logger.log('info', `${method} response data:`, data);
+            }
+
+          } catch (error) {
+            this.logger.log('error', `${method} failed:`, { message: error.message });
+          }
+        }
       }
 
       async testConnection() {
@@ -1250,6 +1309,18 @@
         btn.disabled = false;
         btn.innerHTML = 'Test Connection';
         statusIndicator.className = `status-indicator ${success ? 'connected' : 'disconnected'}`;
+      });
+
+      // Test all methods button
+      document.getElementById('test-all-methods').addEventListener('click', async function() {
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> Testing...';
+        
+        await searchClient.testAllMethods();
+        
+        btn.disabled = false;
+        btn.innerHTML = 'Test All Methods';
       });
 
       // Test search button
