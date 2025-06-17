@@ -54,9 +54,23 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid or missing cards array' });
     }
 
-    // Shopify configuration
-    const SHOPIFY_DOMAIN = "ke40sv-my.myshopify.com";
-    const ACCESS_TOKEN = "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";
+    // Shopify configuration from Vercel environment variables
+    const SHOPIFY_DOMAIN = process.env.SHOPIFY_DOMAIN;
+    const ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
+
+    // Validate required environment variables
+    if (!SHOPIFY_DOMAIN || !ACCESS_TOKEN) {
+      console.error('❌ Missing required environment variables');
+      return res.status(500).json({ 
+        error: 'Server configuration error',
+        details: 'Missing Shopify credentials'
+      });
+    }
+
+    console.log('🛍️ Shopify config:', {
+      domain: SHOPIFY_DOMAIN,
+      hasToken: !!ACCESS_TOKEN
+    });
 
     // Trade rate calculation functions
     function calculateMaximumTradeValue(marketValue) {
