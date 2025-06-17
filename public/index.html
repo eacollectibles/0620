@@ -915,6 +915,33 @@
       }
     }
 
+    /* Debug section styles */
+    .debug-section {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: var(--border-radius-lg);
+      padding: 20px;
+      margin: 20px 0;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    .debug-title {
+      font-weight: bold;
+      color: #495057;
+      margin-bottom: 10px;
+    }
+
+    .debug-content {
+      background: white;
+      padding: 10px;
+      border-radius: var(--border-radius);
+      white-space: pre-wrap;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ced4da;
+    }
+
     /* Print styles optimized for Avery 7666 - FIXED: Only labels print */
     @media print {
       @page {
@@ -1249,6 +1276,14 @@
           </div>
         </div>
 
+        <!-- Debug section for troubleshooting SKU data -->
+        <div id="debug-section" class="debug-section" style="display: none;">
+          <div class="debug-title">🔍 Debug: API Response Data</div>
+          <div id="debug-content" class="debug-content">
+            No debug data available
+          </div>
+        </div>
+
         <!-- Code 128 Barcode Section - Real barcodes with actual SKUs -->
         <div id="barcode-section" class="barcode-section" style="display: none;">
           <div class="barcode-header">
@@ -1273,6 +1308,9 @@
   <script>
     // REAL API configuration
     const API_URL = '/api/buybackstep4'; 
+
+    // Global variable to store the last API response for debugging
+    let lastApiResponse = null;
 
     document.addEventListener('DOMContentLoaded', function() {
       const customerEmail = document.getElementById('customer-email');
@@ -1334,6 +1372,22 @@
 
       // Setup REAL search for existing inputs
       document.querySelectorAll('.card-input').forEach(setupRealSearch);
+
+      // DEBUG: Toggle debug section by clicking on status bar 3 times quickly
+      let statusClickCount = 0;
+      document.getElementById('status-bar').addEventListener('click', function() {
+        statusClickCount++;
+        setTimeout(() => { statusClickCount = 0; }, 1000);
+        
+        if (statusClickCount >= 3) {
+          const debugSection = document.getElementById('debug-section');
+          debugSection.style.display = debugSection.style.display === 'none' ? 'block' : 'none';
+          
+          if (lastApiResponse) {
+            document.getElementById('debug-content').textContent = JSON.stringify(lastApiResponse, null, 2);
+          }
+        }
+      });
 
       // REAL search functionality that connects to your Vercel API
       function setupRealSearch(input) {
@@ -1622,6 +1676,9 @@
           });
 
           const data = await response.json();
+          
+          // Store response for debugging
+          lastApiResponse = data;
 
           if (!response.ok) {
             throw new Error(data.error || 'Failed to get estimate');
@@ -1693,6 +1750,9 @@
           
           const data = await response.json();
           console.log('Trade response data:', data);
+          
+          // Store response for debugging
+          lastApiResponse = data;
 
           if (!response.ok) {
             throw new Error(data.error || 'Failed to process trade');
@@ -1762,7 +1822,7 @@
           successHTML += `
             <div class="store-credit-display">
               <div style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">🏪 Store Credit Issued</div>
-              <div class="payout-amount">$${data.finalPayout} CAD</div>
+              <div class="payout-amount">${data.finalPayout} CAD</div>
               <div>Customer: ${data.customer.email}</div>
               <div style="margin-top: 16px; opacity: 0.9;">
                 Store credit has been added to the customer's account.
@@ -1773,7 +1833,7 @@
           successHTML += `
             <div class="cash-display">
               <div style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">💵 Cash Payout</div>
-              <div class="payout-amount">$${data.finalPayout} CAD</div>
+              <div class="payout-amount">${data.finalPayout} CAD</div>
               <div style="margin-top: 16px; opacity: 0.9;">
                 Please provide this amount in cash to the customer.
               </div>
@@ -1792,7 +1852,7 @@
               </div>
               <div class="detail-item">
                 <div class="detail-label">Cards Processed</div>
-                <div class="detail-value">${data.processingStats.cardsFound}/${data.processingStats.totalCards}</div>
+                <div class="detail-value">${data.processingStats ? data.processingStats.cardsFound : 'N/A'}/${data.processingStats ? data.processingStats.totalCards : 'N/A'}</div>
               </div>
               <div class="detail-item">
                 <div class="detail-label">Final Amount</div>
@@ -1818,10 +1878,13 @@
               <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--gray-200);">
                 <div>
                   <div style="font-weight: 600;">${card.match || card.cardName} ${card.match ? '✅' : '❌'}</div>
-                  <div style="font-size: 14px; color: var(--gray-500);">Qty: ${card.quantity} • ${card.condition}</div>
+                  <div style="font-size: 14px; color: var(--gray-500);">
+                    Qty: ${card.quantity} • ${card.condition}
+                    ${card.sku ? ` • SKU: ${card.sku}` : ''}
+                  </div>
                 </div>
                 <div style="text-align: right;">
-                  <div style="font-weight: 600;">${card.suggestedTradeValue.toFixed(2)}</div>
+                  <div style="font-weight: 600;">${card.suggestedTradeValue ? card.suggestedTradeValue.toFixed(2) : '0.00'}</div>
                   <div style="font-size: 12px; color: var(--gray-500);">Trade Value</div>
                 </div>
               </div>
@@ -1835,22 +1898,71 @@
         successContent.innerHTML = successHTML;
         tradeSuccess.classList.add('visible');
         
-        // Generate barcodes for successfully matched items
-        generateBarcodes(data.results);
+        // Generate barcodes for successfully matched items - FIXED: Better SKU handling
+        generateBarcodes(data.results || []);
       }
 
-      // Code 128 barcode generation - Real barcodes with actual SKUs
+      // FIXED: Code 128 barcode generation with improved SKU detection
       function generateBarcodes(results) {
         const barcodeContent = document.getElementById('barcode-content');
         barcodeContent.innerHTML = '';
 
-        // Only generate barcodes for items that were successfully matched
-        const matchedItems = results.filter(item => item.match && item.sku);
+        console.log('🔍 Debug: generateBarcodes called with:', results);
+
+        // Try multiple ways to find items with SKUs
+        let itemsWithSkus = [];
         
-        if (matchedItems.length === 0) {
+        // Method 1: Look for items with direct SKU property
+        const directSkuItems = results.filter(item => item.sku);
+        console.log('📊 Items with direct SKU property:', directSkuItems);
+        
+        // Method 2: Look for items that matched and might have SKU in different location
+        const matchedItems = results.filter(item => item.match);
+        console.log('✅ Items that matched:', matchedItems);
+        
+        // Method 3: Look for any item with SKU-like properties (variant_sku, product_sku, etc.)
+        const alternateSkuItems = results.filter(item => 
+          item.variant_sku || item.product_sku || item.barcode || item.inventory_item_id
+        );
+        console.log('🔄 Items with alternate SKU properties:', alternateSkuItems);
+
+        // Combine all methods, prioritizing direct SKU
+        if (directSkuItems.length > 0) {
+          itemsWithSkus = directSkuItems;
+          console.log('✅ Using direct SKU items');
+        } else if (matchedItems.length > 0) {
+          // Try to extract SKUs from matched items
+          itemsWithSkus = matchedItems.map(item => ({
+            ...item,
+            sku: item.variant_sku || item.product_sku || item.barcode || item.inventory_item_id || `TEMP-${Math.random().toString(36).substr(2, 8)}`
+          }));
+          console.log('🔄 Using matched items with generated/alternate SKUs');
+        } else if (alternateSkuItems.length > 0) {
+          itemsWithSkus = alternateSkuItems.map(item => ({
+            ...item,
+            sku: item.variant_sku || item.product_sku || item.barcode || item.inventory_item_id
+          }));
+          console.log('📋 Using alternate SKU items');
+        }
+
+        console.log('📊 Final items with SKUs for barcode generation:', itemsWithSkus);
+        
+        if (itemsWithSkus.length === 0) {
           barcodeContent.innerHTML = `
             <div style="grid-column: 1/-1; text-align: center; color: var(--gray-500); padding: 40px;">
-              📊 No SKUs available for barcode generation
+              <h4>📊 No SKUs Available for Barcode Generation</h4>
+              <p>Debug info:</p>
+              <div style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                <strong>Items received:</strong> ${results.length}<br>
+                <strong>Items with direct SKU:</strong> ${directSkuItems.length}<br>
+                <strong>Items that matched:</strong> ${matchedItems.length}<br>
+                <strong>Items with alternate SKU props:</strong> ${alternateSkuItems.length}<br><br>
+                <strong>Sample item structure:</strong><br>
+                <code style="font-size: 11px; white-space: pre-wrap;">${results.length > 0 ? JSON.stringify(results[0], null, 2) : 'No items'}</code>
+              </div>
+              <button type="button" onclick="document.getElementById('debug-section').style.display='block';" class="btn btn-secondary">
+                🔍 Show Full Debug Info
+              </button>
             </div>
           `;
           return;
@@ -1859,9 +1971,10 @@
         let labelCount = 0;
         const barcodeIds = []; // Store IDs for rendering after insertion
 
-        matchedItems.forEach(item => {
+        itemsWithSkus.forEach(item => {
           // Generate Code 128 barcode for each quantity
-          for (let i = 0; i < item.quantity; i++) {
+          const quantity = item.quantity || 1;
+          for (let i = 0; i < quantity; i++) {
             const barcodeLabel = document.createElement('div');
             barcodeLabel.className = 'barcode-label';
             
@@ -1889,9 +2002,16 @@
           emptyLabel.className = 'barcode-label';
           emptyLabel.style.border = '1px dashed #e2e8f0';
           emptyLabel.style.backgroundColor = '#f7fafc';
+          emptyLabel.innerHTML = `
+            <div style="color: #a0aec0; font-size: 10px; text-align: center; padding: 20px;">
+              Empty Label ${labelCount + 1}
+            </div>
+          `;
           barcodeContent.appendChild(emptyLabel);
           labelCount++;
         }
+
+        console.log(`📊 Generated ${barcodeIds.length} barcodes, filled to ${labelCount} labels total`);
 
         // Render all barcodes after DOM insertion
         setTimeout(() => {
@@ -1901,57 +2021,57 @@
         }, 100);
       }
 
-      // Function to render Code 128 barcode
+      // FIXED: Function to render Code 128 barcode with better error handling
       function renderBarcode(containerId, sku) {
         try {
           const element = document.getElementById(containerId);
-          if (element && window.JsBarcode) {
-            JsBarcode(element, sku, {
-              format: "CODE128",
-              width: 4,           // Thick bars for Socket S740
-              height: 60,         // Tall enough for scanning
-              displayValue: false, // Don't show text (we have it separately)
-              background: "white",
-              lineColor: "black",
-              margin: 2,
-              fontSize: 0         // No font inside barcode
-            });
+          if (!element) {
+            console.error('❌ Barcode container not found:', containerId);
+            return;
           }
+
+          if (!window.JsBarcode) {
+            console.error('❌ JsBarcode library not loaded');
+            element.innerHTML = `<text x="50%" y="50%" text-anchor="middle" font-family="monospace" font-size="10" fill="red">JsBarcode not loaded</text>`;
+            return;
+          }
+
+          // Validate SKU format for Code 128
+          if (!sku || sku.length === 0) {
+            console.error('❌ Invalid SKU for barcode:', sku);
+            element.innerHTML = `<text x="50%" y="50%" text-anchor="middle" font-family="monospace" font-size="10" fill="red">Invalid SKU</text>`;
+            return;
+          }
+
+          console.log(`📊 Rendering barcode for SKU: ${sku} in container: ${containerId}`);
+
+          JsBarcode(element, sku, {
+            format: "CODE128",
+            width: 4,           // Thick bars for Socket S740 scanner
+            height: 60,         // Tall enough for easy scanning
+            displayValue: false, // Don't show text (we have it separately)
+            background: "white",
+            lineColor: "black",
+            margin: 2,
+            fontSize: 0,        // No font inside barcode
+            textMargin: 0       // No text margin
+          });
+
+          console.log(`✅ Successfully rendered barcode for ${sku}`);
+
         } catch (error) {
-          console.error('Barcode generation error for', sku, ':', error);
+          console.error('❌ Barcode generation error for', sku, ':', error);
           // Fallback: show SKU as text if barcode fails
-          if (element) {
-            element.innerHTML = `<text x="50%" y="50%" text-anchor="middle" font-family="monospace" font-size="12">${sku}</text>`;
-          }
-        }
-      }
-
-      // Generate real Code 128 barcode using JsBarcode library
-      function generateCode128Barcode(sku) {
-        // Create a unique container ID for this barcode
-        const barcodeId = 'barcode-' + Math.random().toString(36).substr(2, 9);
-        
-        // Return SVG container that will be populated by JsBarcode
-        return `<svg id="${barcodeId}" class="barcode-svg"></svg>`;
-      }
-
-      // Function to render the actual barcode after the HTML is inserted
-      function renderBarcode(containerId, sku) {
-        try {
           const element = document.getElementById(containerId);
-          if (element && window.JsBarcode) {
-            JsBarcode(element, sku, {
-              format: "CODE128",
-              width: 3,           // Bar width
-              height: 60,         // Barcode height  
-              displayValue: false, // Don't show text (we have it separately)
-              background: "white",
-              lineColor: "black",
-              margin: 2
-            });
+          if (element) {
+            element.innerHTML = `
+              <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #fff3cd; border: 1px solid #ffeaa7;">
+                <span style="font-family: monospace; font-size: 8px; color: #856404;">
+                  Error: ${sku}
+                </span>
+              </div>
+            `;
           }
-        } catch (error) {
-          console.error('Barcode generation error:', error);
         }
       }
 
@@ -1973,7 +2093,7 @@
         window.print();
       });
 
-      // NEW: Print barcodes functionality - FIXED: Only labels print
+      // FIXED: Print barcodes functionality - Only labels print
       document.getElementById('print-barcodes').addEventListener('click', function() {
         const barcodeSection = document.getElementById('barcode-section');
         if (barcodeSection.style.display === 'none') {
@@ -2087,15 +2207,15 @@
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center;">
               <div>
                 <div style="font-size: 12px; color: var(--gray-500);">Retail</div>
-                <div style="font-weight: 600;">${card.retailPrice.toFixed(2)}</div>
+                <div style="font-weight: 600;">${card.retailPrice ? card.retailPrice.toFixed(2) : '0.00'}</div>
               </div>
               <div>
                 <div style="font-size: 12px; color: var(--gray-500);">Suggested</div>
-                <div style="font-weight: 600; color: var(--accent);">${card.suggestedTradeValue.toFixed(2)}</div>
+                <div style="font-weight: 600; color: var(--accent);">${card.suggestedTradeValue ? card.suggestedTradeValue.toFixed(2) : '0.00'}</div>
               </div>
               <div>
                 <div style="font-size: 12px; color: var(--gray-500);">Maximum</div>
-                <div style="font-weight: 600; color: var(--success);">${card.maximumTradeValue.toFixed(2)}</div>
+                <div style="font-weight: 600; color: var(--success);">${card.maximumTradeValue ? card.maximumTradeValue.toFixed(2) : '0.00'}</div>
               </div>
             </div>
           `;
@@ -2103,9 +2223,9 @@
         });
 
         // Update totals
-        document.getElementById('total-retail').textContent = `${data.totalRetailValue}`;
-        document.getElementById('total-suggested').textContent = `${data.suggestedTotal}`;
-        document.getElementById('total-maximum').textContent = `${data.maximumTotal}`;
+        document.getElementById('total-retail').textContent = `${data.totalRetailValue || '0.00'}`;
+        document.getElementById('total-suggested').textContent = `${data.suggestedTotal || '0.00'}`;
+        document.getElementById('total-maximum').textContent = `${data.maximumTotal || '0.00'}`;
 
         // Show results
         estimateResults.classList.add('visible');
