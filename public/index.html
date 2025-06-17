@@ -591,6 +591,148 @@
       color: var(--accent);
     }
 
+    /* Trade Success Results */
+    .trade-success {
+      background: linear-gradient(135deg, rgba(56, 161, 105, 0.05) 0%, rgba(56, 161, 105, 0.02) 100%);
+      border: 2px solid var(--success);
+      border-radius: var(--border-radius-lg);
+      padding: 32px;
+      margin: 32px 0;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .trade-success.visible {
+      opacity: 1;
+      max-height: 1000px;
+    }
+
+    .success-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(56, 161, 105, 0.2);
+    }
+
+    .success-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--success);
+    }
+
+    .success-content {
+      margin: 24px 0;
+    }
+
+    .success-card {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 24px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(56, 161, 105, 0.2);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .gift-card-display {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      padding: 32px;
+      border-radius: var(--border-radius-lg);
+      text-align: center;
+      margin: 20px 0;
+      border: 3px solid var(--accent);
+    }
+
+    .gift-card-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .gift-card-code {
+      font-family: var(--font-mono);
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      background: white;
+      color: var(--primary);
+      padding: 16px 24px;
+      border-radius: var(--border-radius);
+      margin: 16px 0;
+      border: 2px dashed var(--accent);
+      word-break: break-all;
+    }
+
+    .gift-card-instructions {
+      font-size: 16px;
+      margin-top: 16px;
+      opacity: 0.9;
+    }
+
+    .store-credit-display {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+      color: white;
+      padding: 24px;
+      border-radius: var(--border-radius-lg);
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .cash-display {
+      background: linear-gradient(135deg, var(--success) 0%, #48bb78 100%);
+      color: white;
+      padding: 24px;
+      border-radius: var(--border-radius-lg);
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .payout-amount {
+      font-size: 36px;
+      font-weight: 700;
+      margin: 16px 0;
+    }
+
+    .success-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    .detail-item {
+      background: rgba(255, 255, 255, 0.8);
+      padding: 16px;
+      border-radius: var(--border-radius);
+      text-align: center;
+    }
+
+    .detail-label {
+      font-size: 14px;
+      color: var(--gray-600);
+      margin-bottom: 4px;
+    }
+
+    .detail-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+
+    .success-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(56, 161, 105, 0.2);
+    }
+
     /* Status bar */
     .status-bar {
       background: white;
@@ -908,6 +1050,29 @@
             </button>
           </div>
         </form>
+
+        <!-- Trade Success Results -->
+        <div id="trade-success" class="trade-success">
+          <div class="success-header">
+            <div class="success-title">🎉 Trade Completed Successfully!</div>
+            <button type="button" class="btn btn-secondary" id="close-success" style="padding: 8px 12px;">✖ Close</button>
+          </div>
+          
+          <div id="success-content" class="success-content">
+            <!-- Success content will be inserted here -->
+          </div>
+
+          <div class="success-actions">
+            <button type="button" class="btn btn-primary" id="new-trade">
+              <span>🔄</span>
+              <span>Process Another Trade</span>
+            </button>
+            <button type="button" class="btn btn-secondary" id="print-receipt">
+              <span>🖨️</span>
+              <span>Print Receipt</span>
+            </button>
+          </div>
+        </div>
 
         <!-- Status Bar -->
         <div class="status-bar" id="status-bar">
