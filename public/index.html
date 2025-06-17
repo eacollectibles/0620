@@ -1406,7 +1406,8 @@
         }));
 
         if (cards.length === 0) {
-          updateStatus('Please add at least one card to estimate.', 'error');
+          updateStatus('❌ Please add at least one card to estimate.', 'error');
+          alert('Please add at least one card to estimate.');
           return;
         }
 
@@ -1464,13 +1465,15 @@
         }));
 
         if (cards.length === 0) {
-          updateStatus('Please add at least one card to process.', 'error');
+          updateStatus('❌ Please add at least one card to process.', 'error');
+          alert('Please add at least one card to process.');
           return;
         }
 
         const payoutMethod = formData.get('payoutMethod');
         if (payoutMethod === 'store-credit' && !formData.get('customerEmail')) {
-          updateStatus('Customer email is required for store credit payouts.', 'error');
+          updateStatus('❌ Customer email is required for store credit payouts.', 'error');
+          alert('Customer email is required for store credit payouts.');
           return;
         }
 
@@ -1510,6 +1513,22 @@
           // FIXED: Show success information in the trade success section
           showTradeSuccess(data, payoutMethod);
           
+          // Also show an alert with key info for immediate feedback
+          let alertMessage = `✅ Trade Completed Successfully!\n\n`;
+          alertMessage += `💰 Amount: ${data.finalPayout} CAD\n`;
+          alertMessage += `👤 Employee: ${data.employeeName}\n`;
+          
+          if (payoutMethod === 'gift-card' && data.giftCardCode) {
+            alertMessage += `🎁 Gift Card Code: ${data.giftCardCode}\n`;
+            alertMessage += `\n⚠️ SAVE THIS CODE! Give it to the customer.`;
+          } else if (payoutMethod === 'store-credit') {
+            alertMessage += `🏪 Store credit added to customer account.`;
+          } else if (payoutMethod === 'cash') {
+            alertMessage += `💵 Please provide cash to customer.`;
+          }
+          
+          alert(alertMessage);
+          
           updateStatus('Trade completed successfully!', 'success');
 
           // Reset form
@@ -1527,7 +1546,8 @@
 
         } catch (error) {
           console.error('Trade error:', error);
-          updateStatus(`Error: ${error.message}`, 'error');
+          updateStatus(`❌ Error: ${error.message}`, 'error');
+          alert(`❌ Failed to process trade: ${error.message}`);
         } finally {
           submitBtn.innerHTML = '<span>✅</span><span>Process Trade</span>';
           submitBtn.disabled = false;
