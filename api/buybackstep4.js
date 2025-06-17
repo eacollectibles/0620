@@ -1,6 +1,7 @@
-// buybackstep4.js - DIAGNOSTIC VERSION to see what's in your Shopify
+
+// buybackstep4.js - ENHANCED DIAGNOSTIC for Tag Searching
 module.exports = async function handler(req, res) {
-  console.log('=== SHOPIFY DIAGNOSTIC API START ===');
+  console.log('=== SHOPIFY ENHANCED DIAGNOSTIC START ===');
   console.log('Method:', req.method);
   console.log('Body:', req.body);
 
@@ -17,7 +18,7 @@ module.exports = async function handler(req, res) {
     if (req.method === 'GET') {
       return res.status(200).json({
         success: true,
-        message: 'Shopify Diagnostic API is running',
+        message: 'Shopify Enhanced Diagnostic API is running',
         timestamp: new Date().toISOString()
       });
     }
@@ -36,7 +37,7 @@ module.exports = async function handler(req, res) {
     }
 
     const cardName = cards[0]?.cardName;
-    console.log('🔍 DIAGNOSTIC SEARCH for:', cardName);
+    console.log('🔍 ENHANCED SEARCH for:', cardName);
 
     // Your Shopify credentials
     const SHOPIFY_DOMAIN = "ke40sv-my.myshopify.com";
@@ -100,65 +101,200 @@ module.exports = async function handler(req, res) {
       });
     });
 
-    // Now try to find your specific search
+    // Now search ALL products (increased limit)
     console.log(`\n🎯 SEARCHING FOR: "${cardName}"`);
     
     let foundProducts = [];
+    let allProducts = [];
+    let page = 1;
+    const limit = 250;
     
-    // Search all products for the query
-    const allProductsUrl = `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/products.json?` +
-      `limit=250&` +
-      `fields=id,title,variants,product_type,tags,handle`;
+    // Paginate through ALL products
+    while (true) {
+      const pageUrl = `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/products.json?` +
+        `limit=${limit}&` +
+        `page=${page}&` +
+        `fields=id,title,variants,product_type,tags,handle`;
 
-    const allResponse = await fetch(allProductsUrl, {
-      headers: {
-        'X-Shopify-Access-Token': ACCESS_TOKEN,
-        'Content-Type': 'application/json'
-      }
-    });
+      console.log(`📄 Fetching page ${page}...`);
 
-    if (allResponse.ok) {
-      const allData = await allResponse.json();
-      const allProducts = allData.products || [];
-      
-      console.log(`📦 Searching through ${allProducts.length} total products`);
-      
-      // Test different search strategies
-      const searchStrategies = [
-        { name: 'Exact Title', test: (p) => p.title.toLowerCase() === cardName.toLowerCase() },
-        { name: 'Title Contains', test: (p) => p.title.toLowerCase().includes(cardName.toLowerCase()) },
-        { name: 'SKU Exact', test: (p) => p.variants.some(v => v.sku === cardName) },
-        { name: 'SKU Contains', test: (p) => p.variants.some(v => v.sku && v.sku.toLowerCase().includes(cardName.toLowerCase())) },
-        { name: 'Tags Contains', test: (p) => p.tags && p.tags.toLowerCase().includes(cardName.toLowerCase()) },
-        { name: 'Handle Contains', test: (p) => p.handle.includes(cardName.toLowerCase().replace(/\s+/g, '-')) }
-      ];
-
-      searchStrategies.forEach(strategy => {
-        const matches = allProducts.filter(strategy.test);
-        console.log(`🔍 ${strategy.name}: ${matches.length} matches`);
-        
-        if (matches.length > 0) {
-          matches.slice(0, 3).forEach(match => {
-            console.log(`  ✅ "${match.title}"`);
-            match.variants?.forEach(v => {
-              if (v.sku) console.log(`    SKU: "${v.sku}"`);
-            });
-          });
-          foundProducts = foundProducts.concat(matches);
+      const pageResponse = await fetch(pageUrl, {
+        headers: {
+          'X-Shopify-Access-Token': ACCESS_TOKEN,
+          'Content-Type': 'application/json'
         }
       });
+
+      if (!pageResponse.ok) {
+        console.log(`❌ Failed to fetch page ${page}`);
+        break;
+      }
+
+      const pageData = await pageResponse.json();
+      const pageProducts = pageData.products || [];
+      
+      if (pageProducts.length === 0) {
+        console.log(`📄 Page ${page} empty - stopping pagination`);
+        break;
+      }
+      
+      allProducts = allProducts.concat(pageProducts);
+      console.log(`📄 Page ${page}: ${pageProducts.length} products (Total: ${allProducts.length})`);
+      
+      // Stop if we got less than the limit (last page)
+      if (pageProducts.length < limit) {
+        break;
+      }
+      
+      page++;
+      
+      // Safety limit to prevent infinite loops
+      if (page > 20) {
+        console.log('⚠️ Stopping at page 20 for safety');
+        break;
+      }
     }
+      
+    console.log(`📦 Total products to search: ${allProducts.length}`);
+    
+    // Enhanced search strategies with detailed logging
+    const searchStrategies = [
+      { 
+        name: 'Exact Title', 
+        test: (p) => {
+          const match = p.title.toLowerCase() === cardName.toLowerCase();
+          if (match) console.log(`  ✅ Title exact match: "${p.title}"`);
+          return match;
+        }
+      },
+      { 
+        name: 'Title Contains', 
+        test: (p) => {
+          const match = p.title.toLowerCase().includes(cardName.toLowerCase());
+          if (match) console.log(`  ✅ Title contains: "${p.title}" contains "${cardName}"`);
+          return match;
+        }
+      },
+      { 
+        name: 'SKU Exact', 
+        test: (p) => {
+          const match = p.variants.some(v => v.sku === cardName);
+          if (match) {
+            const matchingVariant = p.variants.find(v => v.sku === cardName);
+            console.log(`  ✅ SKU exact match: "${matchingVariant.sku}" in "${p.title}"`);
+          }
+          return match;
+        }
+      },
+      { 
+        name: 'SKU Contains', 
+        test: (p) => {
+          const match = p.variants.some(v => v.sku && v.sku.toLowerCase().includes(cardName.toLowerCase()));
+          if (match) {
+            const matchingVariant = p.variants.find(v => v.sku && v.sku.toLowerCase().includes(cardName.toLowerCase()));
+            console.log(`  ✅ SKU contains: "${matchingVariant.sku}" contains "${cardName}" in "${p.title}"`);
+          }
+          return match;
+        }
+      },
+      { 
+        name: 'Tags Contains', 
+        test: (p) => {
+          if (!p.tags) return false;
+          
+          console.log(`  🏷️ Checking tags: "${p.tags}" for "${cardName}"`);
+          
+          // Try multiple tag search approaches
+          const searches = [
+            p.tags.toLowerCase().includes(cardName.toLowerCase()),
+            p.tags.split(',').some(tag => tag.trim().toLowerCase() === cardName.toLowerCase()),
+            p.tags.split(',').some(tag => tag.trim().toLowerCase().includes(cardName.toLowerCase()))
+          ];
+          
+          const match = searches.some(s => s);
+          
+          if (match) {
+            console.log(`  ✅ Tags match found: "${p.tags}" contains "${cardName}" in "${p.title}"`);
+          }
+          
+          return match;
+        }
+      },
+      { 
+        name: 'Handle Contains', 
+        test: (p) => {
+          const searchHandle = cardName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+          const match = p.handle.includes(searchHandle);
+          if (match) console.log(`  ✅ Handle contains: "${p.handle}" contains "${searchHandle}"`);
+          return match;
+        }
+      },
+      { 
+        name: 'Card Number Pattern', 
+        test: (p) => {
+          const cardNum = cardName.split('/')[0]; // Get "001" from "001/182"
+          const setNum = cardName.split('/')[1]; // Get "182" from "001/182"
+          
+          const titleMatch = p.title.toLowerCase().includes(cardNum.toLowerCase());
+          const skuMatch = p.variants.some(v => v.sku && v.sku.includes(cardNum));
+          const tagMatch = p.tags && (
+            p.tags.includes(cardNum) || 
+            p.tags.includes(cardName) ||
+            (setNum && p.tags.includes(setNum))
+          );
+          
+          const match = titleMatch || skuMatch || tagMatch;
+          
+          if (match) {
+            console.log(`  ✅ Card pattern match: "${cardName}" found in "${p.title}"`);
+            if (titleMatch) console.log(`    - Found in title`);
+            if (skuMatch) console.log(`    - Found in SKU`);
+            if (tagMatch) console.log(`    - Found in tags: "${p.tags}"`);
+          }
+          
+          return match;
+        }
+      }
+    ];
+
+    // Run each search strategy
+    searchStrategies.forEach(strategy => {
+      console.log(`\n🔍 Testing ${strategy.name}:`);
+      const matches = allProducts.filter(strategy.test);
+      console.log(`🔍 ${strategy.name}: ${matches.length} matches`);
+      
+      if (matches.length > 0) {
+        matches.slice(0, 3).forEach(match => {
+          console.log(`  📋 "${match.title}"`);
+          console.log(`    Tags: "${match.tags}"`);
+          match.variants?.forEach(v => {
+            if (v.sku) console.log(`    SKU: "${v.sku}" - Price: $${v.price}`);
+          });
+        });
+        foundProducts = foundProducts.concat(matches);
+      }
+    });
 
     // Remove duplicates
     foundProducts = foundProducts.filter((product, index, self) => 
       index === self.findIndex(p => p.id === product.id)
     );
 
+    // If still no matches, show sample tags for debugging
+    if (foundProducts.length === 0) {
+      console.log('\n🔍 NO MATCHES FOUND - Sample tags from products:');
+      allProducts.slice(0, 10).forEach((p, i) => {
+        if (p.tags) {
+          console.log(`  Product ${i+1}: "${p.title}" - Tags: "${p.tags}"`);
+        }
+      });
+    }
+
     const response = {
       success: true,
       diagnostic: {
         searchQuery: cardName,
-        totalProductsInStore: products.length > 0 ? 'At least ' + products.length : 'Unknown',
+        totalProductsInStore: allProducts.length,
         sampleProducts: diagnosticInfo,
         searchResults: foundProducts.length,
         foundProducts: foundProducts.slice(0, 3).map(p => ({
@@ -173,9 +309,9 @@ module.exports = async function handler(req, res) {
         match: foundProducts[0].title,
         sku: foundProducts[0].variants?.[0]?.sku || null,
         retailPrice: parseFloat(foundProducts[0].variants?.[0]?.price) || 0,
-        suggestedTradeValue: 0,
-        maximumTradeValue: 0,
-        searchMethod: 'diagnostic'
+        suggestedTradeValue: Math.floor((parseFloat(foundProducts[0].variants?.[0]?.price) || 0) * 0.7), // 70% of retail
+        maximumTradeValue: Math.floor((parseFloat(foundProducts[0].variants?.[0]?.price) || 0) * 0.8), // 80% of retail
+        searchMethod: 'enhanced_diagnostic'
       }] : [{
         cardName: cardName,
         match: null,
@@ -183,20 +319,23 @@ module.exports = async function handler(req, res) {
         retailPrice: 0,
         suggestedTradeValue: 0,
         maximumTradeValue: 0,
-        searchMethod: 'diagnostic'
+        searchMethod: 'enhanced_diagnostic'
       }],
+      resultsCount: foundProducts.length > 0 ? 1 : 0,
       timestamp: new Date().toISOString()
     };
 
-    console.log('📋 DIAGNOSTIC COMPLETE');
+    console.log('📋 ENHANCED DIAGNOSTIC COMPLETE');
+    console.log('📊 Final Results:', foundProducts.length, 'products found');
+    
     return res.status(200).json(response);
 
   } catch (error) {
-    console.error('💥 DIAGNOSTIC ERROR:', error);
+    console.error('💥 ENHANCED DIAGNOSTIC ERROR:', error);
     
     return res.status(500).json({
       success: false,
-      error: 'Diagnostic failed',
+      error: 'Enhanced diagnostic failed',
       details: error.message,
       timestamp: new Date().toISOString()
     });
