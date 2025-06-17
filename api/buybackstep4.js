@@ -1,4 +1,3 @@
-
 // buybackstep4.js - ENHANCED DIAGNOSTIC for Tag Searching
 module.exports = async function handler(req, res) {
   console.log('=== SHOPIFY ENHANCED DIAGNOSTIC START ===');
@@ -39,9 +38,9 @@ module.exports = async function handler(req, res) {
     const cardName = cards[0]?.cardName;
     console.log('🔍 ENHANCED SEARCH for:', cardName);
 
-    // Your Shopify credentials
-    const SHOPIFY_DOMAIN = "ke40sv-my.myshopify.com";
-    const ACCESS_TOKEN = "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";
+    // Your Shopify credentials from environment variables
+    const SHOPIFY_DOMAIN = process.env.SHOPIFY_DOMAIN;
+    const ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
 
     // DIAGNOSTIC: Get first 10 products to see structure
     const diagnosticUrl = `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/products.json?` +
