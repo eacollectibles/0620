@@ -752,18 +752,18 @@
       padding-bottom: 16px;
     }
 
-    /* Avery 7666 Grid Layout - 3 columns x 10 rows = 30 labels per sheet */
+    /* Custom 2" Grid Layout - 4 columns x 10 rows = 40 labels per sheet */
     .barcode-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 0;
       margin: 20px 0;
       background: white;
     }
 
-    /* Avery 7666 Individual Label - UPC format like Pokemon card packs */
+    /* Custom 2" Individual Label - UPC format like Pokemon card packs */
     .barcode-label {
-      width: 2.625in;  /* 2-5/8" */
+      width: 2in;      /* 2" */
       height: 1in;     /* 1" */
       border: 1px dashed var(--gray-300);
       padding: 4px;
@@ -1289,7 +1289,7 @@
           <div class="barcode-header">
             <h3 style="margin: 0; color: var(--gray-800);">📊 Code 128 Barcode Labels</h3>
             <div style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">
-              Avery 7666 • Code 128 Format • Real SKUs • Socket S740 Compatible
+              Custom 2" x 1" • Code 128 Format • Real SKUs • Socket S740 Compatible
             </div>
           </div>
           <div id="barcode-content" class="barcode-grid">
@@ -1996,8 +1996,8 @@
           }
         });
 
-        // Fill remaining slots to complete the sheet (if less than 30 labels)
-        while (labelCount < 30 && labelCount % 30 !== 0) {
+        // Fill remaining slots to complete the sheet (if less than 40 labels)
+        while (labelCount < 40 && labelCount % 40 !== 0) {
           const emptyLabel = document.createElement('div');
           emptyLabel.className = 'barcode-label';
           emptyLabel.style.border = '1px dashed #e2e8f0';
