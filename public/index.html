@@ -1108,12 +1108,12 @@
                   <div class="suggestion-name">✅ ${result.match}</div>
                   <div class="suggestion-details">
                     <span>SKU: ${result.sku || 'N/A'}</span>
-                    <span>Price: $${result.retailPrice.toFixed(2)}</span>
+                    <span>Price: ${result.retailPrice.toFixed(2)}</span>
                     <span class="search-badge found">Found</span>
                   </div>
                 </div>
                 <div class="suggestion-actions">
-                  <button type="button" class="suggestion-btn confirm-btn" data-result='${JSON.stringify(result)}'>✅ Use This</button>
+                  <button type="button" class="suggestion-btn confirm-btn">✅ Use This</button>
                   <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
                 </div>
               </div>
@@ -1140,25 +1140,32 @@
           container.appendChild(suggestion);
           currentSuggestion = suggestion;
 
-          // Handle suggestion actions
+          // Handle suggestion actions - Fixed event listeners
           const confirmBtn = suggestion.querySelector('.confirm-btn');
           const continueBtn = suggestion.querySelector('.continue-btn');
           const rejectBtn = suggestion.querySelector('.reject-btn');
 
           if (confirmBtn) {
-            confirmBtn.addEventListener('click', function() {
-              const resultData = JSON.parse(this.getAttribute('data-result'));
+            confirmBtn.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('Confirm button clicked', result);
+              
               input.classList.remove('not-found');
               input.classList.add('confirmed');
-              input.value = resultData.match;
-              input.setAttribute('data-search-result', JSON.stringify(resultData));
+              input.value = result.match;
+              input.setAttribute('data-search-result', JSON.stringify(result));
               suggestion.remove();
               currentSuggestion = null;
             });
           }
 
           if (continueBtn) {
-            continueBtn.addEventListener('click', function() {
+            continueBtn.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('Continue button clicked');
+              
               input.classList.remove('confirmed');
               input.classList.add('not-found');
               input.setAttribute('data-search-result', JSON.stringify({ match: null, retailPrice: 0 }));
@@ -1168,7 +1175,11 @@
           }
 
           if (rejectBtn) {
-            rejectBtn.addEventListener('click', function() {
+            rejectBtn.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('Reject button clicked');
+              
               suggestion.remove();
               currentSuggestion = null;
               input.focus();
