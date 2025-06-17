@@ -3,11 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buyback Portal with Analytics</title>
+  <title>Buyback Portal</title>
   <!-- JsBarcode library for generating real Code 128 barcodes -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
-  <!-- Chart.js for analytics charts -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
   
   <style>
     :root {
@@ -737,175 +735,6 @@
       border-top: 1px solid rgba(56, 161, 105, 0.2);
     }
 
-    /* POS Receipt Styles - Optimized for Star TSP100III thermal printer */
-    .pos-receipt {
-      background: white;
-      border: 2px solid var(--gray-300);
-      border-radius: var(--border-radius-lg);
-      padding: 24px;
-      margin: 20px 0;
-      display: none;
-      page-break-inside: avoid;
-      max-width: 280px; /* Star TSP100III typical receipt width for screen preview */
-      margin: 20px auto;
-      font-family: 'Courier New', monospace; /* Monospace for thermal printer compatibility */
-    }
-
-    .pos-receipt.visible {
-      display: block;
-    }
-
-    .receipt-header {
-      text-align: center;
-      border-bottom: 2px solid #000;
-      padding-bottom: 16px;
-      margin-bottom: 16px;
-    }
-
-    .receipt-store-name {
-      font-size: 20px;
-      font-weight: bold;
-      font-family: var(--font-mono);
-      letter-spacing: 1px;
-      margin-bottom: 8px;
-    }
-
-    .receipt-store-info {
-      font-size: 12px;
-      line-height: 1.4;
-      font-family: var(--font-mono);
-    }
-
-    .receipt-transaction-info {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      font-family: var(--font-mono);
-      margin: 16px 0;
-      padding: 8px 0;
-      border-bottom: 1px dashed #000;
-    }
-
-    .receipt-title {
-      text-align: center;
-      font-size: 16px;
-      font-weight: bold;
-      font-family: var(--font-mono);
-      margin: 16px 0;
-      letter-spacing: 1px;
-    }
-
-    .receipt-items {
-      margin: 16px 0;
-    }
-
-    .receipt-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      font-size: 12px;
-      font-family: var(--font-mono);
-      margin-bottom: 8px;
-      line-height: 1.3;
-    }
-
-    .receipt-item-name {
-      flex: 1;
-      margin-right: 8px;
-      word-wrap: break-word;
-    }
-
-    .receipt-item-details {
-      font-size: 10px;
-      color: #666;
-      margin-top: 2px;
-    }
-
-    .receipt-item-value {
-      text-align: right;
-      white-space: nowrap;
-      min-width: 60px;
-    }
-
-    .receipt-totals {
-      border-top: 2px solid #000;
-      padding-top: 8px;
-      margin-top: 16px;
-    }
-
-    .receipt-total-line {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      font-family: var(--font-mono);
-      margin-bottom: 4px;
-    }
-
-    .receipt-total-line.final {
-      font-size: 16px;
-      font-weight: bold;
-      border-top: 1px solid #000;
-      padding-top: 8px;
-      margin-top: 8px;
-    }
-
-    .receipt-payout {
-      text-align: center;
-      font-size: 14px;
-      font-family: var(--font-mono);
-      font-weight: bold;
-      margin: 16px 0;
-      padding: 12px;
-      border: 2px solid #000;
-      background: #f0f0f0;
-    }
-
-    .receipt-gift-card {
-      text-align: center;
-      font-family: var(--font-mono);
-      margin: 16px 0;
-      padding: 12px;
-      border: 2px dashed #000;
-    }
-
-    .receipt-gift-card-code {
-      font-size: 18px;
-      font-weight: bold;
-      letter-spacing: 2px;
-      margin: 8px 0;
-    }
-
-    .receipt-footer {
-      text-align: center;
-      font-size: 10px;
-      font-family: var(--font-mono);
-      margin-top: 20px;
-      padding-top: 16px;
-      border-top: 1px dashed #000;
-    }
-
-    .receipt-footer p {
-      margin: 4px 0;
-      line-height: 1.3;
-    }
-
-    .receipt-signature {
-      margin-top: 24px;
-      border-top: 1px solid #000;
-      padding-top: 16px;
-    }
-
-    .receipt-signature-line {
-      border-bottom: 1px solid #000;
-      height: 40px;
-      margin: 8px 0 4px 0;
-    }
-
-    .receipt-signature-label {
-      font-size: 10px;
-      font-family: var(--font-mono);
-    }
-
     /* Barcode/Label Printing Styles - Avery 7666 Format */
     .barcode-section {
       background: white;
@@ -937,7 +766,7 @@
       width: 2.625in;  /* 2⅝" - exact Avery 5160 width */
       height: 1in;     /* 1" - exact Avery 5160 height */
       border: 1px dashed var(--gray-300);
-      padding: 4px 6px; /* FIXED: Reduced padding to give more space */
+      padding: 6px 8px; /* More realistic margins for printable area */
       font-family: var(--font-mono);
       display: flex;
       flex-direction: column;
@@ -947,7 +776,7 @@
       background: white;
       box-sizing: border-box;
       page-break-inside: avoid;
-      overflow: visible; /* FIXED: Allow content to show */
+      overflow: hidden;
     }
 
     .barcode-item-name {
@@ -967,12 +796,12 @@
     .barcode-display {
       background: white;
       border: 1px solid #ddd;
-      padding: 1px;
-      margin: 1px 0;
-      overflow: visible;  /* FIXED: Allow barcode to show fully */
+      padding: 2px;
+      margin: 2px 0;
+      overflow: hidden;
       line-height: 1;
-      height: 60px;  /* FIXED: Increased height for better barcode visibility */
-      width: calc(100% - 4px);   /* FIXED: Less padding deduction */
+      height: 50px;  /* Smaller to fit within 1" label */
+      width: calc(100% - 8px);   /* Account for label padding */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1115,388 +944,35 @@
       border: 1px solid #ced4da;
     }
 
-    /* ===== ANALYTICS DASHBOARD STYLES ===== */
-
-    /* Analytics Button - Floating */
-    .analytics-trigger {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      font-size: 24px;
-      cursor: pointer;
-      box-shadow: var(--shadow-lg);
-      transition: all 0.3s ease;
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .analytics-trigger:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
-      background: var(--primary-light);
-    }
-
-    /* Analytics Modal */
-    .analytics-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      display: none;
-      z-index: 2000;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .analytics-modal.visible {
-      display: flex;
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .analytics-content {
-      background: white;
-      border-radius: var(--border-radius-lg);
-      width: 100%;
-      max-width: 1400px;
-      max-height: 90vh;
-      overflow-y: auto;
-      animation: slideUp 0.3s ease;
-      box-shadow: var(--shadow-lg);
-    }
-
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(50px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Analytics Header */
-    .analytics-header {
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-      color: white;
-      padding: 24px 32px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .analytics-title {
-      font-size: 24px;
-      font-weight: 700;
-      margin: 0;
-    }
-
-    .close-analytics {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      border: none;
-      border-radius: var(--border-radius);
-      padding: 8px 12px;
-      cursor: pointer;
-      font-size: 18px;
-      transition: background 0.2s ease;
-    }
-
-    .close-analytics:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
-
-    /* Analytics Body */
-    .analytics-body {
-      padding: 32px;
-    }
-
-    /* Filters */
-    .analytics-filters {
-      display: flex;
-      gap: 16px;
-      margin-bottom: 32px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .filter-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .filter-label {
-      font-weight: 600;
-      color: var(--gray-700);
-      font-size: 14px;
-    }
-
-    .filter-select {
-      padding: 8px 12px;
-      border: 2px solid var(--gray-200);
-      border-radius: var(--border-radius);
-      background: white;
-      font-size: 14px;
-      cursor: pointer;
-    }
-
-    .filter-select:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    /* Summary Cards */
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      margin-bottom: 32px;
-    }
-
-    .summary-card {
-      background: white;
-      border-radius: var(--border-radius-lg);
-      padding: 24px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      border: 1px solid var(--gray-200);
-      transition: transform 0.2s ease;
-    }
-
-    .summary-card:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .summary-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .summary-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--gray-500);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .summary-icon {
-      font-size: 20px;
-      padding: 8px;
-      border-radius: var(--border-radius);
-      background: var(--gray-100);
-    }
-
-    .summary-value {
-      font-size: 32px;
-      font-weight: 700;
-      color: var(--gray-800);
-      margin-bottom: 8px;
-    }
-
-    .summary-change {
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    .change-positive { color: var(--success); }
-    .change-negative { color: var(--error); }
-    .change-neutral { color: var(--gray-500); }
-
-    /* Charts Section */
-    .charts-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 24px;
-      margin-bottom: 32px;
-    }
-
-    .chart-card {
-      background: white;
-      border-radius: var(--border-radius-lg);
-      padding: 24px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      border: 1px solid var(--gray-200);
-    }
-
-    .chart-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--gray-800);
-      margin-bottom: 20px;
-    }
-
-    .chart-container {
-      position: relative;
-      height: 300px;
-    }
-
-    /* Data Tables */
-    .data-section {
-      background: white;
-      border-radius: var(--border-radius-lg);
-      padding: 24px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      border: 1px solid var(--gray-200);
-      margin-bottom: 24px;
-    }
-
-    .section-title-analytics {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--gray-800);
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .data-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-
-    .data-table th {
-      background: var(--gray-50);
-      padding: 12px 16px;
-      text-align: left;
-      font-weight: 600;
-      color: var(--gray-700);
-      border-bottom: 2px solid var(--gray-200);
-    }
-
-    .data-table td {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--gray-200);
-    }
-
-    .data-table tr:hover {
-      background: var(--gray-50);
-    }
-
-    /* Export Button */
-    .export-btn {
-      background: var(--success);
-      color: white;
-      border: none;
-      border-radius: var(--border-radius);
-      padding: 8px 16px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.2s ease;
-    }
-
-    .export-btn:hover {
-      background: #2f855a;
-    }
-
-    /* Status Indicators */
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 500;
-    }
-
-    .status-success {
-      background: rgba(56, 161, 105, 0.1);
-      color: var(--success);
-    }
-
-    .status-warning {
-      background: rgba(214, 158, 46, 0.1);
-      color: var(--warning);
-    }
-
-    .status-error {
-      background: rgba(229, 62, 62, 0.1);
-      color: var(--error);
-    }
-
-    /* Print styles optimized for Star TSP100III thermal receipt printer */
+    /* Print styles optimized for Avery 7666 - FIXED: Only labels print */
     @media print {
-      /* Only apply receipt print styles when receipt-print-mode is active */
-      .receipt-print-mode {
-        margin: 0 !important;
-        padding: 0 !important;
+      @page {
+        size: letter;
+        margin: 0.5in 0.1875in 0.5in 0.1875in;  /* Avery 7666 spec */
       }
       
-      .receipt-print-mode @page {
-        size: 72mm auto; /* Star TSP100III paper width (72mm/2.83") */
-        margin: 2mm 1mm; /* Minimal margins for TSP100III */
-      }
-      
-      .receipt-print-mode body {
+      body {
         margin: 0 !important;
         padding: 0 !important;
-        font-size: 11px;
+        font-size: 8px;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
         background: white !important;
-        width: 72mm;
-        font-family: 'Courier New', monospace !important;
       }
       
-      /* Hide everything except receipt when printing */
-      .receipt-print-mode * {
+      /* Hide EVERYTHING except barcode labels when printing */
+      * {
         visibility: hidden !important;
       }
       
-      .receipt-print-mode .pos-receipt,
-      .receipt-print-mode .pos-receipt * {
+      .barcode-grid,
+      .barcode-grid *,
+      .barcode-label,
+      .barcode-label * {
         visibility: visible !important;
       }
       
-      .receipt-print-mode .pos-receipt {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 72mm !important;
-        max-width: none !important;
-        margin: 0 !important;
-        padding: 4px 2mm !important;
-        border: none !important;
-        border-radius: 0 !important;
-        background: white !important;
-        box-shadow: none !important;
-        page-break-inside: avoid !important;
-        font-family: 'Courier New', monospace !important;
-      }
-
-      /* Barcode print styles */
-      .barcode-print-mode * {
-        visibility: hidden !important;
-      }
-      
-      .barcode-print-mode .barcode-section,
-      .barcode-print-mode .barcode-section * {
-        visibility: visible !important;
-      }
-      
-      .barcode-print-mode @page {
-        size: letter;
-        margin: 0.5in 0.1875in 0.5in 0.1875in;
-      }
-      
-      .barcode-print-mode .barcode-section {
+      .barcode-section {
         position: absolute !important;
         top: 0 !important;
         left: 0 !important;
@@ -1507,6 +983,45 @@
         margin: 0 !important;
         padding: 0 !important;
         overflow: visible !important;
+      }
+      
+      .barcode-header {
+        display: none !important;
+      }
+      
+      .barcode-grid {
+        position: absolute !important;
+        top: 0.5in !important;
+        left: 0.1875in !important;
+        width: 7.875in !important;
+        height: 10in !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        display: grid !important;
+        grid-template-columns: repeat(3, 2.625in) !important;
+        grid-template-rows: repeat(10, 1in) !important;
+        background: white !important;
+      }
+      
+      .barcode-label {
+        border: none !important;
+        width: 2.625in !important;
+        height: 1in !important;
+        margin: 0 !important;
+        padding: 6px 8px !important; /* Safe printable margins */
+        page-break-inside: avoid !important;
+        box-sizing: border-box !important;
+        background: white !important;
+        overflow: hidden !important;
+      }
+      
+      .barcode-display {
+        border: none !important; /* Remove border for cleaner print */
+        background: white !important;
+        padding: 0 !important;
+        margin: 1px 0 !important;
+        height: 40px !important; /* Smaller for actual printable area */
       }
     }
 
@@ -1540,28 +1055,6 @@
 
       .estimate-totals {
         grid-template-columns: 1fr;
-      }
-
-      .analytics-content {
-        margin: 10px;
-        max-height: 95vh;
-      }
-
-      .analytics-body {
-        padding: 20px;
-      }
-
-      .charts-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .summary-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .analytics-filters {
-        flex-direction: column;
-        align-items: stretch;
       }
     }
 
@@ -1610,7 +1103,7 @@
       <!-- Card Header -->
       <div class="card-header">
         <h1 class="card-title">Trade-In Processing</h1>
-        <p class="card-subtitle">Process card trades with real Shopify integration + Analytics Dashboard</p>
+        <p class="card-subtitle">Process card trades with real Shopify integration</p>
       </div>
 
       <!-- Card Content -->
@@ -1761,7 +1254,7 @@
           </div>
         </form>
 
-        <!-- Trade Success Results -->
+        <!-- Trade Success Results - FIXED: Only one section now -->
         <div id="trade-success" class="trade-success">
           <div class="success-header">
             <div class="success-title">🎉 Trade Completed Successfully!</div>
@@ -1785,13 +1278,6 @@
               <span>📊</span>
               <span>Print Barcodes</span>
             </button>
-          </div>
-        </div>
-
-        <!-- POS Receipt Section - Star TSP100III optimized -->
-        <div id="pos-receipt-section" class="pos-receipt" style="display: none;">
-          <div id="pos-receipt">
-            <!-- Receipt content will be generated here -->
           </div>
         </div>
 
@@ -1824,314 +1310,6 @@
     </div>
   </div>
 
-  <!-- Analytics Trigger Button -->
-  <button class="analytics-trigger" id="analyticsBtn" title="View Analytics Dashboard">
-    📊
-  </button>
-
-  <!-- Analytics Modal -->
-  <div class="analytics-modal" id="analyticsModal">
-    <div class="analytics-content">
-      <!-- Header -->
-      <div class="analytics-header">
-        <h2 class="analytics-title">📊 Buyback Analytics Dashboard</h2>
-        <button class="close-analytics" id="closeAnalytics">✕</button>
-      </div>
-
-      <!-- Body -->
-      <div class="analytics-body">
-        <!-- Filters -->
-        <div class="analytics-filters">
-          <div class="filter-group">
-            <label class="filter-label">Time Period:</label>
-            <select class="filter-select" id="timePeriod">
-              <option value="today">Today</option>
-              <option value="week" selected>This Week</option>
-              <option value="month">This Month</option>
-              <option value="quarter">This Quarter</option>
-              <option value="year">This Year</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label class="filter-label">Employee:</label>
-            <select class="filter-select" id="employeeFilter">
-              <option value="all">All Employees</option>
-              <option value="Alex">Alex</option>
-              <option value="Jamie">Jamie</option>
-              <option value="Morgan">Morgan</option>
-              <option value="Taylor">Taylor</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label class="filter-label">Payout Method:</label>
-            <select class="filter-select" id="payoutFilter">
-              <option value="all">All Methods</option>
-              <option value="cash">Cash</option>
-              <option value="store-credit">Store Credit</option>
-              <option value="gift-card">Gift Card</option>
-            </select>
-          </div>
-          <button class="export-btn" id="exportData">📄 Export Report</button>
-        </div>
-
-        <!-- Summary Cards -->
-        <div class="summary-grid">
-          <div class="summary-card">
-            <div class="summary-header">
-              <span class="summary-title">Total Trades</span>
-              <span class="summary-icon">🔄</span>
-            </div>
-            <div class="summary-value" id="totalTrades">247</div>
-            <div class="summary-change change-positive">
-              <span>↗ +12.3%</span> vs last period
-            </div>
-          </div>
-
-          <div class="summary-card">
-            <div class="summary-header">
-              <span class="summary-title">Avg Trade Value</span>
-              <span class="summary-icon">📈</span>
-            </div>
-            <div class="summary-value" id="avgTradeValue">$62.47</div>
-            <div class="summary-change change-negative">
-              <span>↘ -5.2%</span> vs last period
-            </div>
-          </div>
-
-          <div class="summary-card">
-            <div class="summary-header">
-              <span class="summary-title">Search Success</span>
-              <span class="summary-icon">🎯</span>
-            </div>
-            <div class="summary-value" id="searchSuccess">84.3%</div>
-            <div class="summary-change change-positive">
-              <span>↗ +2.1%</span> vs last period
-            </div>
-          </div>
-
-          <div class="summary-card">
-            <div class="summary-header">
-              <span class="summary-title">Cards Processed</span>
-              <span class="summary-icon">🃏</span>
-            </div>
-            <div class="summary-value" id="cardsProcessed">1,523</div>
-            <div class="summary-change change-positive">
-              <span>↗ +24.7%</span> vs last period
-            </div>
-          </div>
-
-          <div class="summary-card">
-            <div class="summary-header">
-              <span class="summary-title">Active Customers</span>
-              <span class="summary-icon">👥</span>
-            </div>
-            <div class="summary-value" id="activeCustomers">186</div>
-            <div class="summary-change change-positive">
-              <span>↗ +8.9%</span> vs last period
-            </div>
-          </div>
-        </div>
-
-        <!-- Charts -->
-        <div class="charts-grid">
-          <div class="chart-card">
-            <h3 class="chart-title">Trade Volume Over Time</h3>
-            <div class="chart-container">
-              <canvas id="tradeVolumeChart"></canvas>
-            </div>
-          </div>
-
-          <div class="chart-card">
-            <h3 class="chart-title">Payout Methods</h3>
-            <div class="chart-container">
-              <canvas id="payoutMethodChart"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <!-- Employee Performance -->
-        <div class="data-section">
-          <div class="section-title-analytics">
-            <span>👤 Employee Performance</span>
-            <button class="export-btn" onclick="exportEmployeeData()">📊 Export</button>
-          </div>
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Employee</th>
-                <th>Trades</th>
-                <th>Total Value</th>
-                <th>Avg Value</th>
-                <th>Search Success</th>
-                <th>Processing Time</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="employeeTable">
-              <tr>
-                <td><strong>Alex</strong></td>
-                <td>73</td>
-                <td>$4,892</td>
-                <td>$67.01</td>
-                <td>87.2%</td>
-                <td>3.4 min</td>
-                <td><span class="status-badge status-success">● Excellent</span></td>
-              </tr>
-              <tr>
-                <td><strong>Jamie</strong></td>
-                <td>61</td>
-                <td>$3,754</td>
-                <td>$61.54</td>
-                <td>82.1%</td>
-                <td>4.1 min</td>
-                <td><span class="status-badge status-success">● Good</span></td>
-              </tr>
-              <tr>
-                <td><strong>Morgan</strong></td>
-                <td>68</td>
-                <td>$4,156</td>
-                <td>$61.12</td>
-                <td>85.3%</td>
-                <td>3.8 min</td>
-                <td><span class="status-badge status-success">● Good</span></td>
-              </tr>
-              <tr>
-                <td><strong>Taylor</strong></td>
-                <td>45</td>
-                <td>$2,630</td>
-                <td>$58.44</td>
-                <td>79.8%</td>
-                <td>4.7 min</td>
-                <td><span class="status-badge status-warning">● Training</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Top Cards -->
-        <div class="data-section">
-          <div class="section-title-analytics">
-            <span>🏆 Most Traded Cards</span>
-            <button class="export-btn" onclick="exportCardData()">📊 Export</button>
-          </div>
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Card Name</th>
-                <th>Times Traded</th>
-                <th>Total Quantity</th>
-                <th>Avg Trade Value</th>
-                <th>Total Value</th>
-                <th>Search Success</th>
-              </tr>
-            </thead>
-            <tbody id="cardTable">
-              <tr>
-                <td><strong>Lightning Bolt</strong></td>
-                <td>23</td>
-                <td>31</td>
-                <td>$47.23</td>
-                <td>$1,463</td>
-                <td><span class="status-badge status-success">● 100%</span></td>
-              </tr>
-              <tr>
-                <td><strong>Charizard</strong></td>
-                <td>18</td>
-                <td>22</td>
-                <td>$312.45</td>
-                <td>$6,874</td>
-                <td><span class="status-badge status-success">● 94.4%</span></td>
-              </tr>
-              <tr>
-                <td><strong>Black Lotus</strong></td>
-                <td>3</td>
-                <td>3</td>
-                <td>$8,750.00</td>
-                <td>$26,250</td>
-                <td><span class="status-badge status-success">● 100%</span></td>
-              </tr>
-              <tr>
-                <td><strong>Blue-Eyes White Dragon</strong></td>
-                <td>15</td>
-                <td>19</td>
-                <td>$67.89</td>
-                <td>$1,289</td>
-                <td><span class="status-badge status-warning">● 86.7%</span></td>
-              </tr>
-              <tr>
-                <td><strong>Pikachu</strong></td>
-                <td>27</td>
-                <td>34</td>
-                <td>$24.12</td>
-                <td>$820</td>
-                <td><span class="status-badge status-success">● 92.6%</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Recent Activity -->
-        <div class="data-section">
-          <div class="section-title-analytics">
-            <span>🕐 Recent Trade Activity</span>
-            <button class="export-btn" onclick="exportRecentActivity()">📊 Export</button>
-          </div>
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Employee</th>
-                <th>Cards</th>
-                <th>Value</th>
-                <th>Payout Method</th>
-                <th>Customer</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="recentActivity">
-              <tr>
-                <td>2:34 PM</td>
-                <td>Alex</td>
-                <td>3 cards</td>
-                <td>$147.50</td>
-                <td>Store Credit</td>
-                <td>john@example.com</td>
-                <td><span class="status-badge status-success">● Complete</span></td>
-              </tr>
-              <tr>
-                <td>2:18 PM</td>
-                <td>Morgan</td>
-                <td>7 cards</td>
-                <td>$89.25</td>
-                <td>Cash</td>
-                <td>—</td>
-                <td><span class="status-badge status-success">● Complete</span></td>
-              </tr>
-              <tr>
-                <td>1:45 PM</td>
-                <td>Jamie</td>
-                <td>2 cards</td>
-                <td>$1,250.00</td>
-                <td>Gift Card</td>
-                <td>sarah@example.com</td>
-                <td><span class="status-badge status-success">● Complete</span></td>
-              </tr>
-              <tr>
-                <td>1:22 PM</td>
-                <td>Taylor</td>
-                <td>5 cards</td>
-                <td>$34.75</td>
-                <td>Cash</td>
-                <td>—</td>
-                <td><span class="status-badge status-warning">● Pending</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <script>
     // REAL API configuration
     const API_URL = '/api/buybackstep4'; 
@@ -2139,190 +1317,6 @@
     // Global variable to store the last API response for debugging
     let lastApiResponse = null;
 
-    // ===== ANALYTICS DATABASE CLASS =====
-    class AnalyticsDB {
-      constructor() {
-        this.trades = JSON.parse(localStorage.getItem('analytics_trades') || '[]');
-        this.searches = JSON.parse(localStorage.getItem('analytics_searches') || '[]');
-        this.employees = JSON.parse(localStorage.getItem('analytics_employees') || '{}');
-        this.initializeSampleData();
-      }
-
-      initializeSampleData() {
-        if (this.trades.length === 0) {
-          this.generateSampleData();
-        }
-      }
-
-      generateSampleData() {
-        const employees = ['Alex', 'Jamie', 'Morgan', 'Taylor'];
-        const cards = [
-          { name: 'Lightning Bolt', avgValue: 47.23 },
-          { name: 'Charizard', avgValue: 312.45 },
-          { name: 'Black Lotus', avgValue: 8750.00 },
-          { name: 'Blue-Eyes White Dragon', avgValue: 67.89 },
-          { name: 'Pikachu', avgValue: 24.12 },
-          { name: 'Time Walk', avgValue: 2340.00 },
-          { name: 'Mox Ruby', avgValue: 1850.00 },
-          { name: 'Dark Magician', avgValue: 45.67 }
-        ];
-        const payoutMethods = ['cash', 'store-credit', 'gift-card'];
-
-        // Generate trades for the last 30 days
-        for (let i = 0; i < 247; i++) {
-          const randomDate = new Date();
-          randomDate.setDate(randomDate.getDate() - Math.floor(Math.random() * 30));
-          
-          const employee = employees[Math.floor(Math.random() * employees.length)];
-          const cardCount = Math.floor(Math.random() * 8) + 1;
-          const selectedCards = [];
-          let totalValue = 0;
-
-          for (let j = 0; j < cardCount; j++) {
-            const card = cards[Math.floor(Math.random() * cards.length)];
-            const variance = 0.7 + Math.random() * 0.6; // ±30% variance
-            const value = card.avgValue * variance;
-            selectedCards.push({ ...card, value });
-            totalValue += value;
-          }
-
-          this.trades.push({
-            id: `trade_${Date.now()}_${i}`,
-            timestamp: randomDate.toISOString(),
-            employee,
-            cards: selectedCards,
-            totalValue,
-            payoutMethod: payoutMethods[Math.floor(Math.random() * payoutMethods.length)],
-            customerEmail: Math.random() > 0.6 ? `customer${i}@example.com` : null,
-            searchSuccessRate: 0.75 + Math.random() * 0.25,
-            processingTime: 2 + Math.random() * 4 // 2-6 minutes
-          });
-        }
-
-        this.saveTrades();
-      }
-
-      addTrade(tradeData) {
-        // Calculate search success rate from results
-        const searchSuccessRate = tradeData.results ? 
-          tradeData.results.filter(r => r.match).length / tradeData.results.length : 0.85;
-
-        // Calculate processing time (for demo purposes, use a default)
-        const processingTime = tradeData.processingTime || (2 + Math.random() * 3);
-
-        this.trades.push({
-          id: `trade_${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          employee: tradeData.employeeName || tradeData.employee,
-          cards: tradeData.results || tradeData.cards || [],
-          totalValue: parseFloat(tradeData.finalPayout || tradeData.totalValue || 0),
-          payoutMethod: tradeData.payoutMethod,
-          customerEmail: tradeData.customerEmail,
-          searchSuccessRate: searchSuccessRate,
-          processingTime: processingTime
-        });
-        this.saveTrades();
-      }
-
-      addSearch(searchData) {
-        this.searches.push({
-          ...searchData,
-          id: `search_${Date.now()}`,
-          timestamp: new Date().toISOString()
-        });
-        this.saveSearches();
-      }
-
-      getTradesByPeriod(period, employee = null, payoutMethod = null) {
-        const now = new Date();
-        let startDate = new Date();
-
-        switch (period) {
-          case 'today':
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case 'week':
-            startDate.setDate(now.getDate() - 7);
-            break;
-          case 'month':
-            startDate.setMonth(now.getMonth() - 1);
-            break;
-          case 'quarter':
-            startDate.setMonth(now.getMonth() - 3);
-            break;
-          case 'year':
-            startDate.setFullYear(now.getFullYear() - 1);
-            break;
-        }
-
-        return this.trades.filter(trade => {
-          const tradeDate = new Date(trade.timestamp);
-          const matchesDate = tradeDate >= startDate;
-          const matchesEmployee = !employee || employee === 'all' || trade.employee === employee;
-          const matchesPayout = !payoutMethod || payoutMethod === 'all' || trade.payoutMethod === payoutMethod;
-          
-          return matchesDate && matchesEmployee && matchesPayout;
-        });
-      }
-
-      saveTrades() {
-        localStorage.setItem('analytics_trades', JSON.stringify(this.trades));
-      }
-
-      saveSearches() {
-        localStorage.setItem('analytics_searches', JSON.stringify(this.searches));
-      }
-
-      exportData(format = 'csv') {
-        const data = this.trades.map(trade => ({
-          Date: new Date(trade.timestamp).toLocaleDateString(),
-          Employee: trade.employee,
-          CardsCount: trade.cards.length,
-          TotalValue: trade.totalValue.toFixed(2),
-          PayoutMethod: trade.payoutMethod,
-          CustomerEmail: trade.customerEmail || 'N/A',
-          ProcessingTime: trade.processingTime.toFixed(1)
-        }));
-
-        if (format === 'csv') {
-          const csv = this.arrayToCSV(data);
-          this.downloadFile(csv, 'analytics_export.csv', 'text/csv');
-        }
-      }
-
-      arrayToCSV(array) {
-        const headers = Object.keys(array[0]).join(',');
-        const rows = array.map(obj => Object.values(obj).join(','));
-        return [headers, ...rows].join('\n');
-      }
-
-      downloadFile(content, filename, mimeType) {
-        const blob = new Blob([content], { type: mimeType });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        link.click();
-        URL.revokeObjectURL(url);
-      }
-    }
-
-    // Initialize Analytics
-    const analyticsDB = new AnalyticsDB();
-    let tradeVolumeChart, payoutMethodChart;
-
-    // Global functions for analytics integration
-    window.addTradeToAnalytics = function(tradeData) {
-      analyticsDB.addTrade(tradeData);
-      console.log('📊 Analytics: Trade added', tradeData);
-    };
-
-    window.addSearchToAnalytics = function(searchData) {
-      analyticsDB.addSearch(searchData);
-      console.log('📊 Analytics: Search logged', searchData);
-    };
-
-    // ===== MAIN BUYBACK PORTAL FUNCTIONALITY =====
     document.addEventListener('DOMContentLoaded', function() {
       const customerEmail = document.getElementById('customer-email');
       const addCardBtn = document.getElementById('add-card');
@@ -2407,15 +1401,6 @@
 
         input.addEventListener('input', function() {
           const query = this.value.trim();
-          
-          // Log search to analytics
-          if (query.length >= 2) {
-            window.addSearchToAnalytics({
-              query: query,
-              employee: document.getElementById('employeeName').value || 'Unknown',
-              timestamp: new Date().toISOString()
-            });
-          }
           
           // Remove existing suggestion
           if (currentSuggestion) {
@@ -2579,15 +1564,7 @@
               input.classList.remove('not-found');
               input.classList.add('confirmed');
               input.value = result.match;
-              // FIXED: Store complete result including SKU, price, and variant info
-              input.setAttribute('data-search-result', JSON.stringify({
-                match: result.match,
-                sku: result.sku,
-                retailPrice: result.retailPrice,
-                suggestedTradeValue: result.suggestedTradeValue,
-                maximumTradeValue: result.maximumTradeValue,
-                searchMethod: 'confirmed_search'
-              }));
+              input.setAttribute('data-search-result', JSON.stringify(result));
               suggestion.remove();
               currentSuggestion = null;
             });
@@ -2669,34 +1646,11 @@
 
       // REAL estimate functionality
       estimateBtn.addEventListener('click', async function() {
-        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
-          const input = row.querySelector('[name="cardName"]');
-          const searchResult = input.getAttribute('data-search-result');
-          
-          // If we have a confirmed search result, use the exact SKU and details
-          if (searchResult) {
-            try {
-              const result = JSON.parse(searchResult);
-              return {
-                cardName: input.value,
-                quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
-                condition: row.querySelector('[name="cardCondition"]').value,
-                // FIXED: Pass the exact SKU from search to ensure same variant
-                sku: result.sku,
-                searchMethod: 'exact_sku' // Tell API to use this exact SKU
-              };
-            } catch (e) {
-              console.warn('Failed to parse search result:', e);
-            }
-          }
-          
-          // Fallback to name-based search
-          return {
-            cardName: input.value,
-            quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
-            condition: row.querySelector('[name="cardCondition"]').value
-          };
-        });
+        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => ({
+          cardName: row.querySelector('[name="cardName"]').value,
+          quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+          condition: row.querySelector('[name="cardCondition"]').value
+        }));
 
         if (cards.length === 0) {
           updateStatus('❌ Please add at least one card to estimate.', 'error');
@@ -2754,34 +1708,11 @@
         e.preventDefault();
         
         const formData = new FormData(this);
-        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
-          const input = row.querySelector('[name="cardName"]');
-          const searchResult = input.getAttribute('data-search-result');
-          
-          // If we have a confirmed search result, use the exact SKU and details
-          if (searchResult) {
-            try {
-              const result = JSON.parse(searchResult);
-              return {
-                cardName: input.value,
-                quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
-                condition: row.querySelector('[name="cardCondition"]').value,
-                // FIXED: Pass the exact SKU from search to ensure same variant
-                sku: result.sku,
-                searchMethod: 'exact_sku' // Tell API to use this exact SKU
-              };
-            } catch (e) {
-              console.warn('Failed to parse search result:', e);
-            }
-          }
-          
-          // Fallback to name-based search
-          return {
-            cardName: input.value,
-            quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
-            condition: row.querySelector('[name="cardCondition"]').value
-          };
-        });
+        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => ({
+          cardName: row.querySelector('[name="cardName"]').value,
+          quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+          condition: row.querySelector('[name="cardCondition"]').value
+        }));
 
         if (cards.length === 0) {
           updateStatus('❌ Please add at least one card to process.', 'error');
@@ -2832,15 +1763,12 @@
             throw new Error(data.error || 'Failed to process trade');
           }
 
-          // ===== ANALYTICS INTEGRATION: Add trade to analytics =====
-          window.addTradeToAnalytics(data);
-
           // FIXED: Show success information in the trade success section
           showTradeSuccess(data, payoutMethod);
           
           // Also show an alert with key info for immediate feedback
           let alertMessage = `✅ Trade Completed Successfully!\n\n`;
-          alertMessage += `💰 Amount: ${data.finalPayout} CAD\n`;
+          alertMessage += `💰 Amount: $${data.finalPayout} CAD\n`;
           alertMessage += `👤 Employee: ${data.employeeName}\n`;
           
           if (payoutMethod === 'gift-card' && data.giftCardCode) {
@@ -2854,7 +1782,7 @@
           
           alert(alertMessage);
           
-          updateStatus('Trade completed successfully! Data added to analytics.', 'success');
+          updateStatus('Trade completed successfully!', 'success');
 
           // Reset form
           this.reset();
@@ -2879,7 +1807,7 @@
         }
       });
 
-      // FIXED: Function to show trade success with all details (NO auto-receipt generation)
+      // FIXED: Function to show trade success with all details
       function showTradeSuccess(data, payoutMethod) {
         let successHTML = '';
 
@@ -2975,146 +1903,8 @@
         successContent.innerHTML = successHTML;
         tradeSuccess.classList.add('visible');
         
-        // Store trade data globally for receipt generation
-        window.lastTradeData = data;
-        window.lastPayoutMethod = payoutMethod;
-        
-        // Generate barcodes for successfully matched items
+        // Generate barcodes for successfully matched items - FIXED: Better SKU handling
         generateBarcodes(data.results || []);
-      }
-
-      // NEW: Generate POS Receipt optimized for Star TSP100III thermal printer
-      function generatePOSReceipt(data, payoutMethod) {
-        const receiptSection = document.getElementById('pos-receipt-section');
-        const currentDate = new Date();
-        const dateStr = currentDate.toLocaleDateString('en-CA');
-        const timeStr = currentDate.toLocaleTimeString('en-CA', { hour12: false });
-        
-        let receiptHTML = `
-          <div class="receipt-header">
-            <div class="receipt-store-name">CARD GAME STORE</div>
-            <div class="receipt-store-info">
-              123 Main Street<br>
-              Toronto, ON M5V 3A8<br>
-              Tel: (416) 555-0123
-            </div>
-          </div>
-
-          <div class="receipt-transaction-info">
-            <div>Date: ${dateStr}</div>
-            <div>Time: ${timeStr}</div>
-          </div>
-          <div class="receipt-transaction-info">
-            <div>Employee: ${data.employeeName}</div>
-            <div>Trans #: ${Math.random().toString(36).substr(2, 8).toUpperCase()}</div>
-          </div>
-
-          <div class="receipt-title">*** TRADE-IN RECEIPT ***</div>
-
-          <div class="receipt-items">
-        `;
-
-        // Add each traded card
-        if (data.results && data.results.length > 0) {
-          data.results.forEach(card => {
-            if (card.match) { // Only show successfully matched cards
-              receiptHTML += `
-                <div class="receipt-item">
-                  <div class="receipt-item-name">
-                    ${card.match}
-                    <div class="receipt-item-details">
-                      Qty: ${card.quantity} • ${card.condition}
-                      ${card.sku ? ` • SKU: ${card.sku}` : ''}
-                    </div>
-                  </div>
-                  <div class="receipt-item-value">${(card.suggestedTradeValue * card.quantity).toFixed(2)}</div>
-                </div>
-              `;
-            }
-          });
-        }
-
-        receiptHTML += `
-          </div>
-
-          <div class="receipt-totals">
-            <div class="receipt-total-line">
-              <span>Subtotal:</span>
-              <span>${data.suggestedTotal}</span>
-            </div>
-            <div class="receipt-total-line">
-              <span>Total Retail Value:</span>
-              <span>${data.totalRetailValue}</span>
-            </div>
-        `;
-
-        if (data.overrideUsed) {
-          receiptHTML += `
-            <div class="receipt-total-line">
-              <span>Override Applied:</span>
-              <span>${data.overrideAmount}</span>
-            </div>
-          `;
-        }
-
-        receiptHTML += `
-            <div class="receipt-total-line final">
-              <span>TRADE-IN VALUE:</span>
-              <span>${data.finalPayout}</span>
-            </div>
-          </div>
-        `;
-
-        // Add payout method specific information
-        if (payoutMethod === 'gift-card' && data.giftCardCode) {
-          receiptHTML += `
-            <div class="receipt-gift-card">
-              <div style="font-weight: bold; margin-bottom: 4px;">GIFT CARD ISSUED</div>
-              <div class="receipt-gift-card-code">${data.giftCardCode}</div>
-              <div style="font-size: 9px; margin-top: 4px;">
-                Save this code! Valid for online<br>
-                and in-store purchases.
-              </div>
-            </div>
-          `;
-        } else if (payoutMethod === 'store-credit') {
-          receiptHTML += `
-            <div class="receipt-payout">
-              STORE CREDIT: ${data.finalPayout}<br>
-              Customer: ${data.customerEmail || 'N/A'}
-            </div>
-          `;
-        } else if (payoutMethod === 'cash') {
-          receiptHTML += `
-            <div class="receipt-payout">
-              CASH PAYOUT: ${data.finalPayout}
-            </div>
-          `;
-        }
-
-        receiptHTML += `
-          <div class="receipt-footer">
-            <p>Thank you for your business!</p>
-            <p>Visit us online: www.cardgamestore.com</p>
-            <p>Follow us @CardGameStore</p>
-            <p>----------------------------------------</p>
-            <p>No returns on trade-ins.</p>
-            <p>Gift cards expire 24 months from issue.</p>
-            <p>Store credit never expires.</p>
-          </div>
-
-          <div class="receipt-signature">
-            <div class="receipt-signature-label">Customer Signature:</div>
-            <div class="receipt-signature-line"></div>
-            <div class="receipt-signature-label">Employee Signature:</div>
-            <div class="receipt-signature-line"></div>
-          </div>
-        `;
-
-        // Insert receipt content (ready for printing when button is clicked)
-        const posReceiptDiv = document.getElementById('pos-receipt');
-        posReceiptDiv.innerHTML = receiptHTML;
-        posReceiptDiv.classList.add('visible');
       }
 
       // FIXED: Code 128 barcode generation with improved SKU detection
@@ -3262,12 +2052,12 @@
 
           JsBarcode(element, sku, {
             format: "CODE128",
-            width: 1.8,         /* FIXED: Slightly thinner bars for better fit */
-            height: 45,         /* FIXED: Better height for visibility */
+            width: 2,           // Thinner bars to fit in printable area
+            height: 35,         // Shorter to fit with text in 1" label
             displayValue: false, // Don't show text (we have it separately)
             background: "white",
             lineColor: "black",
-            margin: 0,          /* FIXED: Zero margin for maximum space */
+            margin: 1,          // Minimal margin for maximum barcode area
             fontSize: 0,        // No font inside barcode
             textMargin: 0       // No text margin
           });
@@ -3294,50 +2084,18 @@
       document.getElementById('close-success').addEventListener('click', function() {
         tradeSuccess.classList.remove('visible');
         document.getElementById('barcode-section').style.display = 'none';
-        document.getElementById('pos-receipt-section').style.display = 'none';
-        // Clear stored trade data
-        window.lastTradeData = null;
-        window.lastPayoutMethod = null;
       });
 
       document.getElementById('new-trade').addEventListener('click', function() {
         tradeSuccess.classList.remove('visible');
         document.getElementById('barcode-section').style.display = 'none';
-        document.getElementById('pos-receipt-section').style.display = 'none';
-        // Clear stored trade data
-        window.lastTradeData = null;
-        window.lastPayoutMethod = null;
         // Form is already reset above
       });
 
-      // Print receipt functionality - Generate receipt ONLY when button is clicked and print immediately
       document.getElementById('print-receipt').addEventListener('click', function() {
-        // Check if we have trade data stored
-        if (!window.lastTradeData || !window.lastPayoutMethod) {
-          alert('No trade data available for receipt generation.');
-          return;
-        }
-
-        // Generate receipt now
-        generatePOSReceipt(window.lastTradeData, window.lastPayoutMethod);
-        
-        // Show receipt section for printing
-        document.getElementById('pos-receipt-section').style.display = 'block';
-        
-        // Add special class for receipt-only printing
-        document.body.classList.add('receipt-print-mode');
-        
         // Hide barcode section for receipt printing
         document.getElementById('barcode-section').style.display = 'none';
-        
-        // Trigger print dialog immediately
         window.print();
-        
-        // Clean up after printing
-        setTimeout(() => {
-          document.body.classList.remove('receipt-print-mode');
-          document.getElementById('pos-receipt-section').style.display = 'none';
-        }, 1000);
       });
 
       // FIXED: Print barcodes functionality - Only labels print
@@ -3347,20 +2105,8 @@
           barcodeSection.style.display = 'block';
           this.innerHTML = '<span>🖨️</span><span>Print UPC Labels</span>';
         } else {
-          // Add special class for barcode-only printing
-          document.body.classList.add('barcode-print-mode');
-          
-          // Hide receipt for barcode printing
-          document.getElementById('pos-receipt-section').style.display = 'none';
-          
           // Print with clean labels only
           window.print();
-          
-          // Remove print mode class after printing
-          setTimeout(() => {
-            document.body.classList.remove('barcode-print-mode');
-            document.getElementById('pos-receipt-section').style.display = 'block';
-          }, 1000);
         }
       });
 
@@ -3449,15 +2195,47 @@
         data.results.forEach(card => {
           const cardElement = document.createElement('div');
           cardElement.className = 'estimate-card';
-          cardElement +18.5%</span> vs last period
+          cardElement.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <div>
+                <div style="font-weight: 600; color: var(--gray-800);">
+                  ${card.match || card.cardName}
+                  ${!card.match ? ' ❌ Not Found' : ' ✅'}
+                </div>
+                <div style="font-size: 14px; color: var(--gray-500);">
+                  Quantity: ${card.quantity}
+                  ${card.sku ? ` • SKU: ${card.sku}` : ''}
+                  ${card.searchMethod ? ` • Found by: ${card.searchMethod}` : ''}
+                </div>
+              </div>
             </div>
-          </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center;">
+              <div>
+                <div style="font-size: 12px; color: var(--gray-500);">Retail</div>
+                <div style="font-weight: 600;">${card.retailPrice ? card.retailPrice.toFixed(2) : '0.00'}</div>
+              </div>
+              <div>
+                <div style="font-size: 12px; color: var(--gray-500);">Suggested</div>
+                <div style="font-weight: 600; color: var(--accent);">${card.suggestedTradeValue ? card.suggestedTradeValue.toFixed(2) : '0.00'}</div>
+              </div>
+              <div>
+                <div style="font-size: 12px; color: var(--gray-500);">Maximum</div>
+                <div style="font-weight: 600; color: var(--success);">${card.maximumTradeValue ? card.maximumTradeValue.toFixed(2) : '0.00'}</div>
+              </div>
+            </div>
+          `;
+          estimateCards.appendChild(cardElement);
+        });
 
-          <div class="summary-card">
-            <div class="summary-header">
-              <span class="summary-title">Total Value</span>
-              <span class="summary-icon">💰</span>
-            </div>
-            <div class="summary-value" id="totalValue">$15,432</div>
-            <div class="summary-change change-positive">
-              <span>↗
+        // Update totals
+        document.getElementById('total-retail').textContent = `${data.totalRetailValue || '0.00'}`;
+        document.getElementById('total-suggested').textContent = `${data.suggestedTotal || '0.00'}`;
+        document.getElementById('total-maximum').textContent = `${data.maximumTotal || '0.00'}`;
+
+        // Show results
+        estimateResults.classList.add('visible');
+      }
+    });
+  </script>
+</body>
+</html
