@@ -1106,6 +1106,42 @@
   </div>
 
   <script>
+    // DISABLE ALL NOTIFICATIONS AND ALERTS
+    // Override alert function to prevent any popups
+    window.alert = function() { 
+      console.log('Alert blocked:', arguments); 
+    };
+    
+    // Override confirm function 
+    window.confirm = function() { 
+      console.log('Confirm blocked:', arguments); 
+      return true; 
+    };
+    
+    // Disable browser notifications
+    try {
+      if ('Notification' in window) {
+        Notification.permission = 'denied';
+      }
+    } catch (e) {
+      console.log('Notification API not available');
+    }
+    
+    // Disable service worker notifications if any (with error handling)
+    try {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+          }
+        }).catch(function(error) {
+          console.log('Service worker cleanup failed:', error);
+        });
+      }
+    } catch (e) {
+      console.log('Service worker API not available in this context');
+    }
+
     // REAL API configuration - updated to match your actual file name
     const API_URL = '/api/buybackstep4'; 
 
