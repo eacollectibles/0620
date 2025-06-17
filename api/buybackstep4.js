@@ -1,4 +1,4 @@
-javascript// buybackstep4.js - Simplified Working Version for Testing
+// buybackstep4.js - Simplified Working Version for Testing
 module.exports = async function handler(req, res) {
   console.log('=== API REQUEST START ===');
   console.log('Method:', req.method);
