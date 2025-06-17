@@ -1564,7 +1564,15 @@
               input.classList.remove('not-found');
               input.classList.add('confirmed');
               input.value = result.match;
-              input.setAttribute('data-search-result', JSON.stringify(result));
+              // FIXED: Store complete result including SKU, price, and variant info
+              input.setAttribute('data-search-result', JSON.stringify({
+                match: result.match,
+                sku: result.sku,
+                retailPrice: result.retailPrice,
+                suggestedTradeValue: result.suggestedTradeValue,
+                maximumTradeValue: result.maximumTradeValue,
+                searchMethod: 'confirmed_search'
+              }));
               suggestion.remove();
               currentSuggestion = null;
             });
@@ -1646,11 +1654,34 @@
 
       // REAL estimate functionality
       estimateBtn.addEventListener('click', async function() {
-        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => ({
-          cardName: row.querySelector('[name="cardName"]').value,
-          quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
-          condition: row.querySelector('[name="cardCondition"]').value
-        }));
+        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
+          const input = row.querySelector('[name="cardName"]');
+          const searchResult = input.getAttribute('data-search-result');
+          
+          // If we have a confirmed search result, use the exact SKU and details
+          if (searchResult) {
+            try {
+              const result = JSON.parse(searchResult);
+              return {
+                cardName: input.value,
+                quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+                condition: row.querySelector('[name="cardCondition"]').value,
+                // FIXED: Pass the exact SKU from search to ensure same variant
+                sku: result.sku,
+                searchMethod: 'exact_sku' // Tell API to use this exact SKU
+              };
+            } catch (e) {
+              console.warn('Failed to parse search result:', e);
+            }
+          }
+          
+          // Fallback to name-based search
+          return {
+            cardName: input.value,
+            quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+            condition: row.querySelector('[name="cardCondition"]').value
+          };
+        });
 
         if (cards.length === 0) {
           updateStatus('❌ Please add at least one card to estimate.', 'error');
@@ -1708,11 +1739,34 @@
         e.preventDefault();
         
         const formData = new FormData(this);
-        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => ({
-          cardName: row.querySelector('[name="cardName"]').value,
-          quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
-          condition: row.querySelector('[name="cardCondition"]').value
-        }));
+        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
+          const input = row.querySelector('[name="cardName"]');
+          const searchResult = input.getAttribute('data-search-result');
+          
+          // If we have a confirmed search result, use the exact SKU and details
+          if (searchResult) {
+            try {
+              const result = JSON.parse(searchResult);
+              return {
+                cardName: input.value,
+                quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+                condition: row.querySelector('[name="cardCondition"]').value,
+                // FIXED: Pass the exact SKU from search to ensure same variant
+                sku: result.sku,
+                searchMethod: 'exact_sku' // Tell API to use this exact SKU
+              };
+            } catch (e) {
+              console.warn('Failed to parse search result:', e);
+            }
+          }
+          
+          // Fallback to name-based search
+          return {
+            cardName: input.value,
+            quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+            condition: row.querySelector('[name="cardCondition"]').value
+          };
+        });
 
         if (cards.length === 0) {
           updateStatus('❌ Please add at least one card to process.', 'error');
@@ -2201,11 +2255,13 @@
                 <div style="font-weight: 600; color: var(--gray-800);">
                   ${card.match || card.cardName}
                   ${!card.match ? ' ❌ Not Found' : ' ✅'}
+                  ${card.searchMethod === 'exact_sku' ? ' 🎯' : ''}
                 </div>
                 <div style="font-size: 14px; color: var(--gray-500);">
                   Quantity: ${card.quantity}
                   ${card.sku ? ` • SKU: ${card.sku}` : ''}
-                  ${card.searchMethod ? ` • Found by: ${card.searchMethod}` : ''}
+                  ${card.searchMethod === 'exact_sku' ? ' • Exact Match' : ''}
+                  ${card.searchMethod && card.searchMethod !== 'exact_sku' ? ` • Found by: ${card.searchMethod}` : ''}
                 </div>
               </div>
             </div>
