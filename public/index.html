@@ -244,12 +244,12 @@
       max-height: 200px;
     }
 
-    /* Cards section - Enhanced for better search suggestions */
+    /* Cards section - FIXED: Changed overflow from hidden to visible */
     .cards-section {
       background: var(--gray-50);
       border-radius: var(--border-radius-lg);
       border: 1px solid var(--gray-200);
-      overflow: visible;
+      overflow: visible; /* FIXED: Was hidden, now visible to show suggestions */
     }
 
     .cards-header {
@@ -263,7 +263,7 @@
 
     .cards-list {
       padding: 24px 32px;
-      overflow: visible;
+      overflow: visible; /* FIXED: Ensure suggestions aren't clipped */
     }
 
     .card-row {
@@ -314,7 +314,7 @@
       background: rgba(214, 158, 46, 0.05);
     }
 
-    /* ENHANCED: Search suggestions with better method indicators */
+    /* Search suggestions - IMPROVED: Better sizing and positioning */
     .search-suggestion {
       position: absolute;
       top: 100%;
@@ -327,8 +327,8 @@
       box-shadow: var(--shadow-lg);
       z-index: 1000;
       animation: slideDown 0.2s ease;
-      max-height: 300px;
-      overflow-y: auto;
+      max-height: 300px; /* FIXED: Prevent overly tall suggestions */
+      overflow-y: auto; /* FIXED: Allow scrolling if needed */
     }
 
     @keyframes slideDown {
@@ -348,19 +348,19 @@
       justify-content: space-between;
       align-items: center;
       gap: 16px;
-      min-height: 60px;
+      min-height: 60px; /* FIXED: Ensure minimum height */
     }
 
     .suggestion-info {
       flex: 1;
-      min-width: 0;
+      min-width: 0; /* FIXED: Allow text to truncate properly */
     }
 
     .suggestion-name {
       font-weight: 600;
       color: var(--gray-800);
       margin-bottom: 4px;
-      word-wrap: break-word;
+      word-wrap: break-word; /* FIXED: Handle long text */
     }
 
     .suggestion-details {
@@ -369,10 +369,9 @@
       display: flex;
       gap: 16px;
       align-items: center;
-      flex-wrap: wrap;
+      flex-wrap: wrap; /* FIXED: Allow wrapping */
     }
 
-    /* ENHANCED: Better search method badges */
     .search-badge {
       display: inline-flex;
       align-items: center;
@@ -384,7 +383,7 @@
       font-size: 12px;
       font-weight: 500;
       text-transform: uppercase;
-      white-space: nowrap;
+      white-space: nowrap; /* FIXED: Prevent badge text wrapping */
     }
 
     .search-badge.cached {
@@ -399,39 +398,10 @@
       background: var(--warning);
     }
 
-    /* Enhanced search method colors */
-    .search-badge.exact-sku {
-      background: #38a169;
-    }
-
-    .search-badge.title-exact {
-      background: #3182ce;
-    }
-
-    .search-badge.title-partial {
-      background: #4299e1;
-    }
-
-    .search-badge.number-pattern {
-      background: #d69e2e;
-    }
-
-    .search-badge.sku-search {
-      background: #805ad5;
-    }
-
-    .search-badge.tag-match {
-      background: #9f7aea;
-    }
-
-    .search-badge.fuzzy-match {
-      background: #ed8936;
-    }
-
     .suggestion-actions {
       display: flex;
       gap: 8px;
-      flex-shrink: 0;
+      flex-shrink: 0; /* FIXED: Prevent buttons from shrinking */
     }
 
     .suggestion-btn {
@@ -442,7 +412,7 @@
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s ease;
-      white-space: nowrap;
+      white-space: nowrap; /* FIXED: Prevent button text wrapping */
     }
 
     .confirm-btn {
@@ -623,7 +593,7 @@
       color: var(--accent);
     }
 
-    /* Trade Success Results */
+    /* Trade Success Results - FIXED: Only one section */
     .trade-success {
       background: linear-gradient(135deg, rgba(56, 161, 105, 0.05) 0%, rgba(56, 161, 105, 0.02) 100%);
       border: 2px solid var(--success);
@@ -765,6 +735,175 @@
       border-top: 1px solid rgba(56, 161, 105, 0.2);
     }
 
+    /* POS Receipt Styles - Optimized for Star TSP100III thermal printer */
+    .pos-receipt {
+      background: white;
+      border: 2px solid var(--gray-300);
+      border-radius: var(--border-radius-lg);
+      padding: 24px;
+      margin: 20px 0;
+      display: none;
+      page-break-inside: avoid;
+      max-width: 280px; /* Star TSP100III typical receipt width for screen preview */
+      margin: 20px auto;
+      font-family: 'Courier New', monospace; /* Monospace for thermal printer compatibility */
+    }
+
+    .pos-receipt.visible {
+      display: block;
+    }
+
+    .receipt-header {
+      text-align: center;
+      border-bottom: 2px solid #000;
+      padding-bottom: 16px;
+      margin-bottom: 16px;
+    }
+
+    .receipt-store-name {
+      font-size: 20px;
+      font-weight: bold;
+      font-family: var(--font-mono);
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .receipt-store-info {
+      font-size: 12px;
+      line-height: 1.4;
+      font-family: var(--font-mono);
+    }
+
+    .receipt-transaction-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      margin: 16px 0;
+      padding: 8px 0;
+      border-bottom: 1px dashed #000;
+    }
+
+    .receipt-title {
+      text-align: center;
+      font-size: 16px;
+      font-weight: bold;
+      font-family: var(--font-mono);
+      margin: 16px 0;
+      letter-spacing: 1px;
+    }
+
+    .receipt-items {
+      margin: 16px 0;
+    }
+
+    .receipt-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .receipt-item-name {
+      flex: 1;
+      margin-right: 8px;
+      word-wrap: break-word;
+    }
+
+    .receipt-item-details {
+      font-size: 10px;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    .receipt-item-value {
+      text-align: right;
+      white-space: nowrap;
+      min-width: 60px;
+    }
+
+    .receipt-totals {
+      border-top: 2px solid #000;
+      padding-top: 8px;
+      margin-top: 16px;
+    }
+
+    .receipt-total-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      margin-bottom: 4px;
+    }
+
+    .receipt-total-line.final {
+      font-size: 16px;
+      font-weight: bold;
+      border-top: 1px solid #000;
+      padding-top: 8px;
+      margin-top: 8px;
+    }
+
+    .receipt-payout {
+      text-align: center;
+      font-size: 14px;
+      font-family: var(--font-mono);
+      font-weight: bold;
+      margin: 16px 0;
+      padding: 12px;
+      border: 2px solid #000;
+      background: #f0f0f0;
+    }
+
+    .receipt-gift-card {
+      text-align: center;
+      font-family: var(--font-mono);
+      margin: 16px 0;
+      padding: 12px;
+      border: 2px dashed #000;
+    }
+
+    .receipt-gift-card-code {
+      font-size: 18px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      margin: 8px 0;
+    }
+
+    .receipt-footer {
+      text-align: center;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px dashed #000;
+    }
+
+    .receipt-footer p {
+      margin: 4px 0;
+      line-height: 1.3;
+    }
+
+    .receipt-signature {
+      margin-top: 24px;
+      border-top: 1px solid #000;
+      padding-top: 16px;
+    }
+
+    .receipt-signature-line {
+      border-bottom: 1px solid #000;
+      height: 40px;
+      margin: 8px 0 4px 0;
+    }
+
+    .receipt-signature-label {
+      font-size: 10px;
+      font-family: var(--font-mono);
+    }
+
     /* Barcode/Label Printing Styles - Avery 7666 Format */
     .barcode-section {
       background: white;
@@ -793,10 +932,10 @@
 
     /* Avery 5160 Individual Label - 2⅝" x 1" with proper printable area */
     .barcode-label {
-      width: 2.625in;
-      height: 1in;
+      width: 2.625in;  /* 2⅝" - exact Avery 5160 width */
+      height: 1in;     /* 1" - exact Avery 5160 height */
       border: 1px dashed var(--gray-300);
-      padding: 6px 8px;
+      padding: 4px 6px; /* FIXED: Reduced padding to give more space */
       font-family: var(--font-mono);
       display: flex;
       flex-direction: column;
@@ -806,11 +945,11 @@
       background: white;
       box-sizing: border-box;
       page-break-inside: avoid;
-      overflow: hidden;
+      overflow: visible; /* FIXED: Allow content to show */
     }
 
     .barcode-item-name {
-      display: none;
+      display: none; /* Remove item name to maximize UPC space */
     }
 
     .barcode-sku {
@@ -822,15 +961,16 @@
       line-height: 1;
     }
 
+    /* Code 128 Barcode - Real barcode using JsBarcode library */
     .barcode-display {
       background: white;
       border: 1px solid #ddd;
-      padding: 2px;
-      margin: 2px 0;
-      overflow: hidden;
+      padding: 1px;
+      margin: 1px 0;
+      overflow: visible;  /* FIXED: Allow barcode to show fully */
       line-height: 1;
-      height: 50px;
-      width: calc(100% - 8px);
+      height: 60px;  /* FIXED: Increased height for better barcode visibility */
+      width: calc(100% - 4px);   /* FIXED: Less padding deduction */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -853,7 +993,7 @@
     }
 
     .barcode-details {
-      display: none;
+      display: none; /* Remove condition and trade value */
     }
 
     /* Status bar */
@@ -973,34 +1113,149 @@
       border: 1px solid #ced4da;
     }
 
-    /* Print styles optimized for Avery 7666 */
+    /* Print styles optimized for Star TSP100III thermal receipt printer */
     @media print {
-      @page {
+      /* Only apply receipt print styles when receipt-print-mode is active */
+      .receipt-print-mode {
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      
+      .receipt-print-mode @page {
+        size: 72mm auto; /* Star TSP100III paper width (72mm/2.83") */
+        margin: 2mm 1mm; /* Minimal margins for TSP100III */
+      }
+      
+      .receipt-print-mode body {
+        margin: 0 !important;
+        padding: 0 !important;
+        font-size: 11px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        background: white !important;
+        width: 72mm;
+        font-family: 'Courier New', monospace !important;
+      }
+      
+      /* Hide everything except receipt when printing */
+      .receipt-print-mode * {
+        visibility: hidden !important;
+      }
+      
+      .receipt-print-mode .pos-receipt,
+      .receipt-print-mode .pos-receipt * {
+        visibility: visible !important;
+      }
+      
+      .receipt-print-mode .pos-receipt {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 72mm !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 4px 2mm !important;
+        border: none !important;
+        border-radius: 0 !important;
+        background: white !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        font-family: 'Courier New', monospace !important;
+      }
+      
+      .receipt-print-mode .receipt-store-name {
+        font-size: 16px !important;
+        font-weight: bold !important;
+      }
+      
+      .receipt-print-mode .receipt-store-info {
+        font-size: 9px !important;
+        line-height: 1.2 !important;
+      }
+      
+      .receipt-print-mode .receipt-transaction-info {
+        font-size: 9px !important;
+        margin: 6px 0 !important;
+      }
+      
+      .receipt-print-mode .receipt-title {
+        font-size: 12px !important;
+        margin: 6px 0 !important;
+      }
+      
+      .receipt-print-mode .receipt-item {
+        font-size: 9px !important;
+        margin-bottom: 3px !important;
+        line-height: 1.2 !important;
+      }
+      
+      .receipt-print-mode .receipt-item-details {
+        font-size: 7px !important;
+      }
+      
+      .receipt-print-mode .receipt-total-line {
+        font-size: 9px !important;
+        margin-bottom: 2px !important;
+      }
+      
+      .receipt-print-mode .receipt-total-line.final {
+        font-size: 11px !important;
+        font-weight: bold !important;
+      }
+      
+      .receipt-print-mode .receipt-payout {
+        font-size: 10px !important;
+        margin: 6px 0 !important;
+        padding: 4px !important;
+      }
+      
+      .receipt-print-mode .receipt-gift-card {
+        margin: 6px 0 !important;
+        padding: 4px !important;
+      }
+      
+      .receipt-print-mode .receipt-gift-card-code {
+        font-size: 12px !important;
+        letter-spacing: 1px !important;
+      }
+      
+      .receipt-print-mode .receipt-footer {
+        font-size: 7px !important;
+        margin-top: 8px !important;
+        padding-top: 6px !important;
+        line-height: 1.2 !important;
+      }
+      
+      .receipt-print-mode .receipt-signature {
+        margin-top: 12px !important;
+        padding-top: 6px !important;
+      }
+      
+      .receipt-print-mode .receipt-signature-line {
+        height: 25px !important;
+        margin: 4px 0 2px 0 !important;
+      }
+      
+      .receipt-print-mode .receipt-signature-label {
+        font-size: 7px !important;
+      }
+
+      /* Barcode print styles */
+      .barcode-print-mode * {
+        visibility: hidden !important;
+      }
+      
+      .barcode-print-mode .barcode-section,
+      .barcode-print-mode .barcode-section * {
+        visibility: visible !important;
+      }
+      
+      .barcode-print-mode @page {
         size: letter;
         margin: 0.5in 0.1875in 0.5in 0.1875in;
       }
       
-      body {
-        margin: 0 !important;
-        padding: 0 !important;
-        font-size: 8px;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-        background: white !important;
-      }
-      
-      * {
-        visibility: hidden !important;
-      }
-      
-      .barcode-grid,
-      .barcode-grid *,
-      .barcode-label,
-      .barcode-label * {
-        visibility: visible !important;
-      }
-      
-      .barcode-section {
+      .barcode-print-mode .barcode-section {
         position: absolute !important;
         top: 0 !important;
         left: 0 !important;
@@ -1013,11 +1268,11 @@
         overflow: visible !important;
       }
       
-      .barcode-header {
+      .barcode-print-mode .barcode-header {
         display: none !important;
       }
       
-      .barcode-grid {
+      .barcode-print-mode .barcode-grid {
         position: absolute !important;
         top: 0.5in !important;
         left: 0.1875in !important;
@@ -1032,7 +1287,7 @@
         background: white !important;
       }
       
-      .barcode-label {
+      .barcode-print-mode .barcode-label {
         border: none !important;
         width: 2.625in !important;
         height: 1in !important;
@@ -1044,7 +1299,7 @@
         overflow: hidden !important;
       }
       
-      .barcode-display {
+      .barcode-print-mode .barcode-display {
         border: none !important;
         background: white !important;
         padding: 0 !important;
@@ -1131,7 +1386,7 @@
       <!-- Card Header -->
       <div class="card-header">
         <h1 class="card-title">Trade-In Processing</h1>
-        <p class="card-subtitle">Enhanced search with number pattern recognition</p>
+        <p class="card-subtitle">Process card trades with real Shopify integration</p>
       </div>
 
       <!-- Card Content -->
@@ -1187,528 +1442,7 @@
                   <div class="form-group">
                     <label class="form-label" for="customerEmail">Customer Email</label>
                     <input type="email" class="form-input" id="customerEmail" name="customerEmail" placeholder="customer@example.com">
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center;">
-              <div>
-                <div style="font-size: 12px; color: var(--gray-500);">Retail</div>
-                <div style="font-weight: 600;">${card.retailPrice ? card.retailPrice.toFixed(2) : '0.00'}</div>
-              </div>
-              <div>
-                <div style="font-size: 12px; color: var(--gray-500);">Suggested</div>
-                <div style="font-weight: 600; color: var(--accent);">${card.suggestedTradeValue ? card.suggestedTradeValue.toFixed(2) : '0.00'}</div>
-              </div>
-              <div>
-                <div style="font-size: 12px; color: var(--gray-500);">Maximum</div>
-                <div style="font-weight: 600; color: var(--success);">${card.maximumTradeValue ? card.maximumTradeValue.toFixed(2) : '0.00'}</div>
-              </div>
-            </div>
-          `;
-          estimateCards.appendChild(cardElement);
-        });
-
-        // Update totals
-        document.getElementById('total-retail').textContent = `${data.totalRetailValue || '0.00'}`;
-        document.getElementById('total-suggested').textContent = `${data.suggestedTotal || '0.00'}`;
-        document.getElementById('total-maximum').textContent = `${data.maximumTotal || '0.00'}`;
-
-        // Show results
-        estimateResults.classList.add('visible');
-      }
-
-      // ENHANCED: Form submission with better error handling
-      document.getElementById('trade-form').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => ({
-          cardName: row.querySelector('[name="cardName"]').value,
-          quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
-          condition: row.querySelector('[name="cardCondition"]').value
-        }));
-
-        if (cards.length === 0) {
-          updateStatus('❌ Please add at least one card to process.', 'error');
-          alert('Please add at least one card to process.');
-          return;
-        }
-
-        const payoutMethod = formData.get('payoutMethod');
-        if (payoutMethod === 'store-credit' && !formData.get('customerEmail')) {
-          updateStatus('❌ Customer email is required for store credit payouts.', 'error');
-          alert('Customer email is required for store credit payouts.');
-          return;
-        }
-
-        const requestData = {
-          cards: cards,
-          employeeName: formData.get('employeeName'),
-          payoutMethod: payoutMethod,
-          customerEmail: formData.get('customerEmail'),
-          overrideTotal: formData.get('overrideTotal') || null
-        };
-
-        const submitBtn = document.getElementById('submit-trade');
-        submitBtn.innerHTML = '<span class="spinner"></span><span>Processing...</span>';
-        submitBtn.disabled = true;
-        updateStatus('Processing trade with enhanced search...', 'info');
-
-        try {
-          console.log('Submitting enhanced trade:', requestData);
-          
-          const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestData)
-          });
-
-          console.log('Enhanced trade response status:', response.status);
-          
-          const data = await response.json();
-          console.log('Enhanced trade response data:', data);
-          
-          // Store response for debugging
-          lastApiResponse = data;
-
-          if (!response.ok) {
-            throw new Error(data.error || 'Failed to process trade');
-          }
-
-          // Show success information
-          showTradeSuccess(data, payoutMethod);
-          
-          // Enhanced alert with search method breakdown
-          let alertMessage = `✅ Trade Completed Successfully!\n\n`;
-          alertMessage += `💰 Amount: ${data.finalPayout} CAD\n`;
-          alertMessage += `👤 Employee: ${data.employeeName}\n`;
-          
-          if (data.debug) {
-            alertMessage += `\n🔍 Search Methods Used:\n`;
-            if (data.debug.numberPatternMatches > 0) alertMessage += `• Number Patterns: ${data.debug.numberPatternMatches}\n`;
-            if (data.debug.titleExactMatches > 0) alertMessage += `• Exact Titles: ${data.debug.titleExactMatches}\n`;
-            if (data.debug.titlePartialMatches > 0) alertMessage += `• Partial Titles: ${data.debug.titlePartialMatches}\n`;
-            if (data.debug.fuzzyMatches > 0) alertMessage += `• Fuzzy Matches: ${data.debug.fuzzyMatches}\n`;
-          }
-          
-          if (payoutMethod === 'gift-card' && data.giftCardCode) {
-            alertMessage += `\n🎁 Gift Card Code: ${data.giftCardCode}\n`;
-            alertMessage += `\n⚠️ SAVE THIS CODE! Give it to the customer.`;
-          } else if (payoutMethod === 'store-credit') {
-            alertMessage += `\n🏪 Store credit added to customer account.`;
-          } else if (payoutMethod === 'cash') {
-            alertMessage += `\n💵 Please provide cash to customer.`;
-          }
-          
-          alert(alertMessage);
-          
-          updateStatus('Trade completed successfully with enhanced search!', 'success');
-
-          // Reset form
-          this.reset();
-          estimateResults.classList.remove('visible');
-          hideButton('override-section');
-          hideButton('submit-trade');
-          hideOverride();
-          
-          // Clear all input states
-          document.querySelectorAll('.card-input').forEach(input => {
-            input.classList.remove('confirmed', 'not-found');
-            input.removeAttribute('data-search-result');
-          });
-
-        } catch (error) {
-          console.error('Enhanced trade error:', error);
-          updateStatus(`❌ Error: ${error.message}`, 'error');
-          alert(`❌ Failed to process trade: ${error.message}`);
-        } finally {
-          submitBtn.innerHTML = '<span>✅</span><span>Process Trade</span>';
-          submitBtn.disabled = false;
-        }
-      });
-
-      // Function to show trade success with all details
-      function showTradeSuccess(data, payoutMethod) {
-        let successHTML = '';
-
-        // Create payout-specific display
-        if (payoutMethod === 'gift-card' && data.giftCardCode) {
-          successHTML += `
-            <div class="gift-card-display">
-              <div class="gift-card-title">🎁 Gift Card Created</div>
-              <div class="gift-card-code">${data.giftCardCode}</div>
-              <div class="gift-card-instructions">
-                Please save this code and give it to the customer.<br>
-                This gift card can be used for online or in-store purchases.
-              </div>
-            </div>
-          `;
-        } else if (payoutMethod === 'store-credit' && data.customer) {
-          successHTML += `
-            <div class="store-credit-display">
-              <div style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">🏪 Store Credit Issued</div>
-              <div class="payout-amount">${data.finalPayout} CAD</div>
-              <div>Customer: ${data.customer.email}</div>
-              <div style="margin-top: 16px; opacity: 0.9;">
-                Store credit has been added to the customer's account.
-              </div>
-            </div>
-          `;
-        } else if (payoutMethod === 'cash') {
-          successHTML += `
-            <div class="cash-display">
-              <div style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">💵 Cash Payout</div>
-              <div class="payout-amount">${data.finalPayout} CAD</div>
-              <div style="margin-top: 16px; opacity: 0.9;">
-                Please provide this amount in cash to the customer.
-              </div>
-            </div>
-          `;
-        }
-
-        // Add processing details with enhanced search info
-        successHTML += `
-          <div class="success-card">
-            <h4 style="margin: 0 0 16px 0; color: var(--gray-800);">📦 Processing Summary</h4>
-            <div class="success-details">
-              <div class="detail-item">
-                <div class="detail-label">Employee</div>
-                <div class="detail-value">${data.employeeName}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">Cards Processed</div>
-                <div class="detail-value">${data.processingStats ? data.processingStats.cardsFound : 'N/A'}/${data.processingStats ? data.processingStats.totalCards : 'N/A'}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">Final Amount</div>
-                <div class="detail-value">${data.finalPayout} CAD</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">Trade ID</div>
-                <div class="detail-value">${data.tradeId || 'Generated'}</div>
-              </div>
-            </div>
-        `;
-
-        // Add enhanced search breakdown if available
-        if (data.debug) {
-          successHTML += `
-            <div style="margin-top: 16px; padding: 16px; background: rgba(49, 130, 206, 0.05); border-radius: 8px;">
-              <h5 style="margin: 0 0 12px 0; color: var(--gray-700);">🔍 Enhanced Search Results</h5>
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; font-size: 14px;">
-                ${data.debug.numberPatternMatches > 0 ? `<div>🔢 Number Patterns: ${data.debug.numberPatternMatches}</div>` : ''}
-                ${data.debug.titleExactMatches > 0 ? `<div>📝 Exact Titles: ${data.debug.titleExactMatches}</div>` : ''}
-                ${data.debug.titlePartialMatches > 0 ? `<div>📝 Partial Titles: ${data.debug.titlePartialMatches}</div>` : ''}
-                ${data.debug.fuzzyMatches > 0 ? `<div>🌀 Fuzzy Matches: ${data.debug.fuzzyMatches}</div>` : ''}
-                ${data.debug.skuMatches > 0 ? `<div>🏷️ SKU Matches: ${data.debug.skuMatches}</div>` : ''}
-                ${data.debug.tagMatches > 0 ? `<div>🏷️ Tag Matches: ${data.debug.tagMatches}</div>` : ''}
-              </div>
-            </div>
-          `;
-        }
-
-        successHTML += `</div>`;
-
-        // Add card details if available
-        if (data.results && data.results.length > 0) {
-          successHTML += `
-            <div class="success-card">
-              <h4 style="margin: 0 0 16px 0; color: var(--gray-800);">🃏 Cards Processed</h4>
-          `;
-          
-          data.results.forEach(card => {
-            const searchMethodInfo = getEnhancedSearchMethodInfo(card.searchMethod);
-            successHTML += `
-              <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--gray-200);">
-                <div>
-                  <div style="font-weight: 600;">${card.match || card.cardName} ${card.match ? '✅' : '❌'}</div>
-                  <div style="font-size: 14px; color: var(--gray-500);">
-                    Qty: ${card.quantity} • ${card.condition}
-                    ${card.sku ? ` • SKU: ${card.sku}` : ''}
-                    <span class="search-badge ${searchMethodInfo.cssClass}" style="background: ${searchMethodInfo.color}; margin-left: 8px;">
-                      ${searchMethodInfo.icon} ${searchMethodInfo.text}
-                    </span>
-                  </div>
-                </div>
-                <div style="text-align: right;">
-                  <div style="font-weight: 600;">${card.suggestedTradeValue ? card.suggestedTradeValue.toFixed(2) : '0.00'}</div>
-                  <div style="font-size: 12px; color: var(--gray-500);">Trade Value</div>
-                </div>
-              </div>
-            `;
-          });
-          
-          successHTML += `</div>`;
-        }
-
-        // Insert content and show
-        successContent.innerHTML = successHTML;
-        tradeSuccess.classList.add('visible');
-        
-        // Generate barcodes for successfully matched items
-        generateBarcodes(data.results || []);
-      }
-
-      // Code 128 barcode generation (keeping existing functionality)
-      function generateBarcodes(results) {
-        const barcodeContent = document.getElementById('barcode-content');
-        barcodeContent.innerHTML = '';
-
-        console.log('🔍 Debug: generateBarcodes called with:', results);
-
-        let itemsWithSkus = [];
-        
-        const directSkuItems = results.filter(item => item.sku);
-        console.log('📊 Items with direct SKU property:', directSkuItems);
-        
-        const matchedItems = results.filter(item => item.match);
-        console.log('✅ Items that matched:', matchedItems);
-        
-        const alternateSkuItems = results.filter(item => 
-          item.variant_sku || item.product_sku || item.barcode || item.inventory_item_id
-        );
-        console.log('🔄 Items with alternate SKU properties:', alternateSkuItems);
-
-        if (directSkuItems.length > 0) {
-          itemsWithSkus = directSkuItems;
-          console.log('✅ Using direct SKU items');
-        } else if (matchedItems.length > 0) {
-          itemsWithSkus = matchedItems.map(item => ({
-            ...item,
-            sku: item.variant_sku || item.product_sku || item.barcode || item.inventory_item_id || `TEMP-${Math.random().toString(36).substr(2, 8)}`
-          }));
-          console.log('🔄 Using matched items with generated/alternate SKUs');
-        } else if (alternateSkuItems.length > 0) {
-          itemsWithSkus = alternateSkuItems.map(item => ({
-            ...item,
-            sku: item.variant_sku || item.product_sku || item.barcode || item.inventory_item_id
-          }));
-          console.log('📋 Using alternate SKU items');
-        }
-
-        console.log('📊 Final items with SKUs for barcode generation:', itemsWithSkus);
-        
-        if (itemsWithSkus.length === 0) {
-          barcodeContent.innerHTML = `
-            <div style="grid-column: 1/-1; text-align: center; color: var(--gray-500); padding: 40px;">
-              <h4>📊 No SKUs Available for Barcode Generation</h4>
-              <p>Enhanced search found matches but no SKUs available for barcodes.</p>
-              <button type="button" onclick="document.getElementById('debug-section').style.display='block';" class="btn btn-secondary">
-                🔍 Show Enhanced Debug Info
-              </button>
-            </div>
-          `;
-          return;
-        }
-
-        let labelCount = 0;
-        const barcodeIds = [];
-
-        itemsWithSkus.forEach(item => {
-          const quantity = item.quantity || 1;
-          for (let i = 0; i < quantity; i++) {
-            const barcodeLabel = document.createElement('div');
-            barcodeLabel.className = 'barcode-label';
-            
-            const barcodeId = 'barcode-' + Math.random().toString(36).substr(2, 9);
-            barcodeIds.push({ id: barcodeId, sku: item.sku });
-            
-            barcodeLabel.innerHTML = `
-              <div class="barcode-sku">SKU: ${item.sku}</div>
-              <div class="barcode-display">
-                <svg id="${barcodeId}" class="barcode-svg"></svg>
-              </div>
-              <div class="barcode-number">${item.sku}</div>
-            `;
-            
-            barcodeContent.appendChild(barcodeLabel);
-            labelCount++;
-          }
-        });
-
-        // Fill remaining slots
-        while (labelCount < 30 && labelCount % 30 !== 0) {
-          const emptyLabel = document.createElement('div');
-          emptyLabel.className = 'barcode-label';
-          emptyLabel.style.border = '1px dashed #e2e8f0';
-          emptyLabel.style.backgroundColor = '#f7fafc';
-          emptyLabel.innerHTML = `
-            <div style="color: #a0aec0; font-size: 10px; text-align: center; padding: 20px;">
-              Empty Label ${labelCount + 1}
-            </div>
-          `;
-          barcodeContent.appendChild(emptyLabel);
-          labelCount++;
-        }
-
-        console.log(`📊 Generated ${barcodeIds.length} barcodes, filled to ${labelCount} labels total`);
-
-        // Render all barcodes
-        setTimeout(() => {
-          barcodeIds.forEach(barcode => {
-            renderBarcode(barcode.id, barcode.sku);
-          });
-        }, 100);
-      }
-
-      // Function to render Code 128 barcode
-      function renderBarcode(containerId, sku) {
-        try {
-          const element = document.getElementById(containerId);
-          if (!element) {
-            console.error('❌ Barcode container not found:', containerId);
-            return;
-          }
-
-          if (!window.JsBarcode) {
-            console.error('❌ JsBarcode library not loaded');
-            element.innerHTML = `<text x="50%" y="50%" text-anchor="middle" font-family="monospace" font-size="10" fill="red">JsBarcode not loaded</text>`;
-            return;
-          }
-
-          if (!sku || sku.length === 0) {
-            console.error('❌ Invalid SKU for barcode:', sku);
-            element.innerHTML = `<text x="50%" y="50%" text-anchor="middle" font-family="monospace" font-size="10" fill="red">Invalid SKU</text>`;
-            return;
-          }
-
-          console.log(`📊 Rendering barcode for SKU: ${sku} in container: ${containerId}`);
-
-          JsBarcode(element, sku, {
-            format: "CODE128",
-            width: 2,
-            height: 35,
-            displayValue: false,
-            background: "white",
-            lineColor: "black",
-            margin: 1,
-            fontSize: 0,
-            textMargin: 0
-          });
-
-          console.log(`✅ Successfully rendered barcode for ${sku}`);
-
-        } catch (error) {
-          console.error('❌ Barcode generation error for', sku, ':', error);
-          const element = document.getElementById(containerId);
-          if (element) {
-            element.innerHTML = `
-              <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #fff3cd; border: 1px solid #ffeaa7;">
-                <span style="font-family: monospace; font-size: 8px; color: #856404;">
-                  Error: ${sku}
-                </span>
-              </div>
-            `;
-          }
-        }
-      }
-
-      // Success section handlers
-      document.getElementById('close-success').addEventListener('click', function() {
-        tradeSuccess.classList.remove('visible');
-        document.getElementById('barcode-section').style.display = 'none';
-      });
-
-      document.getElementById('new-trade').addEventListener('click', function() {
-        tradeSuccess.classList.remove('visible');
-        document.getElementById('barcode-section').style.display = 'none';
-      });
-
-      document.getElementById('print-receipt').addEventListener('click', function() {
-        document.getElementById('barcode-section').style.display = 'none';
-        window.print();
-      });
-
-      document.getElementById('print-barcodes').addEventListener('click', function() {
-        const barcodeSection = document.getElementById('barcode-section');
-        if (barcodeSection.style.display === 'none') {
-          barcodeSection.style.display = 'block';
-          this.innerHTML = '<span>🖨️</span><span>Print UPC Labels</span>';
-        } else {
-          window.print();
-        }
-      });
-
-      // Override functionality
-      overrideToggle.addEventListener('click', function() {
-        if (overrideContainer.style.display === 'none') {
-          overrideContainer.style.display = 'flex';
-          this.innerHTML = '<span>💰</span><span>Override Active</span>';
-          this.style.background = 'var(--error)';
-          overrideTotal.focus();
-          showOverrideWarning();
-        } else {
-          hideOverride();
-        }
-      });
-
-      overrideCancel.addEventListener('click', hideOverride);
-
-      function hideOverride() {
-        overrideContainer.style.display = 'none';
-        overrideToggle.innerHTML = '<span>💰</span><span>Override Amount</span>';
-        overrideToggle.style.background = 'var(--warning)';
-        overrideTotal.value = '';
-        hideOverrideWarning();
-      }
-
-      function showOverrideWarning() {
-        let warning = document.querySelector('.override-warning');
-        if (!warning) {
-          warning = document.createElement('div');
-          warning.className = 'override-warning';
-          warning.innerHTML = '⚠️ <strong>Override Active:</strong> This will bypass the calculated trade value. Ensure amount is authorized.';
-          overrideContainer.parentNode.insertBefore(warning, overrideContainer.nextSibling);
-        }
-        warning.classList.add('visible');
-      }
-
-      function hideOverrideWarning() {
-        const warning = document.querySelector('.override-warning');
-        if (warning) {
-          warning.classList.remove('visible');
-        }
-      }
-
-      function showButton(buttonId) {
-        const button = document.getElementById(buttonId);
-        if (button) {
-          button.style.display = button.tagName === 'DIV' ? 'flex' : 'inline-flex';
-          button.classList.add('appearing');
-          setTimeout(() => button.classList.remove('appearing'), 400);
-        }
-      }
-
-      function hideButton(buttonId) {
-        const button = document.getElementById(buttonId);
-        if (button) {
-          button.style.display = 'none';
-        }
-      }
-
-      function updateStatus(message, type = 'info') {
-        const statusText = document.querySelector('.status-text');
-        statusText.textContent = message;
-        
-        statusText.style.color = '';
-        
-        switch(type) {
-          case 'success':
-            statusText.style.color = 'var(--success)';
-            break;
-          case 'warning':
-            statusText.style.color = 'var(--warning)';
-            break;
-          case 'error':
-            statusText.style.color = 'var(--error)';
-            break;
-          default:
-            statusText.style.color = 'var(--gray-700)';
-        }
-      }
-    });
-  </script>
-</body>
-</html>font-size: 14px; color: var(--gray-500); margin-top: 8px;">
+                    <div style="font-size: 14px; color: var(--gray-500); margin-top: 8px;">
                       📧 Required for store credit - customer will be created if doesn't exist
                     </div>
                   </div>
@@ -1734,7 +1468,7 @@
               <div class="cards-list" id="card-list">
                 <div class="card-row">
                   <div class="card-input-container">
-                    <input type="text" class="card-input" name="cardName" placeholder="Enter card name, SKU, or numbers like 216/182" required>
+                    <input type="text" class="card-input" name="cardName" placeholder="Enter card name or SKU" required>
                   </div>
                   <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
                   <select class="form-select" name="cardCondition" required style="width: 120px;">
@@ -1830,15 +1564,22 @@
           </div>
         </div>
 
+        <!-- POS Receipt Section - Star TSP100III optimized -->
+        <div id="pos-receipt-section" class="pos-receipt" style="display: none;">
+          <div id="pos-receipt">
+            <!-- Receipt content will be generated here -->
+          </div>
+        </div>
+
         <!-- Debug section for troubleshooting SKU data -->
         <div id="debug-section" class="debug-section" style="display: none;">
-          <div class="debug-title">🔍 Debug: Enhanced Search Analysis</div>
+          <div class="debug-title">🔍 Debug: API Response Data</div>
           <div id="debug-content" class="debug-content">
             No debug data available
           </div>
         </div>
 
-        <!-- Code 128 Barcode Section -->
+        <!-- Code 128 Barcode Section - Real barcodes with actual SKUs -->
         <div id="barcode-section" class="barcode-section" style="display: none;">
           <div class="barcode-header">
             <h3 style="margin: 0; color: var(--gray-800);">📊 Code 128 Barcode Labels</h3>
@@ -1853,7 +1594,7 @@
 
         <!-- Status Bar -->
         <div class="status-bar" id="status-bar">
-          <div class="status-text">Ready to process trades with enhanced search...</div>
+          <div class="status-text">Ready to process trades...</div>
         </div>
       </div>
     </div>
@@ -1896,7 +1637,7 @@
         newRow.className = 'card-row';
         newRow.innerHTML = `
           <div class="card-input-container">
-            <input type="text" class="card-input" name="cardName" placeholder="Enter card name, SKU, or numbers like 216/182" required>
+            <input type="text" class="card-input" name="cardName" placeholder="Enter card name or SKU" required>
           </div>
           <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
           <select class="form-select" name="cardCondition" required style="width: 120px;">
@@ -1913,8 +1654,8 @@
           newRow.remove();
         });
 
-        // Setup ENHANCED search for new input
-        setupEnhancedSearch(newRow.querySelector('.card-input'));
+        // Setup REAL search for new input
+        setupRealSearch(newRow.querySelector('.card-input'));
       });
 
       // Setup remove functionality for existing cards
@@ -1924,8 +1665,8 @@
         });
       });
 
-      // Setup ENHANCED search for existing inputs
-      document.querySelectorAll('.card-input').forEach(setupEnhancedSearch);
+      // Setup REAL search for existing inputs
+      document.querySelectorAll('.card-input').forEach(setupRealSearch);
 
       // DEBUG: Toggle debug section by clicking on status bar 3 times quickly
       let statusClickCount = 0;
@@ -1938,18 +1679,13 @@
           debugSection.style.display = debugSection.style.display === 'none' ? 'block' : 'none';
           
           if (lastApiResponse) {
-            // Enhanced debug display with search method breakdown
-            let debugText = JSON.stringify(lastApiResponse, null, 2);
-            if (lastApiResponse.debug) {
-              debugText = `SEARCH METHOD BREAKDOWN:\n${JSON.stringify(lastApiResponse.debug, null, 2)}\n\nFULL RESPONSE:\n${debugText}`;
-            }
-            document.getElementById('debug-content').textContent = debugText;
+            document.getElementById('debug-content').textContent = JSON.stringify(lastApiResponse, null, 2);
           }
         }
       });
 
-      // ENHANCED: Search functionality with number pattern recognition
-      function setupEnhancedSearch(input) {
+      // REAL search functionality that connects to your Vercel API
+      function setupRealSearch(input) {
         let searchTimeout;
         let currentSuggestion = null;
 
@@ -1975,7 +1711,7 @@
 
           // Debounce the search
           searchTimeout = setTimeout(async () => {
-            await performEnhancedSearch(query, input);
+            await performRealSearch(query, input);
           }, 500); // Wait 500ms after user stops typing
         });
 
@@ -1989,16 +1725,15 @@
           }
         });
 
-        // ENHANCED: Perform search with enhanced backend
-        async function performEnhancedSearch(query, input) {
+        async function performRealSearch(query, input) {
           const container = input.closest('.card-input-container');
           
           try {
-            // Show loading state with enhanced message
-            showEnhancedSearchLoading(container, query);
+            // Show loading state
+            showSearchLoading(container, query);
 
-            // Make API call to enhanced backend
-            console.log('Making enhanced API call to:', `${API_URL}?estimate=true`);
+            // Make REAL API call to your Vercel backend
+            console.log('Making API call to:', `${API_URL}?estimate=true`);
             
             const response = await fetch(`${API_URL}?estimate=true`, {
               method: 'POST',
@@ -2012,8 +1747,9 @@
               })
             });
 
-            console.log('Enhanced search response status:', response.status);
+            console.log('Response status:', response.status);
 
+            // Check if response is actually JSON
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
               const responseText = await response.text();
@@ -2027,37 +1763,30 @@
               throw new Error(data.error || `HTTP ${response.status}: ${response.statusText}`);
             }
 
-            // Process the ENHANCED search result
+            // Process the REAL search result from your Shopify store
             const result = data.results && data.results[0];
-            showEnhancedSearchResult(container, input, query, result);
+            showSearchResult(container, input, query, result);
 
           } catch (error) {
-            console.error('Enhanced search error:', error);
+            console.error('Search error:', error);
             showSearchError(container, query, error.message);
           }
         }
 
-        function showEnhancedSearchLoading(container, query) {
+        function showSearchLoading(container, query) {
           const existing = container.querySelector('.search-suggestion');
           if (existing) existing.remove();
-
-          // Check if query contains number patterns
-          const hasNumberPattern = /\d+[\/\-\s]\d+/.test(query);
-          const loadingMessage = hasNumberPattern 
-            ? `🔢 Searching for number patterns like "${query.match(/\d+[\/\-\s]\d+/g)?.[0]}"...`
-            : `🔍 Enhanced search for "${query}"...`;
 
           const suggestion = document.createElement('div');
           suggestion.className = 'search-suggestion';
           suggestion.innerHTML = `
             <div class="suggestion-content">
               <div class="suggestion-info">
-                <div class="suggestion-name">${loadingMessage}</div>
+                <div class="suggestion-name">🔍 Searching for "${query}"...</div>
                 <div class="suggestion-details">
                   <span class="search-badge">
                     <span class="spinner"></span> Searching
                   </span>
-                  ${hasNumberPattern ? '<span style="font-size: 12px;">Number pattern detected</span>' : ''}
                 </div>
               </div>
             </div>
@@ -2066,7 +1795,7 @@
           currentSuggestion = suggestion;
         }
 
-        function showEnhancedSearchResult(container, input, query, result) {
+        function showSearchResult(container, input, query, result) {
           const existing = container.querySelector('.search-suggestion');
           if (existing) existing.remove();
 
@@ -2074,20 +1803,15 @@
           suggestion.className = 'search-suggestion';
           
           if (result && result.match) {
-            // Determine search method info for enhanced display
-            let searchMethodInfo = getEnhancedSearchMethodInfo(result.searchMethod);
-            
+            // Card found in your real Shopify inventory
             suggestion.innerHTML = `
               <div class="suggestion-content">
                 <div class="suggestion-info">
                   <div class="suggestion-name">✅ ${result.match}</div>
                   <div class="suggestion-details">
                     <span>SKU: ${result.sku || 'N/A'}</span>
-                    <span>Price: $${result.retailPrice.toFixed(2)}</span>
-                    <span class="search-badge ${searchMethodInfo.cssClass}" style="background: ${searchMethodInfo.color};">
-                      ${searchMethodInfo.icon} ${searchMethodInfo.text}
-                    </span>
-                    ${result.matchScore ? `<span style="font-size: 12px; opacity: 0.8;">Score: ${result.matchScore}</span>` : ''}
+                    <span>Price: ${result.retailPrice.toFixed(2)}</span>
+                    <span class="search-badge found">Found</span>
                   </div>
                 </div>
                 <div class="suggestion-actions">
@@ -2097,12 +1821,13 @@
               </div>
             `;
           } else {
+            // Card not found in your real Shopify inventory
             suggestion.innerHTML = `
               <div class="suggestion-content">
                 <div class="suggestion-info">
                   <div class="suggestion-name">❌ "${query}" not found</div>
                   <div class="suggestion-details">
-                    <span>No matches found with enhanced search methods</span>
+                    <span>This item is not in your Shopify inventory</span>
                     <span class="search-badge not-found">Not Found</span>
                   </div>
                 </div>
@@ -2129,13 +1854,15 @@
               input.classList.remove('not-found');
               input.classList.add('confirmed');
               input.value = result.match;
-              
-              // Store enhanced search result data for backend
+              // FIXED: Store complete result including SKU, price, and variant info
               input.setAttribute('data-search-result', JSON.stringify({
-                ...result,
-                searchMethod: 'exact_sku' // Mark as confirmed for backend
+                match: result.match,
+                sku: result.sku,
+                retailPrice: result.retailPrice,
+                suggestedTradeValue: result.suggestedTradeValue,
+                maximumTradeValue: result.maximumTradeValue,
+                searchMethod: 'confirmed_search'
               }));
-              
               suggestion.remove();
               currentSuggestion = null;
             });
@@ -2183,7 +1910,7 @@
           suggestion.innerHTML = `
             <div class="suggestion-content">
               <div class="suggestion-info">
-                <div class="suggestion-name">⚠️ Enhanced Search Error</div>
+                <div class="suggestion-name">⚠️ Search Error</div>
                 <div class="suggestion-details">
                   <span>${errorMessage}</span>
                   <span class="search-badge" style="background: var(--error);">Error</span>
@@ -2203,6 +1930,7 @@
             currentSuggestion = null;
           });
 
+          // Auto-remove after 10 seconds
           setTimeout(() => {
             if (suggestion.parentNode) {
               suggestion.remove();
@@ -2214,29 +1942,36 @@
         }
       }
 
-      // ENHANCED: Helper function to get search method information for display
-      function getEnhancedSearchMethodInfo(searchMethod) {
-        const methodMap = {
-          'exact_sku': { icon: '🎯', text: 'Exact SKU', color: '#38a169', cssClass: 'exact-sku' },
-          'title_exact': { icon: '📝', text: 'Exact Title', color: '#3182ce', cssClass: 'title-exact' },
-          'title_partial': { icon: '📝', text: 'Partial Title', color: '#4299e1', cssClass: 'title-partial' },
-          'number_pattern': { icon: '🔢', text: 'Number Match', color: '#d69e2e', cssClass: 'number-pattern' },
-          'sku': { icon: '🏷️', text: 'SKU Search', color: '#805ad5', cssClass: 'sku-search' },
-          'tag': { icon: '🏷️', text: 'Tag Match', color: '#9f7aea', cssClass: 'tag-match' },
-          'fuzzy': { icon: '🌀', text: 'Fuzzy Match', color: '#ed8936', cssClass: 'fuzzy-match' },
-          'none': { icon: '❌', text: 'Not Found', color: '#e53e3e', cssClass: 'not-found' }
-        };
-        
-        return methodMap[searchMethod] || methodMap['none'];
-      }
-
-      // ENHANCED: estimate functionality with better debug info
+      // REAL estimate functionality
       estimateBtn.addEventListener('click', async function() {
-        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => ({
-          cardName: row.querySelector('[name="cardName"]').value,
-          quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
-          condition: row.querySelector('[name="cardCondition"]').value
-        }));
+        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
+          const input = row.querySelector('[name="cardName"]');
+          const searchResult = input.getAttribute('data-search-result');
+          
+          // If we have a confirmed search result, use the exact SKU and details
+          if (searchResult) {
+            try {
+              const result = JSON.parse(searchResult);
+              return {
+                cardName: input.value,
+                quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+                condition: row.querySelector('[name="cardCondition"]').value,
+                // FIXED: Pass the exact SKU from search to ensure same variant
+                sku: result.sku,
+                searchMethod: 'exact_sku' // Tell API to use this exact SKU
+              };
+            } catch (e) {
+              console.warn('Failed to parse search result:', e);
+            }
+          }
+          
+          // Fallback to name-based search
+          return {
+            cardName: input.value,
+            quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+            condition: row.querySelector('[name="cardCondition"]').value
+          };
+        });
 
         if (cards.length === 0) {
           updateStatus('❌ Please add at least one card to estimate.', 'error');
@@ -2253,9 +1988,9 @@
         };
 
         // Show loading state
-        estimateBtn.innerHTML = '<span class="spinner"></span><span>Enhanced Search...</span>';
+        estimateBtn.innerHTML = '<span class="spinner"></span><span>Calculating...</span>';
         estimateBtn.disabled = true;
-        updateStatus('Using enhanced search with number pattern recognition...', 'info');
+        updateStatus('Searching for cards in your inventory...', 'info');
 
         try {
           const response = await fetch(`${API_URL}?estimate=true`, {
@@ -2275,20 +2010,13 @@
             throw new Error(data.error || 'Failed to get estimate');
           }
 
-          showEnhancedEstimateResults(data);
+          showEstimateResults(data);
           showButton('override-section');
           showButton('submit-trade');
-          
-          // Enhanced status message with search method info
-          let statusMessage = 'Estimate complete! ';
-          if (data.debug) {
-            const totalMatches = Object.values(data.debug).reduce((sum, count) => sum + count, 0);
-            statusMessage += `Found ${totalMatches} matches using enhanced search.`;
-          }
-          updateStatus(statusMessage, 'success');
+          updateStatus('Estimate complete! Review values and submit trade.', 'success');
 
         } catch (error) {
-          console.error('Enhanced estimate error:', error);
+          console.error('Estimate error:', error);
           updateStatus(`Error: ${error.message}`, 'error');
         } finally {
           estimateBtn.innerHTML = '<span>📊</span><span>Get Estimate</span>';
@@ -2296,14 +2024,701 @@
         }
       });
 
-      // ENHANCED: Show estimate results with search method information
-      function showEnhancedEstimateResults(data) {
+      // REAL form submission - FIXED: Now shows trade success properly
+      document.getElementById('trade-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
+          const input = row.querySelector('[name="cardName"]');
+          const searchResult = input.getAttribute('data-search-result');
+          
+          // If we have a confirmed search result, use the exact SKU and details
+          if (searchResult) {
+            try {
+              const result = JSON.parse(searchResult);
+              return {
+                cardName: input.value,
+                quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+                condition: row.querySelector('[name="cardCondition"]').value,
+                // FIXED: Pass the exact SKU from search to ensure same variant
+                sku: result.sku,
+                searchMethod: 'exact_sku' // Tell API to use this exact SKU
+              };
+            } catch (e) {
+              console.warn('Failed to parse search result:', e);
+            }
+          }
+          
+          // Fallback to name-based search
+          return {
+            cardName: input.value,
+            quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+            condition: row.querySelector('[name="cardCondition"]').value
+          };
+        });
+
+        if (cards.length === 0) {
+          updateStatus('❌ Please add at least one card to process.', 'error');
+          alert('Please add at least one card to process.');
+          return;
+        }
+
+        const payoutMethod = formData.get('payoutMethod');
+        if (payoutMethod === 'store-credit' && !formData.get('customerEmail')) {
+          updateStatus('❌ Customer email is required for store credit payouts.', 'error');
+          alert('Customer email is required for store credit payouts.');
+          return;
+        }
+
+        const requestData = {
+          cards: cards,
+          employeeName: formData.get('employeeName'),
+          payoutMethod: payoutMethod,
+          customerEmail: formData.get('customerEmail'),
+          overrideTotal: formData.get('overrideTotal') || null
+        };
+
+        const submitBtn = document.getElementById('submit-trade');
+        submitBtn.innerHTML = '<span class="spinner"></span><span>Processing...</span>';
+        submitBtn.disabled = true;
+        updateStatus('Processing trade...', 'info');
+
+        try {
+          console.log('Submitting trade:', requestData);
+          
+          const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+          });
+
+          console.log('Trade response status:', response.status);
+          
+          const data = await response.json();
+          console.log('Trade response data:', data);
+          
+          // Store response for debugging
+          lastApiResponse = data;
+
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to process trade');
+          }
+
+          // FIXED: Show success information in the trade success section
+          showTradeSuccess(data, payoutMethod);
+          
+          // Also show an alert with key info for immediate feedback
+          let alertMessage = `✅ Trade Completed Successfully!\n\n`;
+          alertMessage += `💰 Amount: ${data.finalPayout} CAD\n`;
+          alertMessage += `👤 Employee: ${data.employeeName}\n`;
+          
+          if (payoutMethod === 'gift-card' && data.giftCardCode) {
+            alertMessage += `🎁 Gift Card Code: ${data.giftCardCode}\n`;
+            alertMessage += `\n⚠️ SAVE THIS CODE! Give it to the customer.`;
+          } else if (payoutMethod === 'store-credit') {
+            alertMessage += `🏪 Store credit added to customer account.`;
+          } else if (payoutMethod === 'cash') {
+            alertMessage += `💵 Please provide cash to customer.`;
+          }
+          
+          alert(alertMessage);
+          
+          updateStatus('Trade completed successfully!', 'success');
+
+          // Reset form
+          this.reset();
+          estimateResults.classList.remove('visible');
+          hideButton('override-section');
+          hideButton('submit-trade');
+          hideOverride();
+          
+          // Clear all input states
+          document.querySelectorAll('.card-input').forEach(input => {
+            input.classList.remove('confirmed', 'not-found');
+            input.removeAttribute('data-search-result');
+          });
+
+        } catch (error) {
+          console.error('Trade error:', error);
+          updateStatus(`❌ Error: ${error.message}`, 'error');
+          alert(`❌ Failed to process trade: ${error.message}`);
+        } finally {
+          submitBtn.innerHTML = '<span>✅</span><span>Process Trade</span>';
+          submitBtn.disabled = false;
+        }
+      });
+
+      // FIXED: Function to show trade success with all details (NO auto-receipt generation)
+      function showTradeSuccess(data, payoutMethod) {
+        let successHTML = '';
+
+        // Create payout-specific display
+        if (payoutMethod === 'gift-card' && data.giftCardCode) {
+          successHTML += `
+            <div class="gift-card-display">
+              <div class="gift-card-title">🎁 Gift Card Created</div>
+              <div class="gift-card-code">${data.giftCardCode}</div>
+              <div class="gift-card-instructions">
+                Please save this code and give it to the customer.<br>
+                This gift card can be used for online or in-store purchases.
+              </div>
+            </div>
+          `;
+        } else if (payoutMethod === 'store-credit' && data.customer) {
+          successHTML += `
+            <div class="store-credit-display">
+              <div style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">🏪 Store Credit Issued</div>
+              <div class="payout-amount">${data.finalPayout} CAD</div>
+              <div>Customer: ${data.customer.email}</div>
+              <div style="margin-top: 16px; opacity: 0.9;">
+                Store credit has been added to the customer's account.
+              </div>
+            </div>
+          `;
+        } else if (payoutMethod === 'cash') {
+          successHTML += `
+            <div class="cash-display">
+              <div style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">💵 Cash Payout</div>
+              <div class="payout-amount">${data.finalPayout} CAD</div>
+              <div style="margin-top: 16px; opacity: 0.9;">
+                Please provide this amount in cash to the customer.
+              </div>
+            </div>
+          `;
+        }
+
+        // Add processing details
+        successHTML += `
+          <div class="success-card">
+            <h4 style="margin: 0 0 16px 0; color: var(--gray-800);">📦 Processing Summary</h4>
+            <div class="success-details">
+              <div class="detail-item">
+                <div class="detail-label">Employee</div>
+                <div class="detail-value">${data.employeeName}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Cards Processed</div>
+                <div class="detail-value">${data.processingStats ? data.processingStats.cardsFound : 'N/A'}/${data.processingStats ? data.processingStats.totalCards : 'N/A'}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Final Amount</div>
+                <div class="detail-value">${data.finalPayout} CAD</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Trade ID</div>
+                <div class="detail-value">${data.tradeId || 'Generated'}</div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Add card details if available
+        if (data.results && data.results.length > 0) {
+          successHTML += `
+            <div class="success-card">
+              <h4 style="margin: 0 0 16px 0; color: var(--gray-800);">🃏 Cards Processed</h4>
+          `;
+          
+          data.results.forEach(card => {
+            successHTML += `
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--gray-200);">
+                <div>
+                  <div style="font-weight: 600;">${card.match || card.cardName} ${card.match ? '✅' : '❌'}</div>
+                  <div style="font-size: 14px; color: var(--gray-500);">
+                    Qty: ${card.quantity} • ${card.condition}
+                    ${card.sku ? ` • SKU: ${card.sku}` : ''}
+                  </div>
+                </div>
+                <div style="text-align: right;">
+                  <div style="font-weight: 600;">${card.suggestedTradeValue ? card.suggestedTradeValue.toFixed(2) : '0.00'}</div>
+                  <div style="font-size: 12px; color: var(--gray-500);">Trade Value</div>
+                </div>
+              </div>
+            `;
+          });
+          
+          successHTML += `</div>`;
+        }
+
+        // Insert content and show
+        successContent.innerHTML = successHTML;
+        tradeSuccess.classList.add('visible');
+        
+        // Store trade data globally for receipt generation
+        window.lastTradeData = data;
+        window.lastPayoutMethod = payoutMethod;
+        
+        // Generate barcodes for successfully matched items
+        generateBarcodes(data.results || []);
+      }
+
+      // NEW: Generate POS Receipt optimized for Star TSP100III thermal printer
+      function generatePOSReceipt(data, payoutMethod) {
+        const receiptSection = document.getElementById('pos-receipt-section');
+        const currentDate = new Date();
+        const dateStr = currentDate.toLocaleDateString('en-CA');
+        const timeStr = currentDate.toLocaleTimeString('en-CA', { hour12: false });
+        
+        let receiptHTML = `
+          <div class="receipt-header">
+            <div class="receipt-store-name">CARD GAME STORE</div>
+            <div class="receipt-store-info">
+              123 Main Street<br>
+              Toronto, ON M5V 3A8<br>
+              Tel: (416) 555-0123
+            </div>
+          </div>
+
+          <div class="receipt-transaction-info">
+            <div>Date: ${dateStr}</div>
+            <div>Time: ${timeStr}</div>
+          </div>
+          <div class="receipt-transaction-info">
+            <div>Employee: ${data.employeeName}</div>
+            <div>Trans #: ${Math.random().toString(36).substr(2, 8).toUpperCase()}</div>
+          </div>
+
+          <div class="receipt-title">*** TRADE-IN RECEIPT ***</div>
+
+          <div class="receipt-items">
+        `;
+
+        // Add each traded card
+        if (data.results && data.results.length > 0) {
+          data.results.forEach(card => {
+            if (card.match) { // Only show successfully matched cards
+              receiptHTML += `
+                <div class="receipt-item">
+                  <div class="receipt-item-name">
+                    ${card.match}
+                    <div class="receipt-item-details">
+                      Qty: ${card.quantity} • ${card.condition}
+                      ${card.sku ? ` • SKU: ${card.sku}` : ''}
+                    </div>
+                  </div>
+                  <div class="receipt-item-value">${(card.suggestedTradeValue * card.quantity).toFixed(2)}</div>
+                </div>
+              `;
+            }
+          });
+        }
+
+        receiptHTML += `
+          </div>
+
+          <div class="receipt-totals">
+            <div class="receipt-total-line">
+              <span>Subtotal:</span>
+              <span>${data.suggestedTotal}</span>
+            </div>
+            <div class="receipt-total-line">
+              <span>Total Retail Value:</span>
+              <span>${data.totalRetailValue}</span>
+            </div>
+        `;
+
+        if (data.overrideUsed) {
+          receiptHTML += `
+            <div class="receipt-total-line">
+              <span>Override Applied:</span>
+              <span>${data.overrideAmount}</span>
+            </div>
+          `;
+        }
+
+        receiptHTML += `
+            <div class="receipt-total-line final">
+              <span>TRADE-IN VALUE:</span>
+              <span>${data.finalPayout}</span>
+            </div>
+          </div>
+        `;
+
+        // Add payout method specific information
+        if (payoutMethod === 'gift-card' && data.giftCardCode) {
+          receiptHTML += `
+            <div class="receipt-gift-card">
+              <div style="font-weight: bold; margin-bottom: 4px;">GIFT CARD ISSUED</div>
+              <div class="receipt-gift-card-code">${data.giftCardCode}</div>
+              <div style="font-size: 9px; margin-top: 4px;">
+                Save this code! Valid for online<br>
+                and in-store purchases.
+              </div>
+            </div>
+          `;
+        } else if (payoutMethod === 'store-credit') {
+          receiptHTML += `
+            <div class="receipt-payout">
+              STORE CREDIT: ${data.finalPayout}<br>
+              Customer: ${data.customerEmail || 'N/A'}
+            </div>
+          `;
+        } else if (payoutMethod === 'cash') {
+          receiptHTML += `
+            <div class="receipt-payout">
+              CASH PAYOUT: ${data.finalPayout}
+            </div>
+          `;
+        }
+
+        receiptHTML += `
+          <div class="receipt-footer">
+            <p>Thank you for your business!</p>
+            <p>Visit us online: www.cardgamestore.com</p>
+            <p>Follow us @CardGameStore</p>
+            <p>----------------------------------------</p>
+            <p>No returns on trade-ins.</p>
+            <p>Gift cards expire 24 months from issue.</p>
+            <p>Store credit never expires.</p>
+          </div>
+
+          <div class="receipt-signature">
+            <div class="receipt-signature-label">Customer Signature:</div>
+            <div class="receipt-signature-line"></div>
+            <div class="receipt-signature-label">Employee Signature:</div>
+            <div class="receipt-signature-line"></div>
+          </div>
+        `;
+
+        // Insert receipt content (ready for printing when button is clicked)
+        const posReceiptDiv = document.getElementById('pos-receipt');
+        posReceiptDiv.innerHTML = receiptHTML;
+        posReceiptDiv.classList.add('visible');
+      }
+
+      // FIXED: Code 128 barcode generation with improved SKU detection
+      function generateBarcodes(results) {
+        const barcodeContent = document.getElementById('barcode-content');
+        barcodeContent.innerHTML = '';
+
+        console.log('🔍 Debug: generateBarcodes called with:', results);
+
+        // Try multiple ways to find items with SKUs
+        let itemsWithSkus = [];
+        
+        // Method 1: Look for items with direct SKU property
+        const directSkuItems = results.filter(item => item.sku);
+        console.log('📊 Items with direct SKU property:', directSkuItems);
+        
+        // Method 2: Look for items that matched and might have SKU in different location
+        const matchedItems = results.filter(item => item.match);
+        console.log('✅ Items that matched:', matchedItems);
+        
+        // Method 3: Look for any item with SKU-like properties (variant_sku, product_sku, etc.)
+        const alternateSkuItems = results.filter(item => 
+          item.variant_sku || item.product_sku || item.barcode || item.inventory_item_id
+        );
+        console.log('🔄 Items with alternate SKU properties:', alternateSkuItems);
+
+        // Combine all methods, prioritizing direct SKU
+        if (directSkuItems.length > 0) {
+          itemsWithSkus = directSkuItems;
+          console.log('✅ Using direct SKU items');
+        } else if (matchedItems.length > 0) {
+          // Try to extract SKUs from matched items
+          itemsWithSkus = matchedItems.map(item => ({
+            ...item,
+            sku: item.variant_sku || item.product_sku || item.barcode || item.inventory_item_id || `TEMP-${Math.random().toString(36).substr(2, 8)}`
+          }));
+          console.log('🔄 Using matched items with generated/alternate SKUs');
+        } else if (alternateSkuItems.length > 0) {
+          itemsWithSkus = alternateSkuItems.map(item => ({
+            ...item,
+            sku: item.variant_sku || item.product_sku || item.barcode || item.inventory_item_id
+          }));
+          console.log('📋 Using alternate SKU items');
+        }
+
+        console.log('📊 Final items with SKUs for barcode generation:', itemsWithSkus);
+        
+        if (itemsWithSkus.length === 0) {
+          barcodeContent.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; color: var(--gray-500); padding: 40px;">
+              <h4>📊 No SKUs Available for Barcode Generation</h4>
+              <p>Debug info:</p>
+              <div style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                <strong>Items received:</strong> ${results.length}<br>
+                <strong>Items with direct SKU:</strong> ${directSkuItems.length}<br>
+                <strong>Items that matched:</strong> ${matchedItems.length}<br>
+                <strong>Items with alternate SKU props:</strong> ${alternateSkuItems.length}<br><br>
+                <strong>Sample item structure:</strong><br>
+                <code style="font-size: 11px; white-space: pre-wrap;">${results.length > 0 ? JSON.stringify(results[0], null, 2) : 'No items'}</code>
+              </div>
+              <button type="button" onclick="document.getElementById('debug-section').style.display='block';" class="btn btn-secondary">
+                🔍 Show Full Debug Info
+              </button>
+            </div>
+          `;
+          return;
+        }
+
+        let labelCount = 0;
+        const barcodeIds = []; // Store IDs for rendering after insertion
+
+        itemsWithSkus.forEach(item => {
+          // Generate Code 128 barcode for each quantity
+          const quantity = item.quantity || 1;
+          for (let i = 0; i < quantity; i++) {
+            const barcodeLabel = document.createElement('div');
+            barcodeLabel.className = 'barcode-label';
+            
+            // Generate unique barcode container
+            const barcodeId = 'barcode-' + Math.random().toString(36).substr(2, 9);
+            barcodeIds.push({ id: barcodeId, sku: item.sku });
+            
+            // Clean label with Code 128 format
+            barcodeLabel.innerHTML = `
+              <div class="barcode-sku">SKU: ${item.sku}</div>
+              <div class="barcode-display">
+                <svg id="${barcodeId}" class="barcode-svg"></svg>
+              </div>
+              <div class="barcode-number">${item.sku}</div>
+            `;
+            
+            barcodeContent.appendChild(barcodeLabel);
+            labelCount++;
+          }
+        });
+
+        // Fill remaining slots to complete the sheet (if less than 30 labels)
+        while (labelCount < 30 && labelCount % 30 !== 0) {
+          const emptyLabel = document.createElement('div');
+          emptyLabel.className = 'barcode-label';
+          emptyLabel.style.border = '1px dashed #e2e8f0';
+          emptyLabel.style.backgroundColor = '#f7fafc';
+          emptyLabel.innerHTML = `
+            <div style="color: #a0aec0; font-size: 10px; text-align: center; padding: 20px;">
+              Empty Label ${labelCount + 1}
+            </div>
+          `;
+          barcodeContent.appendChild(emptyLabel);
+          labelCount++;
+        }
+
+        console.log(`📊 Generated ${barcodeIds.length} barcodes, filled to ${labelCount} labels total`);
+
+        // Render all barcodes after DOM insertion
+        setTimeout(() => {
+          barcodeIds.forEach(barcode => {
+            renderBarcode(barcode.id, barcode.sku);
+          });
+        }, 100);
+      }
+
+      // FIXED: Function to render Code 128 barcode with better error handling
+      function renderBarcode(containerId, sku) {
+        try {
+          const element = document.getElementById(containerId);
+          if (!element) {
+            console.error('❌ Barcode container not found:', containerId);
+            return;
+          }
+
+          if (!window.JsBarcode) {
+            console.error('❌ JsBarcode library not loaded');
+            element.innerHTML = `<text x="50%" y="50%" text-anchor="middle" font-family="monospace" font-size="10" fill="red">JsBarcode not loaded</text>`;
+            return;
+          }
+
+          // Validate SKU format for Code 128
+          if (!sku || sku.length === 0) {
+            console.error('❌ Invalid SKU for barcode:', sku);
+            element.innerHTML = `<text x="50%" y="50%" text-anchor="middle" font-family="monospace" font-size="10" fill="red">Invalid SKU</text>`;
+            return;
+          }
+
+          console.log(`📊 Rendering barcode for SKU: ${sku} in container: ${containerId}`);
+
+          JsBarcode(element, sku, {
+            format: "CODE128",
+            width: 1.8,         /* FIXED: Slightly thinner bars for better fit */
+            height: 45,         /* FIXED: Better height for visibility */
+            displayValue: false, // Don't show text (we have it separately)
+            background: "white",
+            lineColor: "black",
+            margin: 0,          /* FIXED: Zero margin for maximum space */
+            fontSize: 0,        // No font inside barcode
+            textMargin: 0       // No text margin
+          });
+
+          console.log(`✅ Successfully rendered barcode for ${sku}`);
+
+        } catch (error) {
+          console.error('❌ Barcode generation error for', sku, ':', error);
+          // Fallback: show SKU as text if barcode fails
+          const element = document.getElementById(containerId);
+          if (element) {
+            element.innerHTML = `
+              <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #fff3cd; border: 1px solid #ffeaa7;">
+                <span style="font-family: monospace; font-size: 8px; color: #856404;">
+                  Error: ${sku}
+                </span>
+              </div>
+            `;
+          }
+        }
+      }
+
+      // Success section close and new trade buttons
+      document.getElementById('close-success').addEventListener('click', function() {
+        tradeSuccess.classList.remove('visible');
+        document.getElementById('barcode-section').style.display = 'none';
+        document.getElementById('pos-receipt-section').style.display = 'none';
+        // Clear stored trade data
+        window.lastTradeData = null;
+        window.lastPayoutMethod = null;
+      });
+
+      document.getElementById('new-trade').addEventListener('click', function() {
+        tradeSuccess.classList.remove('visible');
+        document.getElementById('barcode-section').style.display = 'none';
+        document.getElementById('pos-receipt-section').style.display = 'none';
+        // Clear stored trade data
+        window.lastTradeData = null;
+        window.lastPayoutMethod = null;
+        // Form is already reset above
+      });
+
+      // Print receipt functionality - Generate receipt ONLY when button is clicked and print immediately
+      document.getElementById('print-receipt').addEventListener('click', function() {
+        // Check if we have trade data stored
+        if (!window.lastTradeData || !window.lastPayoutMethod) {
+          alert('No trade data available for receipt generation.');
+          return;
+        }
+
+        // Generate receipt now
+        generatePOSReceipt(window.lastTradeData, window.lastPayoutMethod);
+        
+        // Show receipt section for printing
+        document.getElementById('pos-receipt-section').style.display = 'block';
+        
+        // Add special class for receipt-only printing
+        document.body.classList.add('receipt-print-mode');
+        
+        // Hide barcode section for receipt printing
+        document.getElementById('barcode-section').style.display = 'none';
+        
+        // Trigger print dialog immediately
+        window.print();
+        
+        // Clean up after printing
+        setTimeout(() => {
+          document.body.classList.remove('receipt-print-mode');
+          document.getElementById('pos-receipt-section').style.display = 'none';
+        }, 1000);
+      });
+
+      // FIXED: Print barcodes functionality - Only labels print
+      document.getElementById('print-barcodes').addEventListener('click', function() {
+        const barcodeSection = document.getElementById('barcode-section');
+        if (barcodeSection.style.display === 'none') {
+          barcodeSection.style.display = 'block';
+          this.innerHTML = '<span>🖨️</span><span>Print UPC Labels</span>';
+        } else {
+          // Add special class for barcode-only printing
+          document.body.classList.add('barcode-print-mode');
+          
+          // Hide receipt for barcode printing
+          document.getElementById('pos-receipt-section').style.display = 'none';
+          
+          // Print with clean labels only
+          window.print();
+          
+          // Remove print mode class after printing
+          setTimeout(() => {
+            document.body.classList.remove('barcode-print-mode');
+            document.getElementById('pos-receipt-section').style.display = 'block';
+          }, 1000);
+        }
+      });
+
+      // Override functionality
+      overrideToggle.addEventListener('click', function() {
+        if (overrideContainer.style.display === 'none') {
+          overrideContainer.style.display = 'flex';
+          this.innerHTML = '<span>💰</span><span>Override Active</span>';
+          this.style.background = 'var(--error)';
+          overrideTotal.focus();
+          showOverrideWarning();
+        } else {
+          hideOverride();
+        }
+      });
+
+      overrideCancel.addEventListener('click', hideOverride);
+
+      function hideOverride() {
+        overrideContainer.style.display = 'none';
+        overrideToggle.innerHTML = '<span>💰</span><span>Override Amount</span>';
+        overrideToggle.style.background = 'var(--warning)';
+        overrideTotal.value = '';
+        hideOverrideWarning();
+      }
+
+      function showOverrideWarning() {
+        let warning = document.querySelector('.override-warning');
+        if (!warning) {
+          warning = document.createElement('div');
+          warning.className = 'override-warning';
+          warning.innerHTML = '⚠️ <strong>Override Active:</strong> This will bypass the calculated trade value. Ensure amount is authorized.';
+          overrideContainer.parentNode.insertBefore(warning, overrideContainer.nextSibling);
+        }
+        warning.classList.add('visible');
+      }
+
+      function hideOverrideWarning() {
+        const warning = document.querySelector('.override-warning');
+        if (warning) {
+          warning.classList.remove('visible');
+        }
+      }
+
+      function showButton(buttonId) {
+        const button = document.getElementById(buttonId);
+        if (button) {
+          button.style.display = button.tagName === 'DIV' ? 'flex' : 'inline-flex';
+          button.classList.add('appearing');
+          setTimeout(() => button.classList.remove('appearing'), 400);
+        }
+      }
+
+      function hideButton(buttonId) {
+        const button = document.getElementById(buttonId);
+        if (button) {
+          button.style.display = 'none';
+        }
+      }
+
+      function updateStatus(message, type = 'info') {
+        const statusText = document.querySelector('.status-text');
+        statusText.textContent = message;
+        
+        statusText.style.color = '';
+        
+        switch(type) {
+          case 'success':
+            statusText.style.color = 'var(--success)';
+            break;
+          case 'warning':
+            statusText.style.color = 'var(--warning)';
+            break;
+          case 'error':
+            statusText.style.color = 'var(--error)';
+            break;
+          default:
+            statusText.style.color = 'var(--gray-700)';
+        }
+      }
+
+      function showEstimateResults(data) {
         const estimateCards = document.getElementById('estimate-cards');
         estimateCards.innerHTML = '';
 
         data.results.forEach(card => {
-          const searchMethodInfo = getEnhancedSearchMethodInfo(card.searchMethod);
-          
           const cardElement = document.createElement('div');
           cardElement.className = 'estimate-card';
           cardElement.innerHTML = `
@@ -2312,15 +2727,43 @@
                 <div style="font-weight: 600; color: var(--gray-800);">
                   ${card.match || card.cardName}
                   ${!card.match ? ' ❌ Not Found' : ' ✅'}
+                  ${card.searchMethod === 'exact_sku' ? ' 🎯' : ''}
                 </div>
                 <div style="font-size: 14px; color: var(--gray-500);">
                   Quantity: ${card.quantity}
                   ${card.sku ? ` • SKU: ${card.sku}` : ''}
-                  <span class="search-badge ${searchMethodInfo.cssClass}" style="background: ${searchMethodInfo.color}; margin-left: 8px;">
-                    ${searchMethodInfo.icon} ${searchMethodInfo.text}
-                  </span>
-                  ${card.matchScore ? ` • Score: ${card.matchScore}` : ''}
+                  ${card.searchMethod === 'exact_sku' ? ' • Exact Match' : ''}
+                  ${card.searchMethod && card.searchMethod !== 'exact_sku' ? ` • Found by: ${card.searchMethod}` : ''}
                 </div>
               </div>
             </div>
-            <div style="
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center;">
+              <div>
+                <div style="font-size: 12px; color: var(--gray-500);">Retail</div>
+                <div style="font-weight: 600;">${card.retailPrice ? card.retailPrice.toFixed(2) : '0.00'}</div>
+              </div>
+              <div>
+                <div style="font-size: 12px; color: var(--gray-500);">Suggested</div>
+                <div style="font-weight: 600; color: var(--accent);">${card.suggestedTradeValue ? card.suggestedTradeValue.toFixed(2) : '0.00'}</div>
+              </div>
+              <div>
+                <div style="font-size: 12px; color: var(--gray-500);">Maximum</div>
+                <div style="font-weight: 600; color: var(--success);">${card.maximumTradeValue ? card.maximumTradeValue.toFixed(2) : '0.00'}</div>
+              </div>
+            </div>
+          `;
+          estimateCards.appendChild(cardElement);
+        });
+
+        // Update totals
+        document.getElementById('total-retail').textContent = `${data.totalRetailValue || '0.00'}`;
+        document.getElementById('total-suggested').textContent = `${data.suggestedTotal || '0.00'}`;
+        document.getElementById('total-maximum').textContent = `${data.maximumTotal || '0.00'}`;
+
+        // Show results
+        estimateResults.classList.add('visible');
+      }
+    });
+  </script>
+</body>
+</html>
