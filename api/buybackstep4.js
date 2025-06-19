@@ -126,7 +126,7 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // ENHANCED: Get variant by exact SKU - for frontend confirmed searches
+    // FIXED: Get variant by exact SKU - for frontend confirmed searches
     const getVariantBySku = async (sku) => {
       console.log('🎯 Getting exact variant by SKU:', sku);
       
@@ -195,12 +195,11 @@ module.exports = async function handler(req, res) {
       return { found: false };
     };
 
-    // ENHANCED: Search by title with partial matching
+    // Real Shopify search functions
     const searchByTitle = async (query) => {
       console.log('🔍 Searching by title:', query);
       
-      // Try exact title match first
-      let productRes = await fetch(
+      const productRes = await fetch(
         `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/products.json?title=${encodeURIComponent(query)}`,
         {
           headers: {
@@ -210,14 +209,19 @@ module.exports = async function handler(req, res) {
         }
       );
 
-      let productData = await productRes.json();
-      console.log('🔍 Exact title search response:', JSON.stringify(productData, null, 2));
+      const productData = await productRes.json();
+      console.log('🔍 Title search response:', JSON.stringify(productData, null, 2));
       
       if (productData?.products?.length > 0) {
         const product = productData.products[0];
         const variant = product.variants[0];
         
-        console.log('🔍 Exact title match found');
+        console.log('🔍 Title search found variant:', {
+          sku: variant.sku,
+          price: variant.price,
+          inventory_item_id: variant.inventory_item_id
+        });
+        
         return {
           found: true,
           product: product,
@@ -226,155 +230,13 @@ module.exports = async function handler(req, res) {
             price: variant.price,
             inventory_item_id: variant.inventory_item_id
           },
-          searchMethod: 'title_exact'
+          searchMethod: 'title'
         };
       }
-
-      // If no exact match, try partial matching using GraphQL
-      const graphqlQuery = `{
-        products(first: 10, query: "title:*${query}*") {
-          edges {
-            node {
-              id
-              title
-              variants(first: 1) {
-                edges {
-                  node {
-                    id
-                    title
-                    sku
-                    price
-                    inventoryQuantity
-                    inventoryItem {
-                      id
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }`;
-
-      const graphqlRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/graphql.json`, {
-        method: 'POST',
-        headers: {
-          'X-Shopify-Access-Token': ACCESS_TOKEN,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ query: graphqlQuery })
-      });
-
-      const graphqlData = await graphqlRes.json();
-      console.log('🔍 Partial title search response:', JSON.stringify(graphqlData, null, 2));
-
-      if (graphqlData?.data?.products?.edges?.length > 0) {
-        const productEdge = graphqlData.data.products.edges[0];
-        const product = productEdge.node;
-        const variantEdge = product.variants.edges[0];
-        
-        if (variantEdge?.node) {
-          const variant = variantEdge.node;
-          const inventoryItemId = variant.inventoryItem?.id;
-          const numericInventoryItemId = inventoryItemId ? inventoryItemId.replace('gid://shopify/InventoryItem/', '') : null;
-          
-          console.log('🔍 Partial title match found:', product.title);
-          return {
-            found: true,
-            product: { title: product.title },
-            variant: {
-              sku: variant.sku,
-              price: variant.price,
-              inventory_item_id: numericInventoryItemId
-            },
-            searchMethod: 'title_partial'
-          };
-        }
-      }
       
       return { found: false };
     };
 
-    // NEW: Search by number patterns (like 216/182)
-    const searchByNumberPattern = async (query) => {
-      console.log('🔢 Searching by number pattern:', query);
-      
-      // Extract number patterns like "216/182", "123-456", "789 012", etc.
-      const numberPatterns = query.match(/\d+[\/\-\s]\d+/g) || [];
-      
-      if (numberPatterns.length === 0) {
-        return { found: false };
-      }
-      
-      for (const pattern of numberPatterns) {
-        console.log('🔢 Trying pattern:', pattern);
-        
-        // Search for this pattern in product titles
-        const graphqlQuery = `{
-          products(first: 5, query: "title:*${pattern}*") {
-            edges {
-              node {
-                id
-                title
-                variants(first: 1) {
-                  edges {
-                    node {
-                      id
-                      title
-                      sku
-                      price
-                      inventoryQuantity
-                      inventoryItem {
-                        id
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }`;
-
-        const graphqlRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/graphql.json`, {
-          method: 'POST',
-          headers: {
-            'X-Shopify-Access-Token': ACCESS_TOKEN,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ query: graphqlQuery })
-        });
-
-        const graphqlData = await graphqlRes.json();
-        
-        if (graphqlData?.data?.products?.edges?.length > 0) {
-          const productEdge = graphqlData.data.products.edges[0];
-          const product = productEdge.node;
-          const variantEdge = product.variants.edges[0];
-          
-          if (variantEdge?.node) {
-            const variant = variantEdge.node;
-            const inventoryItemId = variant.inventoryItem?.id;
-            const numericInventoryItemId = inventoryItemId ? inventoryItemId.replace('gid://shopify/InventoryItem/', '') : null;
-            
-            console.log('✅ Number pattern match found:', product.title);
-            return {
-              found: true,
-              product: { title: product.title },
-              variant: {
-                sku: variant.sku,
-                price: variant.price,
-                inventory_item_id: numericInventoryItemId
-              },
-              searchMethod: 'number_pattern'
-            };
-          }
-        }
-      }
-      
-      return { found: false };
-    };
-
-    // ENHANCED: Search by SKU (fallback method)
     const searchBySKU = async (sku) => {
       console.log('🔍 Searching by SKU (fallback):', sku);
       
@@ -442,7 +304,6 @@ module.exports = async function handler(req, res) {
       return { found: false };
     };
 
-    // ENHANCED: Search by tag
     const searchByTag = async (tag) => {
       console.log('🏷️ Searching by tag:', tag);
       
@@ -502,109 +363,9 @@ module.exports = async function handler(req, res) {
       return { found: false };
     };
 
-    // NEW: Fuzzy search for close matches
-    const fuzzySearch = async (query) => {
-      console.log('🌀 Fuzzy searching:', query);
-      
-      // Break query into words and search for products containing any of them
-      const words = query.toLowerCase().split(/\s+/).filter(word => word.length > 2);
-      
-      if (words.length === 0) {
-        return { found: false };
-      }
-      
-      // Try searching for products that contain any of the significant words
-      const searchTerms = words.slice(0, 3); // Limit to first 3 significant words
-      
-      for (const term of searchTerms) {
-        const graphqlQuery = `{
-          products(first: 5, query: "title:*${term}*") {
-            edges {
-              node {
-                id
-                title
-                variants(first: 1) {
-                  edges {
-                    node {
-                      id
-                      title
-                      sku
-                      price
-                      inventoryQuantity
-                      inventoryItem {
-                        id
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }`;
-
-        const graphqlRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/graphql.json`, {
-          method: 'POST',
-          headers: {
-            'X-Shopify-Access-Token': ACCESS_TOKEN,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ query: graphqlQuery })
-        });
-
-        const graphqlData = await graphqlRes.json();
-        
-        if (graphqlData?.data?.products?.edges?.length > 0) {
-          // Find the best match by counting word overlaps
-          let bestMatch = null;
-          let bestScore = 0;
-          
-          for (const productEdge of graphqlData.data.products.edges) {
-            const product = productEdge.node;
-            const productTitle = product.title.toLowerCase();
-            
-            // Score based on how many query words appear in the title
-            const score = words.reduce((acc, word) => {
-              return acc + (productTitle.includes(word) ? 1 : 0);
-            }, 0);
-            
-            if (score > bestScore) {
-              bestScore = score;
-              bestMatch = productEdge;
-            }
-          }
-          
-          if (bestMatch && bestScore > 0) {
-            const product = bestMatch.node;
-            const variantEdge = product.variants.edges[0];
-            
-            if (variantEdge?.node) {
-              const variant = variantEdge.node;
-              const inventoryItemId = variant.inventoryItem?.id;
-              const numericInventoryItemId = inventoryItemId ? inventoryItemId.replace('gid://shopify/InventoryItem/', '') : null;
-              
-              console.log(`✅ Fuzzy match found (score: ${bestScore}):`, product.title);
-              return {
-                found: true,
-                product: { title: product.title },
-                variant: {
-                  sku: variant.sku,
-                  price: variant.price,
-                  inventory_item_id: numericInventoryItemId
-                },
-                searchMethod: 'fuzzy',
-                matchScore: bestScore
-              };
-            }
-          }
-        }
-      }
-      
-      return { found: false };
-    };
-
-    // ENHANCED: Main search function with enhanced search methods
+    // FIXED: Main search function with exact SKU priority
     const searchCard = async (card) => {
-      const { cardName, sku = null, searchMethod = null } = card;
+      const { cardName, sku, searchMethod } = card;
       
       console.log(`🔍 Processing card: ${cardName}`);
       console.log(`  - SKU provided: ${sku}`);
@@ -618,29 +379,26 @@ module.exports = async function handler(req, res) {
           console.log('✅ Exact SKU match found');
           return exactResult;
         } else {
-          console.warn('⚠️ Exact SKU not found, falling back to enhanced search');
+          console.warn('⚠️ Exact SKU not found, falling back to name search');
         }
       }
       
-      // ENHANCED: Use multiple search strategies in order of specificity
-      const searchStrategies = [
-        { name: 'Title (Exact)', method: () => searchByTitle(cardName) },
-        { name: 'SKU', method: () => searchBySKU(sku || cardName) },
-        { name: 'Number Pattern', method: () => searchByNumberPattern(cardName) },
-        { name: 'Tag', method: () => searchByTag(cardName) },
-        { name: 'Fuzzy Search', method: () => fuzzySearch(cardName) }
-      ];
+      // FALLBACK: Use original search methods
+      const searchQueries = [
+        { query: cardName, method: searchByTitle },
+        { query: sku || cardName, method: searchBySKU },
+        { query: cardName, method: searchByTag }
+      ].filter(s => s.query); // Remove null/empty queries
 
-      for (const strategy of searchStrategies) {
+      for (const { query, method } of searchQueries) {
         try {
-          console.log(`🔍 Trying strategy: ${strategy.name}`);
-          const result = await strategy.method();
+          const result = await method(query);
           if (result.found) {
-            console.log(`✅ Found via ${strategy.name}: ${result.product.title}`);
+            console.log(`✅ Found via ${result.searchMethod}: ${result.product.title}`);
             return result;
           }
         } catch (error) {
-          console.log(`❌ ${strategy.name} failed:`, error.message);
+          console.log(`❌ Search method failed for ${query}:`, error.message);
           continue;
         }
       }
@@ -780,7 +538,7 @@ module.exports = async function handler(req, res) {
       }
     };
 
-    // ENHANCED: Process cards with exact SKU support
+    // FIXED: Process cards with exact SKU support
     let totalSuggestedValue = 0;
     let totalMaximumValue = 0;
     let totalRetailValue = 0;
@@ -883,8 +641,7 @@ module.exports = async function handler(req, res) {
         quantity,
         condition,
         sku: variant.sku,
-        searchMethod: searchResult.searchMethod,
-        matchScore: searchResult.matchScore || null
+        searchMethod: searchResult.searchMethod
       });
     }
 
@@ -987,20 +744,17 @@ module.exports = async function handler(req, res) {
         cardsFound: results.filter(r => r.match).length,
         cardsNotFound: results.filter(r => !r.match).length
       },
-      // ENHANCED: For debugging search method effectiveness
+      // ADDED: For debugging SKU consistency
       debug: {
         exactSkuMatches: results.filter(r => r.searchMethod === 'exact_sku').length,
-        titleExactMatches: results.filter(r => r.searchMethod === 'title_exact').length,
-        titlePartialMatches: results.filter(r => r.searchMethod === 'title_partial').length,
-        numberPatternMatches: results.filter(r => r.searchMethod === 'number_pattern').length,
+        titleMatches: results.filter(r => r.searchMethod === 'title').length,
         skuMatches: results.filter(r => r.searchMethod === 'sku').length,
-        tagMatches: results.filter(r => r.searchMethod === 'tag').length,
-        fuzzyMatches: results.filter(r => r.searchMethod === 'fuzzy').length
+        tagMatches: results.filter(r => r.searchMethod === 'tag').length
       }
     };
 
     console.log('✅ Processing complete');
-    console.log('🎯 Search method breakdown:', response.debug);
+    console.log('🎯 Exact SKU matches:', response.debug.exactSkuMatches);
     console.log('=== API REQUEST END ===');
     
     res.status(200).json(response);
