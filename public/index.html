@@ -244,12 +244,12 @@
       max-height: 200px;
     }
 
-    /* Cards section - FIXED: Changed overflow from hidden to visible */
+    /* FIXED: Cards section - proper scrolling */
     .cards-section {
       background: var(--gray-50);
       border-radius: var(--border-radius-lg);
       border: 1px solid var(--gray-200);
-      overflow: visible; /* FIXED: Was hidden, now visible to show suggestions */
+      overflow: visible;
     }
 
     .cards-header {
@@ -261,9 +261,31 @@
       align-items: center;
     }
 
+    /* FIXED: Scrollable cards list */
     .cards-list {
       padding: 24px 32px;
-      overflow: visible; /* FIXED: Ensure suggestions aren't clipped */
+      max-height: 60vh; /* FIXED: Limit height so we can scroll */
+      overflow-y: auto; /* FIXED: Add vertical scrolling */
+      overflow-x: visible; /* FIXED: Keep horizontal visible for suggestions */
+    }
+
+    /* FIXED: Custom scrollbar styling */
+    .cards-list::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .cards-list::-webkit-scrollbar-track {
+      background: var(--gray-100);
+      border-radius: 4px;
+    }
+
+    .cards-list::-webkit-scrollbar-thumb {
+      background: var(--gray-400);
+      border-radius: 4px;
+    }
+
+    .cards-list::-webkit-scrollbar-thumb:hover {
+      background: var(--gray-500);
     }
 
     .card-row {
@@ -314,7 +336,7 @@
       background: rgba(214, 158, 46, 0.05);
     }
 
-    /* Search suggestions - IMPROVED: Better sizing and positioning */
+    /* FIXED: Search suggestions with better scrolling */
     .search-suggestion {
       position: absolute;
       top: 100%;
@@ -327,8 +349,23 @@
       box-shadow: var(--shadow-lg);
       z-index: 1000;
       animation: slideDown 0.2s ease;
-      max-height: 300px; /* FIXED: Prevent overly tall suggestions */
-      overflow-y: auto; /* FIXED: Allow scrolling if needed */
+      max-height: 300px;
+      overflow-y: auto; /* FIXED: Scrollable suggestions */
+      overflow-x: hidden;
+    }
+
+    /* FIXED: Custom scrollbar for suggestions */
+    .search-suggestion::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .search-suggestion::-webkit-scrollbar-track {
+      background: var(--gray-100);
+    }
+
+    .search-suggestion::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 3px;
     }
 
     @keyframes slideDown {
@@ -348,19 +385,19 @@
       justify-content: space-between;
       align-items: center;
       gap: 16px;
-      min-height: 60px; /* FIXED: Ensure minimum height */
+      min-height: 60px;
     }
 
     .suggestion-info {
       flex: 1;
-      min-width: 0; /* FIXED: Allow text to truncate properly */
+      min-width: 0;
     }
 
     .suggestion-name {
       font-weight: 600;
       color: var(--gray-800);
       margin-bottom: 4px;
-      word-wrap: break-word; /* FIXED: Handle long text */
+      word-wrap: break-word;
     }
 
     .suggestion-details {
@@ -369,7 +406,7 @@
       display: flex;
       gap: 16px;
       align-items: center;
-      flex-wrap: wrap; /* FIXED: Allow wrapping */
+      flex-wrap: wrap;
     }
 
     .search-badge {
@@ -383,7 +420,7 @@
       font-size: 12px;
       font-weight: 500;
       text-transform: uppercase;
-      white-space: nowrap; /* FIXED: Prevent badge text wrapping */
+      white-space: nowrap;
     }
 
     .search-badge.cached {
@@ -401,7 +438,7 @@
     .suggestion-actions {
       display: flex;
       gap: 8px;
-      flex-shrink: 0; /* FIXED: Prevent buttons from shrinking */
+      flex-shrink: 0;
     }
 
     .suggestion-btn {
@@ -412,7 +449,7 @@
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s ease;
-      white-space: nowrap; /* FIXED: Prevent button text wrapping */
+      white-space: nowrap;
     }
 
     .confirm-btn {
@@ -520,7 +557,7 @@
       border: 1px solid var(--gray-300);
     }
 
-    /* Estimate results */
+    /* FIXED: Estimate results with proper scrolling */
     .estimate-results {
       background: linear-gradient(135deg, rgba(49, 130, 206, 0.05) 0%, rgba(49, 130, 206, 0.02) 100%);
       border: 1px solid rgba(49, 130, 206, 0.2);
@@ -535,7 +572,8 @@
 
     .estimate-results.visible {
       opacity: 1;
-      max-height: 1000px;
+      max-height: none; /* FIXED: Allow full height */
+      overflow: visible; /* FIXED: Make visible */
     }
 
     .estimate-header {
@@ -549,6 +587,29 @@
       font-size: 20px;
       font-weight: 600;
       color: var(--gray-800);
+    }
+
+    /* FIXED: Scrollable estimate cards */
+    #estimate-cards {
+      max-height: 50vh; /* FIXED: Limit height */
+      overflow-y: auto; /* FIXED: Add scrolling */
+      margin-bottom: 24px;
+      padding-right: 8px; /* FIXED: Space for scrollbar */
+    }
+
+    /* FIXED: Custom scrollbar for estimate cards */
+    #estimate-cards::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #estimate-cards::-webkit-scrollbar-track {
+      background: var(--gray-100);
+      border-radius: 3px;
+    }
+
+    #estimate-cards::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 3px;
     }
 
     .estimate-card {
@@ -593,7 +654,7 @@
       color: var(--accent);
     }
 
-    /* Trade Success Results - FIXED: Only one section */
+    /* Trade Success Results */
     .trade-success {
       background: linear-gradient(135deg, rgba(56, 161, 105, 0.05) 0%, rgba(56, 161, 105, 0.02) 100%);
       border: 2px solid var(--success);
@@ -744,9 +805,9 @@
       margin: 20px 0;
       display: none;
       page-break-inside: avoid;
-      max-width: 280px; /* Star TSP100III typical receipt width for screen preview */
+      max-width: 280px;
       margin: 20px auto;
-      font-family: 'Courier New', monospace; /* Monospace for thermal printer compatibility */
+      font-family: 'Courier New', monospace;
     }
 
     .pos-receipt.visible {
@@ -932,10 +993,10 @@
 
     /* Avery 5160 Individual Label - 2⅝" x 1" with proper printable area */
     .barcode-label {
-      width: 2.625in;  /* 2⅝" - exact Avery 5160 width */
-      height: 1in;     /* 1" - exact Avery 5160 height */
+      width: 2.625in;
+      height: 1in;
       border: 1px dashed var(--gray-300);
-      padding: 4px 6px; /* FIXED: Reduced padding to give more space */
+      padding: 4px 6px;
       font-family: var(--font-mono);
       display: flex;
       flex-direction: column;
@@ -945,11 +1006,11 @@
       background: white;
       box-sizing: border-box;
       page-break-inside: avoid;
-      overflow: visible; /* FIXED: Allow content to show */
+      overflow: visible;
     }
 
     .barcode-item-name {
-      display: none; /* Remove item name to maximize UPC space */
+      display: none;
     }
 
     .barcode-sku {
@@ -967,10 +1028,10 @@
       border: 1px solid #ddd;
       padding: 1px;
       margin: 1px 0;
-      overflow: visible;  /* FIXED: Allow barcode to show fully */
+      overflow: visible;
       line-height: 1;
-      height: 60px;  /* FIXED: Increased height for better barcode visibility */
-      width: calc(100% - 4px);   /* FIXED: Less padding deduction */
+      height: 60px;
+      width: calc(100% - 4px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -993,7 +1054,7 @@
     }
 
     .barcode-details {
-      display: none; /* Remove condition and trade value */
+      display: none;
     }
 
     /* Status bar */
@@ -1115,15 +1176,14 @@
 
     /* Print styles optimized for Star TSP100III thermal receipt printer */
     @media print {
-      /* Only apply receipt print styles when receipt-print-mode is active */
       .receipt-print-mode {
         margin: 0 !important;
         padding: 0 !important;
       }
       
       .receipt-print-mode @page {
-        size: 72mm auto; /* Star TSP100III paper width (72mm/2.83") */
-        margin: 2mm 1mm; /* Minimal margins for TSP100III */
+        size: 72mm auto;
+        margin: 2mm 1mm;
       }
       
       .receipt-print-mode body {
@@ -1137,7 +1197,6 @@
         font-family: 'Courier New', monospace !important;
       }
       
-      /* Hide everything except receipt when printing */
       .receipt-print-mode * {
         visibility: hidden !important;
       }
@@ -1339,6 +1398,15 @@
       .estimate-totals {
         grid-template-columns: 1fr;
       }
+
+      /* FIXED: Mobile scrolling improvements */
+      .cards-list {
+        max-height: 50vh;
+      }
+
+      #estimate-cards {
+        max-height: 40vh;
+      }
     }
 
     /* Loading states */
@@ -1376,6 +1444,31 @@
 
     .btn:hover::before {
       left: 100%;
+    }
+
+    /* FIXED: Visual indicator for scrollable areas */
+    .scrollable-indicator {
+      position: relative;
+    }
+
+    .scrollable-indicator::after {
+      content: '⬇️ Scroll for more';
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: var(--accent);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      z-index: 1001;
+    }
+
+    .scrollable-indicator.show-scroll-hint::after {
+      opacity: 0.8;
     }
   </style>
 </head>
@@ -1465,7 +1558,7 @@
                 </button>
               </div>
               
-              <div class="cards-list" id="card-list">
+              <div class="cards-list scrollable-indicator" id="card-list">
                 <div class="card-row">
                   <div class="card-input-container">
                     <input type="text" class="card-input" name="cardName" placeholder="Enter card name or SKU" required>
@@ -1488,7 +1581,7 @@
               <div class="estimate-title">📊 Trade Estimate</div>
             </div>
             
-            <div id="estimate-cards">
+            <div id="estimate-cards" class="scrollable-indicator">
               <!-- Estimate cards will be inserted here -->
             </div>
 
@@ -1620,6 +1713,37 @@
       const tradeSuccess = document.getElementById('trade-success');
       const successContent = document.getElementById('success-content');
 
+      // FIXED: Scroll indicators for better UX
+      function setupScrollIndicators() {
+        const scrollableElements = document.querySelectorAll('.scrollable-indicator');
+        
+        scrollableElements.forEach(element => {
+          function checkScroll() {
+            if (element.scrollHeight > element.clientHeight) {
+              if (element.scrollTop + element.clientHeight < element.scrollHeight - 10) {
+                element.classList.add('show-scroll-hint');
+              } else {
+                element.classList.remove('show-scroll-hint');
+              }
+            } else {
+              element.classList.remove('show-scroll-hint');
+            }
+          }
+
+          element.addEventListener('scroll', checkScroll);
+          
+          // Check on content changes
+          const observer = new MutationObserver(checkScroll);
+          observer.observe(element, { childList: true, subtree: true });
+          
+          // Initial check
+          setTimeout(checkScroll, 100);
+        });
+      }
+
+      // FIXED: Setup scroll indicators
+      setupScrollIndicators();
+
       // Show/hide customer email section
       document.querySelectorAll('input[name="payoutMethod"]').forEach(radio => {
         radio.addEventListener('change', function() {
@@ -1652,16 +1776,30 @@
         // Setup remove functionality
         newRow.querySelector('.remove-btn').addEventListener('click', function() {
           newRow.remove();
+          // FIXED: Update scroll indicators after removing
+          setTimeout(() => {
+            setupScrollIndicators();
+          }, 100);
         });
 
         // Setup REAL search for new input
         setupRealSearch(newRow.querySelector('.card-input'));
+
+        // FIXED: Scroll to new card and update indicators
+        newRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        setTimeout(() => {
+          setupScrollIndicators();
+        }, 100);
       });
 
       // Setup remove functionality for existing cards
       document.querySelectorAll('.remove-btn').forEach(btn => {
         btn.addEventListener('click', function() {
           btn.closest('.card-row').remove();
+          // FIXED: Update scroll indicators after removing
+          setTimeout(() => {
+            setupScrollIndicators();
+          }, 100);
         });
       });
 
@@ -2141,6 +2279,11 @@
             input.removeAttribute('data-search-result');
           });
 
+          // FIXED: Update scroll indicators after reset
+          setTimeout(() => {
+            setupScrollIndicators();
+          }, 100);
+
         } catch (error) {
           console.error('Trade error:', error);
           updateStatus(`❌ Error: ${error.message}`, 'error');
@@ -2534,14 +2677,14 @@
 
           JsBarcode(element, sku, {
             format: "CODE128",
-            width: 1.8,         /* FIXED: Slightly thinner bars for better fit */
-            height: 45,         /* FIXED: Better height for visibility */
-            displayValue: false, // Don't show text (we have it separately)
+            width: 1.8,
+            height: 45,
+            displayValue: false,
             background: "white",
             lineColor: "black",
-            margin: 0,          /* FIXED: Zero margin for maximum space */
-            fontSize: 0,        // No font inside barcode
-            textMargin: 0       // No text margin
+            margin: 0,
+            fontSize: 0,
+            textMargin: 0
           });
 
           console.log(`✅ Successfully rendered barcode for ${sku}`);
@@ -2762,6 +2905,11 @@
 
         // Show results
         estimateResults.classList.add('visible');
+
+        // FIXED: Update scroll indicators for estimate results
+        setTimeout(() => {
+          setupScrollIndicators();
+        }, 300);
       }
     });
   </script>
