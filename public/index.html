@@ -244,12 +244,12 @@
       max-height: 200px;
     }
 
-    /* Cards section - FIXED: Changed overflow from hidden to visible */
+    /* Cards section - Enhanced for better search suggestions */
     .cards-section {
       background: var(--gray-50);
       border-radius: var(--border-radius-lg);
       border: 1px solid var(--gray-200);
-      overflow: visible; /* FIXED: Was hidden, now visible to show suggestions */
+      overflow: visible;
     }
 
     .cards-header {
@@ -263,7 +263,7 @@
 
     .cards-list {
       padding: 24px 32px;
-      overflow: visible; /* FIXED: Ensure suggestions aren't clipped */
+      overflow: visible;
     }
 
     .card-row {
@@ -314,7 +314,7 @@
       background: rgba(214, 158, 46, 0.05);
     }
 
-    /* Search suggestions - IMPROVED: Better sizing and positioning */
+    /* ENHANCED: Search suggestions with better method indicators */
     .search-suggestion {
       position: absolute;
       top: 100%;
@@ -327,8 +327,8 @@
       box-shadow: var(--shadow-lg);
       z-index: 1000;
       animation: slideDown 0.2s ease;
-      max-height: 300px; /* FIXED: Prevent overly tall suggestions */
-      overflow-y: auto; /* FIXED: Allow scrolling if needed */
+      max-height: 300px;
+      overflow-y: auto;
     }
 
     @keyframes slideDown {
@@ -348,19 +348,19 @@
       justify-content: space-between;
       align-items: center;
       gap: 16px;
-      min-height: 60px; /* FIXED: Ensure minimum height */
+      min-height: 60px;
     }
 
     .suggestion-info {
       flex: 1;
-      min-width: 0; /* FIXED: Allow text to truncate properly */
+      min-width: 0;
     }
 
     .suggestion-name {
       font-weight: 600;
       color: var(--gray-800);
       margin-bottom: 4px;
-      word-wrap: break-word; /* FIXED: Handle long text */
+      word-wrap: break-word;
     }
 
     .suggestion-details {
@@ -369,9 +369,10 @@
       display: flex;
       gap: 16px;
       align-items: center;
-      flex-wrap: wrap; /* FIXED: Allow wrapping */
+      flex-wrap: wrap;
     }
 
+    /* ENHANCED: Better search method badges */
     .search-badge {
       display: inline-flex;
       align-items: center;
@@ -383,7 +384,7 @@
       font-size: 12px;
       font-weight: 500;
       text-transform: uppercase;
-      white-space: nowrap; /* FIXED: Prevent badge text wrapping */
+      white-space: nowrap;
     }
 
     .search-badge.cached {
@@ -398,10 +399,39 @@
       background: var(--warning);
     }
 
+    /* Enhanced search method colors */
+    .search-badge.exact-sku {
+      background: #38a169;
+    }
+
+    .search-badge.title-exact {
+      background: #3182ce;
+    }
+
+    .search-badge.title-partial {
+      background: #4299e1;
+    }
+
+    .search-badge.number-pattern {
+      background: #d69e2e;
+    }
+
+    .search-badge.sku-search {
+      background: #805ad5;
+    }
+
+    .search-badge.tag-match {
+      background: #9f7aea;
+    }
+
+    .search-badge.fuzzy-match {
+      background: #ed8936;
+    }
+
     .suggestion-actions {
       display: flex;
       gap: 8px;
-      flex-shrink: 0; /* FIXED: Prevent buttons from shrinking */
+      flex-shrink: 0;
     }
 
     .suggestion-btn {
@@ -412,7 +442,7 @@
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s ease;
-      white-space: nowrap; /* FIXED: Prevent button text wrapping */
+      white-space: nowrap;
     }
 
     .confirm-btn {
@@ -593,7 +623,7 @@
       color: var(--accent);
     }
 
-    /* Trade Success Results - FIXED: Only one section */
+    /* Trade Success Results */
     .trade-success {
       background: linear-gradient(135deg, rgba(56, 161, 105, 0.05) 0%, rgba(56, 161, 105, 0.02) 100%);
       border: 2px solid var(--success);
@@ -763,10 +793,10 @@
 
     /* Avery 5160 Individual Label - 2⅝" x 1" with proper printable area */
     .barcode-label {
-      width: 2.625in;  /* 2⅝" - exact Avery 5160 width */
-      height: 1in;     /* 1" - exact Avery 5160 height */
+      width: 2.625in;
+      height: 1in;
       border: 1px dashed var(--gray-300);
-      padding: 6px 8px; /* More realistic margins for printable area */
+      padding: 6px 8px;
       font-family: var(--font-mono);
       display: flex;
       flex-direction: column;
@@ -780,7 +810,7 @@
     }
 
     .barcode-item-name {
-      display: none; /* Remove item name to maximize UPC space */
+      display: none;
     }
 
     .barcode-sku {
@@ -792,7 +822,6 @@
       line-height: 1;
     }
 
-    /* Code 128 Barcode - Real barcode using JsBarcode library */
     .barcode-display {
       background: white;
       border: 1px solid #ddd;
@@ -800,8 +829,8 @@
       margin: 2px 0;
       overflow: hidden;
       line-height: 1;
-      height: 50px;  /* Smaller to fit within 1" label */
-      width: calc(100% - 8px);   /* Account for label padding */
+      height: 50px;
+      width: calc(100% - 8px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -824,7 +853,7 @@
     }
 
     .barcode-details {
-      display: none; /* Remove condition and trade value */
+      display: none;
     }
 
     /* Status bar */
@@ -944,11 +973,11 @@
       border: 1px solid #ced4da;
     }
 
-    /* Print styles optimized for Avery 7666 - FIXED: Only labels print */
+    /* Print styles optimized for Avery 7666 */
     @media print {
       @page {
         size: letter;
-        margin: 0.5in 0.1875in 0.5in 0.1875in;  /* Avery 7666 spec */
+        margin: 0.5in 0.1875in 0.5in 0.1875in;
       }
       
       body {
@@ -960,7 +989,6 @@
         background: white !important;
       }
       
-      /* Hide EVERYTHING except barcode labels when printing */
       * {
         visibility: hidden !important;
       }
@@ -1009,7 +1037,7 @@
         width: 2.625in !important;
         height: 1in !important;
         margin: 0 !important;
-        padding: 6px 8px !important; /* Safe printable margins */
+        padding: 6px 8px !important;
         page-break-inside: avoid !important;
         box-sizing: border-box !important;
         background: white !important;
@@ -1017,11 +1045,11 @@
       }
       
       .barcode-display {
-        border: none !important; /* Remove border for cleaner print */
+        border: none !important;
         background: white !important;
         padding: 0 !important;
         margin: 1px 0 !important;
-        height: 40px !important; /* Smaller for actual printable area */
+        height: 40px !important;
       }
     }
 
@@ -1103,7 +1131,7 @@
       <!-- Card Header -->
       <div class="card-header">
         <h1 class="card-title">Trade-In Processing</h1>
-        <p class="card-subtitle">Process card trades with real Shopify integration</p>
+        <p class="card-subtitle">Enhanced search with number pattern recognition</p>
       </div>
 
       <!-- Card Content -->
@@ -1159,551 +1187,34 @@
                   <div class="form-group">
                     <label class="form-label" for="customerEmail">Customer Email</label>
                     <input type="email" class="form-input" id="customerEmail" name="customerEmail" placeholder="customer@example.com">
-                    <div style="font-size: 14px; color: var(--gray-500); margin-top: 8px;">
-                      📧 Required for store credit - customer will be created if doesn't exist
-                    </div>
-                  </div>
-                </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center;">
+              <div>
+                <div style="font-size: 12px; color: var(--gray-500);">Retail</div>
+                <div style="font-weight: 600;">${card.retailPrice ? card.retailPrice.toFixed(2) : '0.00'}</div>
               </div>
-            </div>
-          </div>
-
-          <!-- Cards Section -->
-          <div class="form-section">
-            <div class="cards-section">
-              <div class="cards-header">
-                <h3 class="section-title">
-                  <span>🃏</span>
-                  <span>Cards to Trade</span>
-                </h3>
-                <button type="button" class="btn btn-secondary" id="add-card">
-                  <span>➕</span>
-                  <span>Add Card</span>
-                </button>
+              <div>
+                <div style="font-size: 12px; color: var(--gray-500);">Suggested</div>
+                <div style="font-weight: 600; color: var(--accent);">${card.suggestedTradeValue ? card.suggestedTradeValue.toFixed(2) : '0.00'}</div>
               </div>
-              
-              <div class="cards-list" id="card-list">
-                <div class="card-row">
-                  <div class="card-input-container">
-                    <input type="text" class="card-input" name="cardName" placeholder="Enter card name or SKU" required>
-                  </div>
-                  <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
-                  <select class="form-select" name="cardCondition" required style="width: 120px;">
-                    <option value="NM">Near Mint</option>
-                    <option value="LP">Lightly Played</option>
-                    <option value="MP">Moderately Played</option>
-                  </select>
-                  <button type="button" class="remove-btn">✖</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Estimate Results -->
-          <div id="estimate-results" class="estimate-results">
-            <div class="estimate-header">
-              <div class="estimate-title">📊 Trade Estimate</div>
-            </div>
-            
-            <div id="estimate-cards">
-              <!-- Estimate cards will be inserted here -->
-            </div>
-
-            <div class="estimate-totals">
-              <div class="total-item">
-                <div class="total-label">Retail Value</div>
-                <div class="total-value" id="total-retail">$0.00</div>
-              </div>
-              <div class="total-item">
-                <div class="total-label">Suggested Trade</div>
-                <div class="total-value primary" id="total-suggested">$0.00</div>
-              </div>
-              <div class="total-item">
-                <div class="total-label">Maximum Trade</div>
-                <div class="total-value" id="total-maximum">$0.00</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Actions -->
-          <div class="actions">
-            <button type="button" class="btn btn-accent" id="estimate-trade">
-              <span>📊</span>
-              <span>Get Estimate</span>
-            </button>
-            
-            <!-- Override section - hidden by default -->
-            <div id="override-section" class="override-section" style="display: none;">
-              <button type="button" class="btn btn-warning" id="override-toggle">
-                <span>💰</span>
-                <span>Override Amount</span>
-              </button>
-              
-              <div id="override-input-container" class="override-input-container" style="display: none;">
-                <input type="number" class="form-input" id="overrideTotal" name="overrideTotal" placeholder="0.00" min="0" max="13500" step="0.01" style="width: 150px;">
-                <button type="button" class="btn btn-secondary" id="override-cancel" style="padding: 8px 12px;">✖</button>
-                <span style="font-size: 14px; color: var(--gray-500);">Max: $13,500 CAD</span>
-              </div>
-            </div>
-            
-            <!-- Submit button - hidden by default -->
-            <button type="submit" class="btn btn-success" id="submit-trade" style="display: none;">
-              <span>✅</span>
-              <span>Process Trade</span>
-            </button>
-          </div>
-        </form>
-
-        <!-- Trade Success Results - FIXED: Only one section now -->
-        <div id="trade-success" class="trade-success">
-          <div class="success-header">
-            <div class="success-title">🎉 Trade Completed Successfully!</div>
-            <button type="button" class="btn btn-secondary" id="close-success" style="padding: 8px 12px;">✖ Close</button>
-          </div>
-          
-          <div id="success-content" class="success-content">
-            <!-- Success content will be inserted here dynamically -->
-          </div>
-
-          <div class="success-actions">
-            <button type="button" class="btn btn-primary" id="new-trade">
-              <span>🔄</span>
-              <span>Process Another Trade</span>
-            </button>
-            <button type="button" class="btn btn-secondary" id="print-receipt">
-              <span>🖨️</span>
-              <span>Print Receipt</span>
-            </button>
-            <button type="button" class="btn btn-accent" id="print-barcodes">
-              <span>📊</span>
-              <span>Print Barcodes</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Debug section for troubleshooting SKU data -->
-        <div id="debug-section" class="debug-section" style="display: none;">
-          <div class="debug-title">🔍 Debug: API Response Data</div>
-          <div id="debug-content" class="debug-content">
-            No debug data available
-          </div>
-        </div>
-
-        <!-- Code 128 Barcode Section - Real barcodes with actual SKUs -->
-        <div id="barcode-section" class="barcode-section" style="display: none;">
-          <div class="barcode-header">
-            <h3 style="margin: 0; color: var(--gray-800);">📊 Code 128 Barcode Labels</h3>
-            <div style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">
-              Avery 5160 • 2⅝" x 1" • Code 128 Format • Socket S740 Compatible
-            </div>
-          </div>
-          <div id="barcode-content" class="barcode-grid">
-            <!-- Code 128 barcode labels will be generated here -->
-          </div>
-        </div>
-
-        <!-- Status Bar -->
-        <div class="status-bar" id="status-bar">
-          <div class="status-text">Ready to process trades...</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // REAL API configuration
-    const API_URL = '/api/buybackstep4'; 
-
-    // Global variable to store the last API response for debugging
-    let lastApiResponse = null;
-
-    document.addEventListener('DOMContentLoaded', function() {
-      const customerEmail = document.getElementById('customer-email');
-      const addCardBtn = document.getElementById('add-card');
-      const cardList = document.getElementById('card-list');
-      const estimateBtn = document.getElementById('estimate-trade');
-      const estimateResults = document.getElementById('estimate-results');
-      const overrideToggle = document.getElementById('override-toggle');
-      const overrideContainer = document.getElementById('override-input-container');
-      const overrideCancel = document.getElementById('override-cancel');
-      const overrideTotal = document.getElementById('overrideTotal');
-      const tradeSuccess = document.getElementById('trade-success');
-      const successContent = document.getElementById('success-content');
-
-      // Show/hide customer email section
-      document.querySelectorAll('input[name="payoutMethod"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-          if (this.value === 'store-credit') {
-            customerEmail.classList.add('visible');
-          } else {
-            customerEmail.classList.remove('visible');
-          }
-        });
-      });
-
-      // Add card functionality
-      addCardBtn.addEventListener('click', function() {
-        const newRow = document.createElement('div');
-        newRow.className = 'card-row';
-        newRow.innerHTML = `
-          <div class="card-input-container">
-            <input type="text" class="card-input" name="cardName" placeholder="Enter card name or SKU" required>
-          </div>
-          <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
-          <select class="form-select" name="cardCondition" required style="width: 120px;">
-            <option value="NM">Near Mint</option>
-            <option value="LP">Lightly Played</option>
-            <option value="MP">Moderately Played</option>
-          </select>
-          <button type="button" class="remove-btn">✖</button>
-        `;
-        cardList.appendChild(newRow);
-
-        // Setup remove functionality
-        newRow.querySelector('.remove-btn').addEventListener('click', function() {
-          newRow.remove();
-        });
-
-        // Setup REAL search for new input
-        setupRealSearch(newRow.querySelector('.card-input'));
-      });
-
-      // Setup remove functionality for existing cards
-      document.querySelectorAll('.remove-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-          btn.closest('.card-row').remove();
-        });
-      });
-
-      // Setup REAL search for existing inputs
-      document.querySelectorAll('.card-input').forEach(setupRealSearch);
-
-      // DEBUG: Toggle debug section by clicking on status bar 3 times quickly
-      let statusClickCount = 0;
-      document.getElementById('status-bar').addEventListener('click', function() {
-        statusClickCount++;
-        setTimeout(() => { statusClickCount = 0; }, 1000);
-        
-        if (statusClickCount >= 3) {
-          const debugSection = document.getElementById('debug-section');
-          debugSection.style.display = debugSection.style.display === 'none' ? 'block' : 'none';
-          
-          if (lastApiResponse) {
-            document.getElementById('debug-content').textContent = JSON.stringify(lastApiResponse, null, 2);
-          }
-        }
-      });
-
-      // REAL search functionality that connects to your Vercel API
-      function setupRealSearch(input) {
-        let searchTimeout;
-        let currentSuggestion = null;
-
-        input.addEventListener('input', function() {
-          const query = this.value.trim();
-          
-          // Remove existing suggestion
-          if (currentSuggestion) {
-            currentSuggestion.remove();
-            currentSuggestion = null;
-          }
-
-          // Clear previous timeout
-          if (searchTimeout) {
-            clearTimeout(searchTimeout);
-          }
-
-          // Don't search for very short queries
-          if (query.length < 2) {
-            input.classList.remove('confirmed', 'not-found');
-            return;
-          }
-
-          // Debounce the search
-          searchTimeout = setTimeout(async () => {
-            await performRealSearch(query, input);
-          }, 500); // Wait 500ms after user stops typing
-        });
-
-        // Hide suggestions when clicking outside
-        document.addEventListener('click', function(e) {
-          if (!input.closest('.card-input-container').contains(e.target)) {
-            if (currentSuggestion) {
-              currentSuggestion.remove();
-              currentSuggestion = null;
-            }
-          }
-        });
-
-        async function performRealSearch(query, input) {
-          const container = input.closest('.card-input-container');
-          
-          try {
-            // Show loading state
-            showSearchLoading(container, query);
-
-            // Make REAL API call to your Vercel backend
-            console.log('Making API call to:', `${API_URL}?estimate=true`);
-            
-            const response = await fetch(`${API_URL}?estimate=true`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                cards: [{ cardName: query, quantity: 1, condition: 'NM' }],
-                employeeName: 'Preview',
-                payoutMethod: 'cash'
-              })
-            });
-
-            console.log('Response status:', response.status);
-
-            // Check if response is actually JSON
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-              const responseText = await response.text();
-              console.error('❌ Non-JSON response:', responseText);
-              throw new Error(`Server returned ${contentType}: ${responseText.substring(0, 200)}...`);
-            }
-
-            const data = await response.json();
-            
-            if (!response.ok) {
-              throw new Error(data.error || `HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            // Process the REAL search result from your Shopify store
-            const result = data.results && data.results[0];
-            showSearchResult(container, input, query, result);
-
-          } catch (error) {
-            console.error('Search error:', error);
-            showSearchError(container, query, error.message);
-          }
-        }
-
-        function showSearchLoading(container, query) {
-          const existing = container.querySelector('.search-suggestion');
-          if (existing) existing.remove();
-
-          const suggestion = document.createElement('div');
-          suggestion.className = 'search-suggestion';
-          suggestion.innerHTML = `
-            <div class="suggestion-content">
-              <div class="suggestion-info">
-                <div class="suggestion-name">🔍 Searching for "${query}"...</div>
-                <div class="suggestion-details">
-                  <span class="search-badge">
-                    <span class="spinner"></span> Searching
-                  </span>
-                </div>
+              <div>
+                <div style="font-size: 12px; color: var(--gray-500);">Maximum</div>
+                <div style="font-weight: 600; color: var(--success);">${card.maximumTradeValue ? card.maximumTradeValue.toFixed(2) : '0.00'}</div>
               </div>
             </div>
           `;
-          container.appendChild(suggestion);
-          currentSuggestion = suggestion;
-        }
+          estimateCards.appendChild(cardElement);
+        });
 
-        function showSearchResult(container, input, query, result) {
-          const existing = container.querySelector('.search-suggestion');
-          if (existing) existing.remove();
+        // Update totals
+        document.getElementById('total-retail').textContent = `${data.totalRetailValue || '0.00'}`;
+        document.getElementById('total-suggested').textContent = `${data.suggestedTotal || '0.00'}`;
+        document.getElementById('total-maximum').textContent = `${data.maximumTotal || '0.00'}`;
 
-          const suggestion = document.createElement('div');
-          suggestion.className = 'search-suggestion';
-          
-          if (result && result.match) {
-            // Card found in your real Shopify inventory
-            suggestion.innerHTML = `
-              <div class="suggestion-content">
-                <div class="suggestion-info">
-                  <div class="suggestion-name">✅ ${result.match}</div>
-                  <div class="suggestion-details">
-                    <span>SKU: ${result.sku || 'N/A'}</span>
-                    <span>Price: ${result.retailPrice.toFixed(2)}</span>
-                    <span class="search-badge found">Found</span>
-                  </div>
-                </div>
-                <div class="suggestion-actions">
-                  <button type="button" class="suggestion-btn confirm-btn">✅ Use This</button>
-                  <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
-                </div>
-              </div>
-            `;
-          } else {
-            // Card not found in your real Shopify inventory
-            suggestion.innerHTML = `
-              <div class="suggestion-content">
-                <div class="suggestion-info">
-                  <div class="suggestion-name">❌ "${query}" not found</div>
-                  <div class="suggestion-details">
-                    <span>This item is not in your Shopify inventory</span>
-                    <span class="search-badge not-found">Not Found</span>
-                  </div>
-                </div>
-                <div class="suggestion-actions">
-                  <button type="button" class="suggestion-btn continue-btn">⚠️ Continue Anyway</button>
-                  <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
-                </div>
-              </div>
-            `;
-          }
-
-          container.appendChild(suggestion);
-          currentSuggestion = suggestion;
-
-          // Handle suggestion actions
-          const confirmBtn = suggestion.querySelector('.confirm-btn');
-          const continueBtn = suggestion.querySelector('.continue-btn');
-          const rejectBtn = suggestion.querySelector('.reject-btn');
-
-          if (confirmBtn) {
-            confirmBtn.addEventListener('click', function(e) {
-              e.preventDefault();
-              e.stopPropagation();
-              input.classList.remove('not-found');
-              input.classList.add('confirmed');
-              input.value = result.match;
-              input.setAttribute('data-search-result', JSON.stringify(result));
-              suggestion.remove();
-              currentSuggestion = null;
-            });
-          }
-
-          if (continueBtn) {
-            continueBtn.addEventListener('click', function(e) {
-              e.preventDefault();
-              e.stopPropagation();
-              input.classList.remove('confirmed');
-              input.classList.add('not-found');
-              input.setAttribute('data-search-result', JSON.stringify({ match: null, retailPrice: 0 }));
-              suggestion.remove();
-              currentSuggestion = null;
-            });
-          }
-
-          if (rejectBtn) {
-            rejectBtn.addEventListener('click', function(e) {
-              e.preventDefault();
-              e.stopPropagation();
-              suggestion.remove();
-              currentSuggestion = null;
-              input.focus();
-            });
-          }
-
-          // Auto-remove after 15 seconds
-          setTimeout(() => {
-            if (suggestion.parentNode) {
-              suggestion.remove();
-              if (currentSuggestion === suggestion) {
-                currentSuggestion = null;
-              }
-            }
-          }, 15000);
-        }
-
-        function showSearchError(container, query, errorMessage) {
-          const existing = container.querySelector('.search-suggestion');
-          if (existing) existing.remove();
-
-          const suggestion = document.createElement('div');
-          suggestion.className = 'search-suggestion';
-          suggestion.innerHTML = `
-            <div class="suggestion-content">
-              <div class="suggestion-info">
-                <div class="suggestion-name">⚠️ Search Error</div>
-                <div class="suggestion-details">
-                  <span>${errorMessage}</span>
-                  <span class="search-badge" style="background: var(--error);">Error</span>
-                </div>
-              </div>
-              <div class="suggestion-actions">
-                <button type="button" class="suggestion-btn reject-btn">❌ Close</button>
-              </div>
-            </div>
-          `;
-
-          container.appendChild(suggestion);
-          currentSuggestion = suggestion;
-
-          suggestion.querySelector('.reject-btn').addEventListener('click', function() {
-            suggestion.remove();
-            currentSuggestion = null;
-          });
-
-          // Auto-remove after 10 seconds
-          setTimeout(() => {
-            if (suggestion.parentNode) {
-              suggestion.remove();
-              if (currentSuggestion === suggestion) {
-                currentSuggestion = null;
-              }
-            }
-          }, 10000);
-        }
+        // Show results
+        estimateResults.classList.add('visible');
       }
 
-      // REAL estimate functionality
-      estimateBtn.addEventListener('click', async function() {
-        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => ({
-          cardName: row.querySelector('[name="cardName"]').value,
-          quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
-          condition: row.querySelector('[name="cardCondition"]').value
-        }));
-
-        if (cards.length === 0) {
-          updateStatus('❌ Please add at least one card to estimate.', 'error');
-          alert('Please add at least one card to estimate.');
-          return;
-        }
-
-        const formData = {
-          cards: cards,
-          employeeName: 'Preview',
-          payoutMethod: 'cash',
-          customerEmail: null,
-          overrideTotal: null
-        };
-
-        // Show loading state
-        estimateBtn.innerHTML = '<span class="spinner"></span><span>Calculating...</span>';
-        estimateBtn.disabled = true;
-        updateStatus('Searching for cards in your inventory...', 'info');
-
-        try {
-          const response = await fetch(`${API_URL}?estimate=true`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData)
-          });
-
-          const data = await response.json();
-          
-          // Store response for debugging
-          lastApiResponse = data;
-
-          if (!response.ok) {
-            throw new Error(data.error || 'Failed to get estimate');
-          }
-
-          showEstimateResults(data);
-          showButton('override-section');
-          showButton('submit-trade');
-          updateStatus('Estimate complete! Review values and submit trade.', 'success');
-
-        } catch (error) {
-          console.error('Estimate error:', error);
-          updateStatus(`Error: ${error.message}`, 'error');
-        } finally {
-          estimateBtn.innerHTML = '<span>📊</span><span>Get Estimate</span>';
-          estimateBtn.disabled = false;
-        }
-      });
-
-      // REAL form submission - FIXED: Now shows trade success properly
+      // ENHANCED: Form submission with better error handling
       document.getElementById('trade-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -1738,10 +1249,10 @@
         const submitBtn = document.getElementById('submit-trade');
         submitBtn.innerHTML = '<span class="spinner"></span><span>Processing...</span>';
         submitBtn.disabled = true;
-        updateStatus('Processing trade...', 'info');
+        updateStatus('Processing trade with enhanced search...', 'info');
 
         try {
-          console.log('Submitting trade:', requestData);
+          console.log('Submitting enhanced trade:', requestData);
           
           const response = await fetch(API_URL, {
             method: 'POST',
@@ -1751,10 +1262,10 @@
             body: JSON.stringify(requestData)
           });
 
-          console.log('Trade response status:', response.status);
+          console.log('Enhanced trade response status:', response.status);
           
           const data = await response.json();
-          console.log('Trade response data:', data);
+          console.log('Enhanced trade response data:', data);
           
           // Store response for debugging
           lastApiResponse = data;
@@ -1763,26 +1274,34 @@
             throw new Error(data.error || 'Failed to process trade');
           }
 
-          // FIXED: Show success information in the trade success section
+          // Show success information
           showTradeSuccess(data, payoutMethod);
           
-          // Also show an alert with key info for immediate feedback
+          // Enhanced alert with search method breakdown
           let alertMessage = `✅ Trade Completed Successfully!\n\n`;
-          alertMessage += `💰 Amount: $${data.finalPayout} CAD\n`;
+          alertMessage += `💰 Amount: ${data.finalPayout} CAD\n`;
           alertMessage += `👤 Employee: ${data.employeeName}\n`;
           
+          if (data.debug) {
+            alertMessage += `\n🔍 Search Methods Used:\n`;
+            if (data.debug.numberPatternMatches > 0) alertMessage += `• Number Patterns: ${data.debug.numberPatternMatches}\n`;
+            if (data.debug.titleExactMatches > 0) alertMessage += `• Exact Titles: ${data.debug.titleExactMatches}\n`;
+            if (data.debug.titlePartialMatches > 0) alertMessage += `• Partial Titles: ${data.debug.titlePartialMatches}\n`;
+            if (data.debug.fuzzyMatches > 0) alertMessage += `• Fuzzy Matches: ${data.debug.fuzzyMatches}\n`;
+          }
+          
           if (payoutMethod === 'gift-card' && data.giftCardCode) {
-            alertMessage += `🎁 Gift Card Code: ${data.giftCardCode}\n`;
+            alertMessage += `\n🎁 Gift Card Code: ${data.giftCardCode}\n`;
             alertMessage += `\n⚠️ SAVE THIS CODE! Give it to the customer.`;
           } else if (payoutMethod === 'store-credit') {
-            alertMessage += `🏪 Store credit added to customer account.`;
+            alertMessage += `\n🏪 Store credit added to customer account.`;
           } else if (payoutMethod === 'cash') {
-            alertMessage += `💵 Please provide cash to customer.`;
+            alertMessage += `\n💵 Please provide cash to customer.`;
           }
           
           alert(alertMessage);
           
-          updateStatus('Trade completed successfully!', 'success');
+          updateStatus('Trade completed successfully with enhanced search!', 'success');
 
           // Reset form
           this.reset();
@@ -1798,7 +1317,7 @@
           });
 
         } catch (error) {
-          console.error('Trade error:', error);
+          console.error('Enhanced trade error:', error);
           updateStatus(`❌ Error: ${error.message}`, 'error');
           alert(`❌ Failed to process trade: ${error.message}`);
         } finally {
@@ -1807,7 +1326,7 @@
         }
       });
 
-      // FIXED: Function to show trade success with all details
+      // Function to show trade success with all details
       function showTradeSuccess(data, payoutMethod) {
         let successHTML = '';
 
@@ -1846,7 +1365,7 @@
           `;
         }
 
-        // Add processing details
+        // Add processing details with enhanced search info
         successHTML += `
           <div class="success-card">
             <h4 style="margin: 0 0 16px 0; color: var(--gray-800);">📦 Processing Summary</h4>
@@ -1868,8 +1387,26 @@
                 <div class="detail-value">${data.tradeId || 'Generated'}</div>
               </div>
             </div>
-          </div>
         `;
+
+        // Add enhanced search breakdown if available
+        if (data.debug) {
+          successHTML += `
+            <div style="margin-top: 16px; padding: 16px; background: rgba(49, 130, 206, 0.05); border-radius: 8px;">
+              <h5 style="margin: 0 0 12px 0; color: var(--gray-700);">🔍 Enhanced Search Results</h5>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; font-size: 14px;">
+                ${data.debug.numberPatternMatches > 0 ? `<div>🔢 Number Patterns: ${data.debug.numberPatternMatches}</div>` : ''}
+                ${data.debug.titleExactMatches > 0 ? `<div>📝 Exact Titles: ${data.debug.titleExactMatches}</div>` : ''}
+                ${data.debug.titlePartialMatches > 0 ? `<div>📝 Partial Titles: ${data.debug.titlePartialMatches}</div>` : ''}
+                ${data.debug.fuzzyMatches > 0 ? `<div>🌀 Fuzzy Matches: ${data.debug.fuzzyMatches}</div>` : ''}
+                ${data.debug.skuMatches > 0 ? `<div>🏷️ SKU Matches: ${data.debug.skuMatches}</div>` : ''}
+                ${data.debug.tagMatches > 0 ? `<div>🏷️ Tag Matches: ${data.debug.tagMatches}</div>` : ''}
+              </div>
+            </div>
+          `;
+        }
+
+        successHTML += `</div>`;
 
         // Add card details if available
         if (data.results && data.results.length > 0) {
@@ -1879,6 +1416,7 @@
           `;
           
           data.results.forEach(card => {
+            const searchMethodInfo = getEnhancedSearchMethodInfo(card.searchMethod);
             successHTML += `
               <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--gray-200);">
                 <div>
@@ -1886,6 +1424,9 @@
                   <div style="font-size: 14px; color: var(--gray-500);">
                     Qty: ${card.quantity} • ${card.condition}
                     ${card.sku ? ` • SKU: ${card.sku}` : ''}
+                    <span class="search-badge ${searchMethodInfo.cssClass}" style="background: ${searchMethodInfo.color}; margin-left: 8px;">
+                      ${searchMethodInfo.icon} ${searchMethodInfo.text}
+                    </span>
                   </div>
                 </div>
                 <div style="text-align: right;">
@@ -1903,40 +1444,34 @@
         successContent.innerHTML = successHTML;
         tradeSuccess.classList.add('visible');
         
-        // Generate barcodes for successfully matched items - FIXED: Better SKU handling
+        // Generate barcodes for successfully matched items
         generateBarcodes(data.results || []);
       }
 
-      // FIXED: Code 128 barcode generation with improved SKU detection
+      // Code 128 barcode generation (keeping existing functionality)
       function generateBarcodes(results) {
         const barcodeContent = document.getElementById('barcode-content');
         barcodeContent.innerHTML = '';
 
         console.log('🔍 Debug: generateBarcodes called with:', results);
 
-        // Try multiple ways to find items with SKUs
         let itemsWithSkus = [];
         
-        // Method 1: Look for items with direct SKU property
         const directSkuItems = results.filter(item => item.sku);
         console.log('📊 Items with direct SKU property:', directSkuItems);
         
-        // Method 2: Look for items that matched and might have SKU in different location
         const matchedItems = results.filter(item => item.match);
         console.log('✅ Items that matched:', matchedItems);
         
-        // Method 3: Look for any item with SKU-like properties (variant_sku, product_sku, etc.)
         const alternateSkuItems = results.filter(item => 
           item.variant_sku || item.product_sku || item.barcode || item.inventory_item_id
         );
         console.log('🔄 Items with alternate SKU properties:', alternateSkuItems);
 
-        // Combine all methods, prioritizing direct SKU
         if (directSkuItems.length > 0) {
           itemsWithSkus = directSkuItems;
           console.log('✅ Using direct SKU items');
         } else if (matchedItems.length > 0) {
-          // Try to extract SKUs from matched items
           itemsWithSkus = matchedItems.map(item => ({
             ...item,
             sku: item.variant_sku || item.product_sku || item.barcode || item.inventory_item_id || `TEMP-${Math.random().toString(36).substr(2, 8)}`
@@ -1956,17 +1491,9 @@
           barcodeContent.innerHTML = `
             <div style="grid-column: 1/-1; text-align: center; color: var(--gray-500); padding: 40px;">
               <h4>📊 No SKUs Available for Barcode Generation</h4>
-              <p>Debug info:</p>
-              <div style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0;">
-                <strong>Items received:</strong> ${results.length}<br>
-                <strong>Items with direct SKU:</strong> ${directSkuItems.length}<br>
-                <strong>Items that matched:</strong> ${matchedItems.length}<br>
-                <strong>Items with alternate SKU props:</strong> ${alternateSkuItems.length}<br><br>
-                <strong>Sample item structure:</strong><br>
-                <code style="font-size: 11px; white-space: pre-wrap;">${results.length > 0 ? JSON.stringify(results[0], null, 2) : 'No items'}</code>
-              </div>
+              <p>Enhanced search found matches but no SKUs available for barcodes.</p>
               <button type="button" onclick="document.getElementById('debug-section').style.display='block';" class="btn btn-secondary">
-                🔍 Show Full Debug Info
+                🔍 Show Enhanced Debug Info
               </button>
             </div>
           `;
@@ -1974,20 +1501,17 @@
         }
 
         let labelCount = 0;
-        const barcodeIds = []; // Store IDs for rendering after insertion
+        const barcodeIds = [];
 
         itemsWithSkus.forEach(item => {
-          // Generate Code 128 barcode for each quantity
           const quantity = item.quantity || 1;
           for (let i = 0; i < quantity; i++) {
             const barcodeLabel = document.createElement('div');
             barcodeLabel.className = 'barcode-label';
             
-            // Generate unique barcode container
             const barcodeId = 'barcode-' + Math.random().toString(36).substr(2, 9);
             barcodeIds.push({ id: barcodeId, sku: item.sku });
             
-            // Clean label with Code 128 format
             barcodeLabel.innerHTML = `
               <div class="barcode-sku">SKU: ${item.sku}</div>
               <div class="barcode-display">
@@ -2001,7 +1525,7 @@
           }
         });
 
-        // Fill remaining slots to complete the sheet (if less than 30 labels)
+        // Fill remaining slots
         while (labelCount < 30 && labelCount % 30 !== 0) {
           const emptyLabel = document.createElement('div');
           emptyLabel.className = 'barcode-label';
@@ -2018,7 +1542,7 @@
 
         console.log(`📊 Generated ${barcodeIds.length} barcodes, filled to ${labelCount} labels total`);
 
-        // Render all barcodes after DOM insertion
+        // Render all barcodes
         setTimeout(() => {
           barcodeIds.forEach(barcode => {
             renderBarcode(barcode.id, barcode.sku);
@@ -2026,7 +1550,7 @@
         }, 100);
       }
 
-      // FIXED: Function to render Code 128 barcode with better error handling
+      // Function to render Code 128 barcode
       function renderBarcode(containerId, sku) {
         try {
           const element = document.getElementById(containerId);
@@ -2041,7 +1565,6 @@
             return;
           }
 
-          // Validate SKU format for Code 128
           if (!sku || sku.length === 0) {
             console.error('❌ Invalid SKU for barcode:', sku);
             element.innerHTML = `<text x="50%" y="50%" text-anchor="middle" font-family="monospace" font-size="10" fill="red">Invalid SKU</text>`;
@@ -2052,21 +1575,20 @@
 
           JsBarcode(element, sku, {
             format: "CODE128",
-            width: 2,           // Thinner bars to fit in printable area
-            height: 35,         // Shorter to fit with text in 1" label
-            displayValue: false, // Don't show text (we have it separately)
+            width: 2,
+            height: 35,
+            displayValue: false,
             background: "white",
             lineColor: "black",
-            margin: 1,          // Minimal margin for maximum barcode area
-            fontSize: 0,        // No font inside barcode
-            textMargin: 0       // No text margin
+            margin: 1,
+            fontSize: 0,
+            textMargin: 0
           });
 
           console.log(`✅ Successfully rendered barcode for ${sku}`);
 
         } catch (error) {
           console.error('❌ Barcode generation error for', sku, ':', error);
-          // Fallback: show SKU as text if barcode fails
           const element = document.getElementById(containerId);
           if (element) {
             element.innerHTML = `
@@ -2080,7 +1602,7 @@
         }
       }
 
-      // Success section close and new trade buttons
+      // Success section handlers
       document.getElementById('close-success').addEventListener('click', function() {
         tradeSuccess.classList.remove('visible');
         document.getElementById('barcode-section').style.display = 'none';
@@ -2089,23 +1611,19 @@
       document.getElementById('new-trade').addEventListener('click', function() {
         tradeSuccess.classList.remove('visible');
         document.getElementById('barcode-section').style.display = 'none';
-        // Form is already reset above
       });
 
       document.getElementById('print-receipt').addEventListener('click', function() {
-        // Hide barcode section for receipt printing
         document.getElementById('barcode-section').style.display = 'none';
         window.print();
       });
 
-      // FIXED: Print barcodes functionality - Only labels print
       document.getElementById('print-barcodes').addEventListener('click', function() {
         const barcodeSection = document.getElementById('barcode-section');
         if (barcodeSection.style.display === 'none') {
           barcodeSection.style.display = 'block';
           this.innerHTML = '<span>🖨️</span><span>Print UPC Labels</span>';
         } else {
-          // Print with clean labels only
           window.print();
         }
       });
@@ -2187,12 +1705,605 @@
             statusText.style.color = 'var(--gray-700)';
         }
       }
+    });
+  </script>
+</body>
+</html>font-size: 14px; color: var(--gray-500); margin-top: 8px;">
+                      📧 Required for store credit - customer will be created if doesn't exist
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-      function showEstimateResults(data) {
+          <!-- Cards Section -->
+          <div class="form-section">
+            <div class="cards-section">
+              <div class="cards-header">
+                <h3 class="section-title">
+                  <span>🃏</span>
+                  <span>Cards to Trade</span>
+                </h3>
+                <button type="button" class="btn btn-secondary" id="add-card">
+                  <span>➕</span>
+                  <span>Add Card</span>
+                </button>
+              </div>
+              
+              <div class="cards-list" id="card-list">
+                <div class="card-row">
+                  <div class="card-input-container">
+                    <input type="text" class="card-input" name="cardName" placeholder="Enter card name, SKU, or numbers like 216/182" required>
+                  </div>
+                  <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
+                  <select class="form-select" name="cardCondition" required style="width: 120px;">
+                    <option value="NM">Near Mint</option>
+                    <option value="LP">Lightly Played</option>
+                    <option value="MP">Moderately Played</option>
+                  </select>
+                  <button type="button" class="remove-btn">✖</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Estimate Results -->
+          <div id="estimate-results" class="estimate-results">
+            <div class="estimate-header">
+              <div class="estimate-title">📊 Trade Estimate</div>
+            </div>
+            
+            <div id="estimate-cards">
+              <!-- Estimate cards will be inserted here -->
+            </div>
+
+            <div class="estimate-totals">
+              <div class="total-item">
+                <div class="total-label">Retail Value</div>
+                <div class="total-value" id="total-retail">$0.00</div>
+              </div>
+              <div class="total-item">
+                <div class="total-label">Suggested Trade</div>
+                <div class="total-value primary" id="total-suggested">$0.00</div>
+              </div>
+              <div class="total-item">
+                <div class="total-label">Maximum Trade</div>
+                <div class="total-value" id="total-maximum">$0.00</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="actions">
+            <button type="button" class="btn btn-accent" id="estimate-trade">
+              <span>📊</span>
+              <span>Get Estimate</span>
+            </button>
+            
+            <!-- Override section - hidden by default -->
+            <div id="override-section" class="override-section" style="display: none;">
+              <button type="button" class="btn btn-warning" id="override-toggle">
+                <span>💰</span>
+                <span>Override Amount</span>
+              </button>
+              
+              <div id="override-input-container" class="override-input-container" style="display: none;">
+                <input type="number" class="form-input" id="overrideTotal" name="overrideTotal" placeholder="0.00" min="0" max="13500" step="0.01" style="width: 150px;">
+                <button type="button" class="btn btn-secondary" id="override-cancel" style="padding: 8px 12px;">✖</button>
+                <span style="font-size: 14px; color: var(--gray-500);">Max: $13,500 CAD</span>
+              </div>
+            </div>
+            
+            <!-- Submit button - hidden by default -->
+            <button type="submit" class="btn btn-success" id="submit-trade" style="display: none;">
+              <span>✅</span>
+              <span>Process Trade</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Trade Success Results -->
+        <div id="trade-success" class="trade-success">
+          <div class="success-header">
+            <div class="success-title">🎉 Trade Completed Successfully!</div>
+            <button type="button" class="btn btn-secondary" id="close-success" style="padding: 8px 12px;">✖ Close</button>
+          </div>
+          
+          <div id="success-content" class="success-content">
+            <!-- Success content will be inserted here dynamically -->
+          </div>
+
+          <div class="success-actions">
+            <button type="button" class="btn btn-primary" id="new-trade">
+              <span>🔄</span>
+              <span>Process Another Trade</span>
+            </button>
+            <button type="button" class="btn btn-secondary" id="print-receipt">
+              <span>🖨️</span>
+              <span>Print Receipt</span>
+            </button>
+            <button type="button" class="btn btn-accent" id="print-barcodes">
+              <span>📊</span>
+              <span>Print Barcodes</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Debug section for troubleshooting SKU data -->
+        <div id="debug-section" class="debug-section" style="display: none;">
+          <div class="debug-title">🔍 Debug: Enhanced Search Analysis</div>
+          <div id="debug-content" class="debug-content">
+            No debug data available
+          </div>
+        </div>
+
+        <!-- Code 128 Barcode Section -->
+        <div id="barcode-section" class="barcode-section" style="display: none;">
+          <div class="barcode-header">
+            <h3 style="margin: 0; color: var(--gray-800);">📊 Code 128 Barcode Labels</h3>
+            <div style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">
+              Avery 5160 • 2⅝" x 1" • Code 128 Format • Socket S740 Compatible
+            </div>
+          </div>
+          <div id="barcode-content" class="barcode-grid">
+            <!-- Code 128 barcode labels will be generated here -->
+          </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar" id="status-bar">
+          <div class="status-text">Ready to process trades with enhanced search...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // REAL API configuration
+    const API_URL = '/api/buybackstep4'; 
+
+    // Global variable to store the last API response for debugging
+    let lastApiResponse = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const customerEmail = document.getElementById('customer-email');
+      const addCardBtn = document.getElementById('add-card');
+      const cardList = document.getElementById('card-list');
+      const estimateBtn = document.getElementById('estimate-trade');
+      const estimateResults = document.getElementById('estimate-results');
+      const overrideToggle = document.getElementById('override-toggle');
+      const overrideContainer = document.getElementById('override-input-container');
+      const overrideCancel = document.getElementById('override-cancel');
+      const overrideTotal = document.getElementById('overrideTotal');
+      const tradeSuccess = document.getElementById('trade-success');
+      const successContent = document.getElementById('success-content');
+
+      // Show/hide customer email section
+      document.querySelectorAll('input[name="payoutMethod"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          if (this.value === 'store-credit') {
+            customerEmail.classList.add('visible');
+          } else {
+            customerEmail.classList.remove('visible');
+          }
+        });
+      });
+
+      // Add card functionality
+      addCardBtn.addEventListener('click', function() {
+        const newRow = document.createElement('div');
+        newRow.className = 'card-row';
+        newRow.innerHTML = `
+          <div class="card-input-container">
+            <input type="text" class="card-input" name="cardName" placeholder="Enter card name, SKU, or numbers like 216/182" required>
+          </div>
+          <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
+          <select class="form-select" name="cardCondition" required style="width: 120px;">
+            <option value="NM">Near Mint</option>
+            <option value="LP">Lightly Played</option>
+            <option value="MP">Moderately Played</option>
+          </select>
+          <button type="button" class="remove-btn">✖</button>
+        `;
+        cardList.appendChild(newRow);
+
+        // Setup remove functionality
+        newRow.querySelector('.remove-btn').addEventListener('click', function() {
+          newRow.remove();
+        });
+
+        // Setup ENHANCED search for new input
+        setupEnhancedSearch(newRow.querySelector('.card-input'));
+      });
+
+      // Setup remove functionality for existing cards
+      document.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          btn.closest('.card-row').remove();
+        });
+      });
+
+      // Setup ENHANCED search for existing inputs
+      document.querySelectorAll('.card-input').forEach(setupEnhancedSearch);
+
+      // DEBUG: Toggle debug section by clicking on status bar 3 times quickly
+      let statusClickCount = 0;
+      document.getElementById('status-bar').addEventListener('click', function() {
+        statusClickCount++;
+        setTimeout(() => { statusClickCount = 0; }, 1000);
+        
+        if (statusClickCount >= 3) {
+          const debugSection = document.getElementById('debug-section');
+          debugSection.style.display = debugSection.style.display === 'none' ? 'block' : 'none';
+          
+          if (lastApiResponse) {
+            // Enhanced debug display with search method breakdown
+            let debugText = JSON.stringify(lastApiResponse, null, 2);
+            if (lastApiResponse.debug) {
+              debugText = `SEARCH METHOD BREAKDOWN:\n${JSON.stringify(lastApiResponse.debug, null, 2)}\n\nFULL RESPONSE:\n${debugText}`;
+            }
+            document.getElementById('debug-content').textContent = debugText;
+          }
+        }
+      });
+
+      // ENHANCED: Search functionality with number pattern recognition
+      function setupEnhancedSearch(input) {
+        let searchTimeout;
+        let currentSuggestion = null;
+
+        input.addEventListener('input', function() {
+          const query = this.value.trim();
+          
+          // Remove existing suggestion
+          if (currentSuggestion) {
+            currentSuggestion.remove();
+            currentSuggestion = null;
+          }
+
+          // Clear previous timeout
+          if (searchTimeout) {
+            clearTimeout(searchTimeout);
+          }
+
+          // Don't search for very short queries
+          if (query.length < 2) {
+            input.classList.remove('confirmed', 'not-found');
+            return;
+          }
+
+          // Debounce the search
+          searchTimeout = setTimeout(async () => {
+            await performEnhancedSearch(query, input);
+          }, 500); // Wait 500ms after user stops typing
+        });
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!input.closest('.card-input-container').contains(e.target)) {
+            if (currentSuggestion) {
+              currentSuggestion.remove();
+              currentSuggestion = null;
+            }
+          }
+        });
+
+        // ENHANCED: Perform search with enhanced backend
+        async function performEnhancedSearch(query, input) {
+          const container = input.closest('.card-input-container');
+          
+          try {
+            // Show loading state with enhanced message
+            showEnhancedSearchLoading(container, query);
+
+            // Make API call to enhanced backend
+            console.log('Making enhanced API call to:', `${API_URL}?estimate=true`);
+            
+            const response = await fetch(`${API_URL}?estimate=true`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                cards: [{ cardName: query, quantity: 1, condition: 'NM' }],
+                employeeName: 'Preview',
+                payoutMethod: 'cash'
+              })
+            });
+
+            console.log('Enhanced search response status:', response.status);
+
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+              const responseText = await response.text();
+              console.error('❌ Non-JSON response:', responseText);
+              throw new Error(`Server returned ${contentType}: ${responseText.substring(0, 200)}...`);
+            }
+
+            const data = await response.json();
+            
+            if (!response.ok) {
+              throw new Error(data.error || `HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            // Process the ENHANCED search result
+            const result = data.results && data.results[0];
+            showEnhancedSearchResult(container, input, query, result);
+
+          } catch (error) {
+            console.error('Enhanced search error:', error);
+            showSearchError(container, query, error.message);
+          }
+        }
+
+        function showEnhancedSearchLoading(container, query) {
+          const existing = container.querySelector('.search-suggestion');
+          if (existing) existing.remove();
+
+          // Check if query contains number patterns
+          const hasNumberPattern = /\d+[\/\-\s]\d+/.test(query);
+          const loadingMessage = hasNumberPattern 
+            ? `🔢 Searching for number patterns like "${query.match(/\d+[\/\-\s]\d+/g)?.[0]}"...`
+            : `🔍 Enhanced search for "${query}"...`;
+
+          const suggestion = document.createElement('div');
+          suggestion.className = 'search-suggestion';
+          suggestion.innerHTML = `
+            <div class="suggestion-content">
+              <div class="suggestion-info">
+                <div class="suggestion-name">${loadingMessage}</div>
+                <div class="suggestion-details">
+                  <span class="search-badge">
+                    <span class="spinner"></span> Searching
+                  </span>
+                  ${hasNumberPattern ? '<span style="font-size: 12px;">Number pattern detected</span>' : ''}
+                </div>
+              </div>
+            </div>
+          `;
+          container.appendChild(suggestion);
+          currentSuggestion = suggestion;
+        }
+
+        function showEnhancedSearchResult(container, input, query, result) {
+          const existing = container.querySelector('.search-suggestion');
+          if (existing) existing.remove();
+
+          const suggestion = document.createElement('div');
+          suggestion.className = 'search-suggestion';
+          
+          if (result && result.match) {
+            // Determine search method info for enhanced display
+            let searchMethodInfo = getEnhancedSearchMethodInfo(result.searchMethod);
+            
+            suggestion.innerHTML = `
+              <div class="suggestion-content">
+                <div class="suggestion-info">
+                  <div class="suggestion-name">✅ ${result.match}</div>
+                  <div class="suggestion-details">
+                    <span>SKU: ${result.sku || 'N/A'}</span>
+                    <span>Price: $${result.retailPrice.toFixed(2)}</span>
+                    <span class="search-badge ${searchMethodInfo.cssClass}" style="background: ${searchMethodInfo.color};">
+                      ${searchMethodInfo.icon} ${searchMethodInfo.text}
+                    </span>
+                    ${result.matchScore ? `<span style="font-size: 12px; opacity: 0.8;">Score: ${result.matchScore}</span>` : ''}
+                  </div>
+                </div>
+                <div class="suggestion-actions">
+                  <button type="button" class="suggestion-btn confirm-btn">✅ Use This</button>
+                  <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
+                </div>
+              </div>
+            `;
+          } else {
+            suggestion.innerHTML = `
+              <div class="suggestion-content">
+                <div class="suggestion-info">
+                  <div class="suggestion-name">❌ "${query}" not found</div>
+                  <div class="suggestion-details">
+                    <span>No matches found with enhanced search methods</span>
+                    <span class="search-badge not-found">Not Found</span>
+                  </div>
+                </div>
+                <div class="suggestion-actions">
+                  <button type="button" class="suggestion-btn continue-btn">⚠️ Continue Anyway</button>
+                  <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
+                </div>
+              </div>
+            `;
+          }
+
+          container.appendChild(suggestion);
+          currentSuggestion = suggestion;
+
+          // Handle suggestion actions
+          const confirmBtn = suggestion.querySelector('.confirm-btn');
+          const continueBtn = suggestion.querySelector('.continue-btn');
+          const rejectBtn = suggestion.querySelector('.reject-btn');
+
+          if (confirmBtn) {
+            confirmBtn.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              input.classList.remove('not-found');
+              input.classList.add('confirmed');
+              input.value = result.match;
+              
+              // Store enhanced search result data for backend
+              input.setAttribute('data-search-result', JSON.stringify({
+                ...result,
+                searchMethod: 'exact_sku' // Mark as confirmed for backend
+              }));
+              
+              suggestion.remove();
+              currentSuggestion = null;
+            });
+          }
+
+          if (continueBtn) {
+            continueBtn.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              input.classList.remove('confirmed');
+              input.classList.add('not-found');
+              input.setAttribute('data-search-result', JSON.stringify({ match: null, retailPrice: 0 }));
+              suggestion.remove();
+              currentSuggestion = null;
+            });
+          }
+
+          if (rejectBtn) {
+            rejectBtn.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              suggestion.remove();
+              currentSuggestion = null;
+              input.focus();
+            });
+          }
+
+          // Auto-remove after 15 seconds
+          setTimeout(() => {
+            if (suggestion.parentNode) {
+              suggestion.remove();
+              if (currentSuggestion === suggestion) {
+                currentSuggestion = null;
+              }
+            }
+          }, 15000);
+        }
+
+        function showSearchError(container, query, errorMessage) {
+          const existing = container.querySelector('.search-suggestion');
+          if (existing) existing.remove();
+
+          const suggestion = document.createElement('div');
+          suggestion.className = 'search-suggestion';
+          suggestion.innerHTML = `
+            <div class="suggestion-content">
+              <div class="suggestion-info">
+                <div class="suggestion-name">⚠️ Enhanced Search Error</div>
+                <div class="suggestion-details">
+                  <span>${errorMessage}</span>
+                  <span class="search-badge" style="background: var(--error);">Error</span>
+                </div>
+              </div>
+              <div class="suggestion-actions">
+                <button type="button" class="suggestion-btn reject-btn">❌ Close</button>
+              </div>
+            </div>
+          `;
+
+          container.appendChild(suggestion);
+          currentSuggestion = suggestion;
+
+          suggestion.querySelector('.reject-btn').addEventListener('click', function() {
+            suggestion.remove();
+            currentSuggestion = null;
+          });
+
+          setTimeout(() => {
+            if (suggestion.parentNode) {
+              suggestion.remove();
+              if (currentSuggestion === suggestion) {
+                currentSuggestion = null;
+              }
+            }
+          }, 10000);
+        }
+      }
+
+      // ENHANCED: Helper function to get search method information for display
+      function getEnhancedSearchMethodInfo(searchMethod) {
+        const methodMap = {
+          'exact_sku': { icon: '🎯', text: 'Exact SKU', color: '#38a169', cssClass: 'exact-sku' },
+          'title_exact': { icon: '📝', text: 'Exact Title', color: '#3182ce', cssClass: 'title-exact' },
+          'title_partial': { icon: '📝', text: 'Partial Title', color: '#4299e1', cssClass: 'title-partial' },
+          'number_pattern': { icon: '🔢', text: 'Number Match', color: '#d69e2e', cssClass: 'number-pattern' },
+          'sku': { icon: '🏷️', text: 'SKU Search', color: '#805ad5', cssClass: 'sku-search' },
+          'tag': { icon: '🏷️', text: 'Tag Match', color: '#9f7aea', cssClass: 'tag-match' },
+          'fuzzy': { icon: '🌀', text: 'Fuzzy Match', color: '#ed8936', cssClass: 'fuzzy-match' },
+          'none': { icon: '❌', text: 'Not Found', color: '#e53e3e', cssClass: 'not-found' }
+        };
+        
+        return methodMap[searchMethod] || methodMap['none'];
+      }
+
+      // ENHANCED: estimate functionality with better debug info
+      estimateBtn.addEventListener('click', async function() {
+        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => ({
+          cardName: row.querySelector('[name="cardName"]').value,
+          quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+          condition: row.querySelector('[name="cardCondition"]').value
+        }));
+
+        if (cards.length === 0) {
+          updateStatus('❌ Please add at least one card to estimate.', 'error');
+          alert('Please add at least one card to estimate.');
+          return;
+        }
+
+        const formData = {
+          cards: cards,
+          employeeName: 'Preview',
+          payoutMethod: 'cash',
+          customerEmail: null,
+          overrideTotal: null
+        };
+
+        // Show loading state
+        estimateBtn.innerHTML = '<span class="spinner"></span><span>Enhanced Search...</span>';
+        estimateBtn.disabled = true;
+        updateStatus('Using enhanced search with number pattern recognition...', 'info');
+
+        try {
+          const response = await fetch(`${API_URL}?estimate=true`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+          });
+
+          const data = await response.json();
+          
+          // Store response for debugging
+          lastApiResponse = data;
+
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to get estimate');
+          }
+
+          showEnhancedEstimateResults(data);
+          showButton('override-section');
+          showButton('submit-trade');
+          
+          // Enhanced status message with search method info
+          let statusMessage = 'Estimate complete! ';
+          if (data.debug) {
+            const totalMatches = Object.values(data.debug).reduce((sum, count) => sum + count, 0);
+            statusMessage += `Found ${totalMatches} matches using enhanced search.`;
+          }
+          updateStatus(statusMessage, 'success');
+
+        } catch (error) {
+          console.error('Enhanced estimate error:', error);
+          updateStatus(`Error: ${error.message}`, 'error');
+        } finally {
+          estimateBtn.innerHTML = '<span>📊</span><span>Get Estimate</span>';
+          estimateBtn.disabled = false;
+        }
+      });
+
+      // ENHANCED: Show estimate results with search method information
+      function showEnhancedEstimateResults(data) {
         const estimateCards = document.getElementById('estimate-cards');
         estimateCards.innerHTML = '';
 
         data.results.forEach(card => {
+          const searchMethodInfo = getEnhancedSearchMethodInfo(card.searchMethod);
+          
           const cardElement = document.createElement('div');
           cardElement.className = 'estimate-card';
           cardElement.innerHTML = `
@@ -2205,37 +2316,11 @@
                 <div style="font-size: 14px; color: var(--gray-500);">
                   Quantity: ${card.quantity}
                   ${card.sku ? ` • SKU: ${card.sku}` : ''}
-                  ${card.searchMethod ? ` • Found by: ${card.searchMethod}` : ''}
+                  <span class="search-badge ${searchMethodInfo.cssClass}" style="background: ${searchMethodInfo.color}; margin-left: 8px;">
+                    ${searchMethodInfo.icon} ${searchMethodInfo.text}
+                  </span>
+                  ${card.matchScore ? ` • Score: ${card.matchScore}` : ''}
                 </div>
               </div>
             </div>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center;">
-              <div>
-                <div style="font-size: 12px; color: var(--gray-500);">Retail</div>
-                <div style="font-weight: 600;">${card.retailPrice ? card.retailPrice.toFixed(2) : '0.00'}</div>
-              </div>
-              <div>
-                <div style="font-size: 12px; color: var(--gray-500);">Suggested</div>
-                <div style="font-weight: 600; color: var(--accent);">${card.suggestedTradeValue ? card.suggestedTradeValue.toFixed(2) : '0.00'}</div>
-              </div>
-              <div>
-                <div style="font-size: 12px; color: var(--gray-500);">Maximum</div>
-                <div style="font-weight: 600; color: var(--success);">${card.maximumTradeValue ? card.maximumTradeValue.toFixed(2) : '0.00'}</div>
-              </div>
-            </div>
-          `;
-          estimateCards.appendChild(cardElement);
-        });
-
-        // Update totals
-        document.getElementById('total-retail').textContent = `${data.totalRetailValue || '0.00'}`;
-        document.getElementById('total-suggested').textContent = `${data.suggestedTotal || '0.00'}`;
-        document.getElementById('total-maximum').textContent = `${data.maximumTotal || '0.00'}`;
-
-        // Show results
-        estimateResults.classList.add('visible');
-      }
-    });
-  </script>
-</body>
-</html
+            <div style="
