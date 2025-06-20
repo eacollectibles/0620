@@ -1299,14 +1299,10 @@
         font-size: 7px !important;
       }
 
-      /* Barcode print styles */
-      .barcode-print-mode * {
-        visibility: hidden !important;
-      }
-      
-      .barcode-print-mode .barcode-section,
-      .barcode-print-mode .barcode-section * {
-        visibility: visible !important;
+      /* FIXED: Barcode print styles - Clean labels only, no extra pages */
+      .barcode-print-mode {
+        margin: 0 !important;
+        padding: 0 !important;
       }
       
       .barcode-print-mode @page {
@@ -1314,24 +1310,31 @@
         margin: 0.5in 0.1875in 0.5in 0.1875in;
       }
       
-      .barcode-print-mode .barcode-section {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        background: white !important;
-        border: none !important;
+      .barcode-print-mode body {
         margin: 0 !important;
         padding: 0 !important;
-        overflow: visible !important;
+        background: white !important;
+        overflow: hidden !important;
       }
       
-      .barcode-print-mode .barcode-header {
+      /* FIXED: Hide everything except barcode labels */
+      .barcode-print-mode * {
+        visibility: hidden !important;
         display: none !important;
       }
       
+      /* FIXED: Only show the barcode grid and its contents */
+      .barcode-print-mode .barcode-grid,
+      .barcode-print-mode .barcode-grid *,
+      .barcode-print-mode .barcode-label,
+      .barcode-print-mode .barcode-label * {
+        visibility: visible !important;
+        display: block !important;
+      }
+      
+      /* FIXED: Ensure grid displays properly */
       .barcode-print-mode .barcode-grid {
+        display: grid !important;
         position: absolute !important;
         top: 0.5in !important;
         left: 0.1875in !important;
@@ -1340,30 +1343,54 @@
         margin: 0 !important;
         padding: 0 !important;
         gap: 0 !important;
-        display: grid !important;
         grid-template-columns: repeat(3, 2.625in) !important;
         grid-template-rows: repeat(10, 1in) !important;
         background: white !important;
+        page-break-inside: avoid !important;
       }
       
+      /* FIXED: Label styling for clean printing */
       .barcode-print-mode .barcode-label {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
         border: none !important;
         width: 2.625in !important;
         height: 1in !important;
         margin: 0 !important;
-        padding: 6px 8px !important;
+        padding: 4px 6px !important;
         page-break-inside: avoid !important;
         box-sizing: border-box !important;
         background: white !important;
         overflow: hidden !important;
       }
       
+      /* FIXED: Barcode display styling */
       .barcode-print-mode .barcode-display {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         border: none !important;
         background: white !important;
         padding: 0 !important;
         margin: 1px 0 !important;
         height: 40px !important;
+        width: 100% !important;
+      }
+      
+      /* FIXED: SVG barcode styling */
+      .barcode-print-mode .barcode-svg {
+        display: block !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
+      }
+      
+      /* FIXED: Text styling */
+      .barcode-print-mode .barcode-sku,
+      .barcode-print-mode .barcode-number {
+        display: block !important;
+        text-align: center !important;
       }
     }
 
@@ -2755,27 +2782,36 @@
         }, 1000);
       });
 
-      // FIXED: Print barcodes functionality - Only labels print
+      // FIXED: Print barcodes functionality - Clean labels only, no extra pages
       document.getElementById('print-barcodes').addEventListener('click', function() {
         const barcodeSection = document.getElementById('barcode-section');
+        
         if (barcodeSection.style.display === 'none') {
           barcodeSection.style.display = 'block';
           this.innerHTML = '<span>🖨️</span><span>Print UPC Labels</span>';
         } else {
-          // Add special class for barcode-only printing
+          // Ensure barcode section is visible
+          barcodeSection.style.display = 'block';
+          
+          // Hide receipt completely during barcode printing
+          const receiptSection = document.getElementById('pos-receipt-section');
+          const originalReceiptDisplay = receiptSection.style.display;
+          receiptSection.style.display = 'none';
+          
+          // Add print-specific class
           document.body.classList.add('barcode-print-mode');
           
-          // Hide receipt for barcode printing
-          document.getElementById('pos-receipt-section').style.display = 'none';
-          
-          // Print with clean labels only
-          window.print();
-          
-          // Remove print mode class after printing
+          // Small delay to ensure styles are applied
           setTimeout(() => {
-            document.body.classList.remove('barcode-print-mode');
-            document.getElementById('pos-receipt-section').style.display = 'block';
-          }, 1000);
+            // Trigger print dialog
+            window.print();
+            
+            // Clean up after printing
+            setTimeout(() => {
+              document.body.classList.remove('barcode-print-mode');
+              receiptSection.style.display = originalReceiptDisplay;
+            }, 500);
+          }, 100);
         }
       });
 
