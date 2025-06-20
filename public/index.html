@@ -2799,7 +2799,7 @@
         }, 1000);
       });
 
-      // FIXED: Print barcodes functionality - Clean labels only, no extra pages
+      // FIXED: Print barcodes functionality - Use dedicated print window
       document.getElementById('print-barcodes').addEventListener('click', function() {
         const barcodeSection = document.getElementById('barcode-section');
         
@@ -2807,30 +2807,163 @@
           barcodeSection.style.display = 'block';
           this.innerHTML = '<span>🖨️</span><span>Print UPC Labels</span>';
         } else {
-          // Ensure barcode section is visible
-          barcodeSection.style.display = 'block';
-          
-          // Hide receipt completely during barcode printing
-          const receiptSection = document.getElementById('pos-receipt-section');
-          const originalReceiptDisplay = receiptSection.style.display;
-          receiptSection.style.display = 'none';
-          
-          // Add print-specific class
-          document.body.classList.add('barcode-print-mode');
-          
-          // Small delay to ensure styles are applied
-          setTimeout(() => {
-            // Trigger print dialog
-            window.print();
-            
-            // Clean up after printing
-            setTimeout(() => {
-              document.body.classList.remove('barcode-print-mode');
-              receiptSection.style.display = originalReceiptDisplay;
-            }, 500);
-          }, 100);
+          // Generate dedicated print content
+          generateBarcodesPrintPage();
         }
       });
+
+      // FIXED: Generate clean print page for barcodes
+      function generateBarcodesPrintPage() {
+        // Get barcode data from current page
+        const barcodeLabels = document.querySelectorAll('.barcode-label');
+        
+        if (barcodeLabels.length === 0) {
+          alert('No barcode labels to print. Please process a trade first.');
+          return;
+        }
+
+        // Create new window for printing
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        
+        // Generate clean HTML for printing
+        let printHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Barcode Labels - Avery 5160</title>
+  <style>
+    @page {
+      size: letter;
+      margin: 0.5in 0.1875in 0.5in 0.1875in;
+    }
+    
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Courier New', monospace;
+      background: white;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    
+    .barcode-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 2.625in);
+      grid-template-rows: repeat(10, 1in);
+      gap: 0;
+      width: 7.875in;
+      height: 10in;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .barcode-label {
+      width: 2.625in;
+      height: 1in;
+      border: none;
+      padding: 4px 6px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background: white;
+      page-break-inside: avoid;
+    }
+    
+    .barcode-sku {
+      font-size: 6px;
+      color: black;
+      margin-bottom: 1px;
+      font-weight: 600;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    
+    .barcode-display {
+      height: 40px;
+      width: calc(100% - 4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 1px 0;
+      background: white;
+    }
+    
+    .barcode-svg {
+      max-width: 100%;
+      max-height: 100%;
+    }
+    
+    .barcode-number {
+      font-size: 5px;
+      color: black;
+      margin-top: 1px;
+      letter-spacing: 0.5px;
+      font-weight: 500;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    
+    @media print {
+      body { margin: 0 !important; padding: 0 !important; }
+      .barcode-grid { page-break-inside: avoid !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="barcode-grid">`;
+
+        // Copy each barcode label
+        barcodeLabels.forEach((label, index) => {
+          if (index < 30) { // Only first 30 labels for Avery 5160
+            const sku = label.querySelector('.barcode-sku')?.textContent || '';
+            const number = label.querySelector('.barcode-number')?.textContent || '';
+            const svgElement = label.querySelector('.barcode-svg');
+            const svgHTML = svgElement ? svgElement.outerHTML : '';
+
+            printHTML += `
+    <div class="barcode-label">
+      <div class="barcode-sku">${sku}</div>
+      <div class="barcode-display">
+        ${svgHTML}
+      </div>
+      <div class="barcode-number">${number}</div>
+    </div>`;
+          }
+        });
+
+        // Fill remaining slots if less than 30
+        const remainingSlots = 30 - Math.min(barcodeLabels.length, 30);
+        for (let i = 0; i < remainingSlots; i++) {
+          printHTML += `
+    <div class="barcode-label">
+      <!-- Empty label ${barcodeLabels.length + i + 1} -->
+    </div>`;
+        }
+
+        printHTML += `
+  </div>
+</body>
+</html>`;
+
+        // Write content to print window
+        printWindow.document.write(printHTML);
+        printWindow.document.close();
+
+        // Wait for content to load, then print
+        printWindow.onload = function() {
+          setTimeout(() => {
+            printWindow.focus();
+            printWindow.print();
+            // Close window after printing
+            setTimeout(() => {
+              printWindow.close();
+            }, 1000);
+          }, 500);
+        };
+      }
 
       // Override functionality
       overrideToggle.addEventListener('click', function() {
