@@ -1299,7 +1299,7 @@
         font-size: 7px !important;
       }
 
-      /* FIXED: Barcode print styles - Clean labels only, no extra pages */
+      /* FIXED: Barcode print styles - Show labels properly */
       .barcode-print-mode {
         margin: 0 !important;
         padding: 0 !important;
@@ -1314,27 +1314,26 @@
         margin: 0 !important;
         padding: 0 !important;
         background: white !important;
-        overflow: hidden !important;
+        font-family: 'Courier New', monospace !important;
       }
       
-      /* FIXED: Hide everything except barcode labels */
+      /* FIXED: Hide everything first */
       .barcode-print-mode * {
         visibility: hidden !important;
-        display: none !important;
       }
       
-      /* FIXED: Only show the barcode grid and its contents */
+      /* FIXED: Then show only barcode content */
       .barcode-print-mode .barcode-grid,
-      .barcode-print-mode .barcode-grid *,
       .barcode-print-mode .barcode-label,
-      .barcode-print-mode .barcode-label * {
+      .barcode-print-mode .barcode-sku,
+      .barcode-print-mode .barcode-display,
+      .barcode-print-mode .barcode-svg,
+      .barcode-print-mode .barcode-number {
         visibility: visible !important;
-        display: block !important;
       }
       
-      /* FIXED: Ensure grid displays properly */
+      /* FIXED: Ensure proper layout */
       .barcode-print-mode .barcode-grid {
-        display: grid !important;
         position: absolute !important;
         top: 0.5in !important;
         left: 0.1875in !important;
@@ -1343,18 +1342,15 @@
         margin: 0 !important;
         padding: 0 !important;
         gap: 0 !important;
+        display: grid !important;
         grid-template-columns: repeat(3, 2.625in) !important;
         grid-template-rows: repeat(10, 1in) !important;
         background: white !important;
         page-break-inside: avoid !important;
       }
       
-      /* FIXED: Label styling for clean printing */
+      /* FIXED: Label styling */
       .barcode-print-mode .barcode-label {
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: center !important;
-        align-items: center !important;
         border: none !important;
         width: 2.625in !important;
         height: 1in !important;
@@ -1363,34 +1359,55 @@
         page-break-inside: avoid !important;
         box-sizing: border-box !important;
         background: white !important;
-        overflow: hidden !important;
+        overflow: visible !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        text-align: center !important;
       }
       
-      /* FIXED: Barcode display styling */
+      /* FIXED: SKU text */
+      .barcode-print-mode .barcode-sku {
+        font-size: 6px !important;
+        color: black !important;
+        margin-bottom: 1px !important;
+        font-weight: 600 !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
+      }
+      
+      /* FIXED: Barcode container */
       .barcode-print-mode .barcode-display {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
         border: none !important;
         background: white !important;
         padding: 0 !important;
         margin: 1px 0 !important;
         height: 40px !important;
-        width: 100% !important;
+        width: calc(100% - 4px) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        overflow: visible !important;
       }
       
-      /* FIXED: SVG barcode styling */
+      /* FIXED: Barcode SVG */
       .barcode-print-mode .barcode-svg {
-        display: block !important;
         max-width: 100% !important;
         max-height: 100% !important;
+        display: block !important;
       }
       
-      /* FIXED: Text styling */
-      .barcode-print-mode .barcode-sku,
+      /* FIXED: Number text */
       .barcode-print-mode .barcode-number {
-        display: block !important;
-        text-align: center !important;
+        font-size: 5px !important;
+        color: black !important;
+        margin-top: 1px !important;
+        letter-spacing: 0.5px !important;
+        font-weight: 500 !important;
+        font-family: 'Courier New', monospace !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
       }
     }
 
