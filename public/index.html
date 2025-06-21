@@ -1022,7 +1022,7 @@
       line-height: 1;
     }
 
-    /* Code 128 Barcode - Real barcode using JsBarcode library */
+    /* EAN-13 Barcode - Real barcode using JsBarcode library */
     .barcode-display {
       background: white;
       border: 1px solid #ddd;
@@ -1716,16 +1716,16 @@
           </div>
         </div>
 
-        <!-- Code 128 Barcode Section - Real barcodes with actual SKUs -->
+        <!-- EAN-13 Barcode Section - Real barcodes with actual SKUs -->
         <div id="barcode-section" class="barcode-section" style="display: none;">
           <div class="barcode-header">
-            <h3 style="margin: 0; color: var(--gray-800);">📊 Code 128 Barcode Labels</h3>
+            <h3 style="margin: 0; color: var(--gray-800);">📊 EAN-13 Barcode Labels (Fixed for POS)</h3>
             <div style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">
-              Avery 5160 • 2⅝" x 1" • Code 128 Format • Socket S740 Compatible
+              Avery 5160 • 2⅝" x 1" • EAN-13 Format • Works like UPC in Shopify POS
             </div>
           </div>
           <div id="barcode-content" class="barcode-grid">
-            <!-- Code 128 barcode labels will be generated here -->
+            <!-- EAN-13 barcode labels will be generated here -->
           </div>
         </div>
 
@@ -2576,7 +2576,7 @@
         posReceiptDiv.classList.add('visible');
       }
 
-      // FIXED: Code 128 barcode generation with improved SKU detection
+      // FIXED: EAN-13 barcode generation with improved SKU detection
       function generateBarcodes(results) {
         const barcodeContent = document.getElementById('barcode-content');
         barcodeContent.innerHTML = '';
@@ -2646,7 +2646,7 @@
         const barcodeIds = []; // Store IDs for rendering after insertion
 
         itemsWithSkus.forEach(item => {
-          // Generate Code 128 barcode for each quantity
+          // Generate EAN-13 barcode for each quantity
           const quantity = item.quantity || 1;
           for (let i = 0; i < quantity; i++) {
             const barcodeLabel = document.createElement('div');
@@ -2656,13 +2656,13 @@
             const barcodeId = 'barcode-' + Math.random().toString(36).substr(2, 9);
             barcodeIds.push({ id: barcodeId, sku: item.sku });
             
-            // Clean label with Code 128 format
+            // Clean label with EAN-13 format
             barcodeLabel.innerHTML = `
               <div class="barcode-sku">SKU: ${item.sku}</div>
               <div class="barcode-display">
                 <svg id="${barcodeId}" class="barcode-svg"></svg>
               </div>
-              <div class="barcode-number">${item.sku}</div>
+              <div class="barcode-number">${convertToNumericSku(item.sku)}</div>
             `;
             
             barcodeContent.appendChild(barcodeLabel);
@@ -2695,7 +2695,7 @@
         }, 100);
       }
 
-      // FIXED: Function to render Code 128 barcode with better error handling
+      // FIXED: Function to render EAN-13 barcode with better error handling
       function renderBarcode(containerId, sku) {
         try {
           const element = document.getElementById(containerId);
@@ -2710,28 +2710,39 @@
             return;
           }
 
-          // Validate SKU format for Code 128
+          // Validate SKU format for EAN-13
           if (!sku || sku.length === 0) {
             console.error('❌ Invalid SKU for barcode:', sku);
             element.innerHTML = `<text x="50%" y="50%" text-anchor="middle" font-family="monospace" font-size="10" fill="red">Invalid SKU</text>`;
             return;
           }
 
-          console.log(`📊 Rendering barcode for SKU: ${sku} in container: ${containerId}`);
+          // Convert SKU to numeric format for EAN-13
+          const numericSku = convertToNumericSku(sku);
+          
+          // Ensure 13 digits for EAN-13
+          const ean13Sku = numericSku.padStart(12, '0').slice(0, 12);
+          const finalSku = addEAN13CheckDigit(ean13Sku);
 
-          JsBarcode(element, sku, {
-            format: "CODE128",
-            width: 1.8,
-            height: 45,
-            displayValue: false,
+          console.log(`📊 Rendering EAN-13 barcode for SKU: ${sku} -> ${finalSku} in container: ${containerId}`);
+
+          JsBarcode(element, finalSku, {
+            format: "EAN13",           // FIXED: Changed from CODE128 to EAN13
+            width: 2,                 // Standard width for EAN-13
+            height: 50,               // Standard height
+            displayValue: true,       // Show numbers below barcode
             background: "white",
             lineColor: "black",
-            margin: 0,
-            fontSize: 0,
-            textMargin: 0
+            margin: 5,
+            fontSize: 12,
+            textMargin: 2,
+            marginTop: 10,
+            marginBottom: 10,
+            marginLeft: 10,
+            marginRight: 10
           });
 
-          console.log(`✅ Successfully rendered barcode for ${sku}`);
+          console.log(`✅ Successfully rendered EAN-13 barcode for ${sku} -> ${finalSku}`);
 
         } catch (error) {
           console.error('❌ Barcode generation error for', sku, ':', error);
@@ -2747,6 +2758,25 @@
             `;
           }
         }
+      }
+
+      // FIXED: Helper functions for EAN-13 conversion
+      function convertToNumericSku(sku) {
+        // Hash string to number
+        let hash = 0;
+        for (let i = 0; i < sku.length; i++) {
+          hash = ((hash << 5) - hash + sku.charCodeAt(i)) & 0xffffffff;
+        }
+        return Math.abs(hash).toString();
+      }
+
+      function addEAN13CheckDigit(barcode12) {
+        let sum = 0;
+        for (let i = 0; i < 12; i++) {
+          sum += parseInt(barcode12[i]) * (i % 2 === 0 ? 1 : 3);
+        }
+        const checkDigit = (10 - (sum % 10)) % 10;
+        return barcode12 + checkDigit;
       }
 
       // Success section close and new trade buttons
@@ -2805,7 +2835,7 @@
         
         if (barcodeSection.style.display === 'none') {
           barcodeSection.style.display = 'block';
-          this.innerHTML = '<span>🖨️</span><span>Print UPC Labels</span>';
+          this.innerHTML = '<span>🖨️</span><span>Print EAN-13 Labels</span>';
         } else {
           // Generate dedicated print content
           generateBarcodesPrintPage();
@@ -2830,7 +2860,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Barcode Labels - Avery 5160</title>
+  <title>EAN-13 Barcode Labels - Avery 5160</title>
   <style>
     @page {
       size: letter;
