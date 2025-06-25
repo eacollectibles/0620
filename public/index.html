@@ -244,7 +244,7 @@
       max-height: 200px;
     }
 
-    /* FIXED: Cards section - proper scrolling */
+    /* Cards section - proper scrolling */
     .cards-section {
       background: var(--gray-50);
       border-radius: var(--border-radius-lg);
@@ -261,15 +261,15 @@
       align-items: center;
     }
 
-    /* FIXED: Scrollable cards list */
+    /* Scrollable cards list */
     .cards-list {
       padding: 24px 32px;
-      max-height: 60vh; /* FIXED: Limit height so we can scroll */
-      overflow-y: auto; /* FIXED: Add vertical scrolling */
-      overflow-x: visible; /* FIXED: Keep horizontal visible for suggestions */
+      max-height: 60vh;
+      overflow-y: auto;
+      overflow-x: visible;
     }
 
-    /* FIXED: Custom scrollbar styling */
+    /* Custom scrollbar styling */
     .cards-list::-webkit-scrollbar {
       width: 8px;
     }
@@ -336,7 +336,7 @@
       background: rgba(214, 158, 46, 0.05);
     }
 
-    /* FIXED: Search suggestions with better scrolling */
+    /* Search suggestions with better scrolling */
     .search-suggestion {
       position: absolute;
       top: 100%;
@@ -349,12 +349,12 @@
       box-shadow: var(--shadow-lg);
       z-index: 1000;
       animation: slideDown 0.2s ease;
-      max-height: 300px;
-      overflow-y: auto; /* FIXED: Scrollable suggestions */
+      max-height: 400px;
+      overflow-y: auto;
       overflow-x: hidden;
     }
 
-    /* FIXED: Custom scrollbar for suggestions */
+    /* Custom scrollbar for suggestions */
     .search-suggestion::-webkit-scrollbar {
       width: 6px;
     }
@@ -480,6 +480,28 @@
       background: #b7791f;
     }
 
+    .search-more-btn {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .search-more-btn:hover {
+      background: #2563eb;
+    }
+
+    /* Option selection styles */
+    .option-item {
+      padding: 14px 16px;
+      border-bottom: 1px solid #f3f4f6;
+      cursor: pointer;
+      transition: background 0.2s;
+      background: white;
+    }
+
+    .option-item:hover {
+      background: #f0f9ff;
+    }
+
     /* Remove button */
     .remove-btn {
       background: var(--error);
@@ -557,7 +579,7 @@
       border: 1px solid var(--gray-300);
     }
 
-    /* FIXED: Estimate results with proper scrolling */
+    /* Estimate results with proper scrolling */
     .estimate-results {
       background: linear-gradient(135deg, rgba(49, 130, 206, 0.05) 0%, rgba(49, 130, 206, 0.02) 100%);
       border: 1px solid rgba(49, 130, 206, 0.2);
@@ -572,8 +594,8 @@
 
     .estimate-results.visible {
       opacity: 1;
-      max-height: none; /* FIXED: Allow full height */
-      overflow: visible; /* FIXED: Make visible */
+      max-height: none;
+      overflow: visible;
     }
 
     .estimate-header {
@@ -589,15 +611,15 @@
       color: var(--gray-800);
     }
 
-    /* FIXED: Scrollable estimate cards */
+    /* Scrollable estimate cards */
     #estimate-cards {
-      max-height: 50vh; /* FIXED: Limit height */
-      overflow-y: auto; /* FIXED: Add scrolling */
+      max-height: 50vh;
+      overflow-y: auto;
       margin-bottom: 24px;
-      padding-right: 8px; /* FIXED: Space for scrollbar */
+      padding-right: 8px;
     }
 
-    /* FIXED: Custom scrollbar for estimate cards */
+    /* Custom scrollbar for estimate cards */
     #estimate-cards::-webkit-scrollbar {
       width: 6px;
     }
@@ -1221,85 +1243,8 @@
         page-break-inside: avoid !important;
         font-family: 'Courier New', monospace !important;
       }
-      
-      .receipt-print-mode .receipt-store-name {
-        font-size: 16px !important;
-        font-weight: bold !important;
-      }
-      
-      .receipt-print-mode .receipt-store-info {
-        font-size: 9px !important;
-        line-height: 1.2 !important;
-      }
-      
-      .receipt-print-mode .receipt-transaction-info {
-        font-size: 9px !important;
-        margin: 6px 0 !important;
-      }
-      
-      .receipt-print-mode .receipt-title {
-        font-size: 12px !important;
-        margin: 6px 0 !important;
-      }
-      
-      .receipt-print-mode .receipt-item {
-        font-size: 9px !important;
-        margin-bottom: 3px !important;
-        line-height: 1.2 !important;
-      }
-      
-      .receipt-print-mode .receipt-item-details {
-        font-size: 7px !important;
-      }
-      
-      .receipt-print-mode .receipt-total-line {
-        font-size: 9px !important;
-        margin-bottom: 2px !important;
-      }
-      
-      .receipt-print-mode .receipt-total-line.final {
-        font-size: 11px !important;
-        font-weight: bold !important;
-      }
-      
-      .receipt-print-mode .receipt-payout {
-        font-size: 10px !important;
-        margin: 6px 0 !important;
-        padding: 4px !important;
-      }
-      
-      .receipt-print-mode .receipt-gift-card {
-        margin: 6px 0 !important;
-        padding: 4px !important;
-      }
-      
-      .receipt-print-mode .receipt-gift-card-code {
-        font-size: 12px !important;
-        letter-spacing: 1px !important;
-      }
-      
-      .receipt-print-mode .receipt-footer {
-        font-size: 7px !important;
-        margin-top: 8px !important;
-        padding-top: 6px !important;
-        line-height: 1.2 !important;
-      }
-      
-      .receipt-print-mode .receipt-signature {
-        margin-top: 12px !important;
-        padding-top: 6px !important;
-      }
-      
-      .receipt-print-mode .receipt-signature-line {
-        height: 25px !important;
-        margin: 4px 0 2px 0 !important;
-      }
-      
-      .receipt-print-mode .receipt-signature-label {
-        font-size: 7px !important;
-      }
 
-      /* FIXED: Barcode print styles - Show labels properly */
+      /* Barcode print styles */
       .barcode-print-mode {
         margin: 0 !important;
         padding: 0 !important;
@@ -1317,12 +1262,10 @@
         font-family: 'Courier New', monospace !important;
       }
       
-      /* FIXED: Hide everything first */
       .barcode-print-mode * {
         visibility: hidden !important;
       }
       
-      /* FIXED: Then show only barcode content */
       .barcode-print-mode .barcode-grid,
       .barcode-print-mode .barcode-label,
       .barcode-print-mode .barcode-sku,
@@ -1332,7 +1275,6 @@
         visibility: visible !important;
       }
       
-      /* FIXED: Ensure proper layout */
       .barcode-print-mode .barcode-grid {
         position: absolute !important;
         top: 0.5in !important;
@@ -1349,7 +1291,6 @@
         page-break-inside: avoid !important;
       }
       
-      /* FIXED: Label styling */
       .barcode-print-mode .barcode-label {
         border: none !important;
         width: 2.625in !important;
@@ -1365,49 +1306,6 @@
         justify-content: center !important;
         align-items: center !important;
         text-align: center !important;
-      }
-      
-      /* FIXED: SKU text */
-      .barcode-print-mode .barcode-sku {
-        font-size: 6px !important;
-        color: black !important;
-        margin-bottom: 1px !important;
-        font-weight: 600 !important;
-        line-height: 1 !important;
-        white-space: nowrap !important;
-      }
-      
-      /* FIXED: Barcode container */
-      .barcode-print-mode .barcode-display {
-        border: none !important;
-        background: white !important;
-        padding: 0 !important;
-        margin: 1px 0 !important;
-        height: 40px !important;
-        width: calc(100% - 4px) !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        overflow: visible !important;
-      }
-      
-      /* FIXED: Barcode SVG */
-      .barcode-print-mode .barcode-svg {
-        max-width: 100% !important;
-        max-height: 100% !important;
-        display: block !important;
-      }
-      
-      /* FIXED: Number text */
-      .barcode-print-mode .barcode-number {
-        font-size: 5px !important;
-        color: black !important;
-        margin-top: 1px !important;
-        letter-spacing: 0.5px !important;
-        font-weight: 500 !important;
-        font-family: 'Courier New', monospace !important;
-        line-height: 1 !important;
-        white-space: nowrap !important;
       }
     }
 
@@ -1443,7 +1341,6 @@
         grid-template-columns: 1fr;
       }
 
-      /* FIXED: Mobile scrolling improvements */
       .cards-list {
         max-height: 50vh;
       }
@@ -1490,7 +1387,7 @@
       left: 100%;
     }
 
-    /* FIXED: Visual indicator for scrollable areas */
+    /* Visual indicator for scrollable areas */
     .scrollable-indicator {
       position: relative;
     }
@@ -1757,7 +1654,7 @@
       const tradeSuccess = document.getElementById('trade-success');
       const successContent = document.getElementById('success-content');
 
-      // FIXED: Scroll indicators for better UX
+      // Setup scroll indicators for better UX
       function setupScrollIndicators() {
         const scrollableElements = document.querySelectorAll('.scrollable-indicator');
         
@@ -1785,7 +1682,7 @@
         });
       }
 
-      // FIXED: Setup scroll indicators
+      // Setup scroll indicators
       setupScrollIndicators();
 
       // Show/hide customer email section
@@ -1820,7 +1717,6 @@
         // Setup remove functionality
         newRow.querySelector('.remove-btn').addEventListener('click', function() {
           newRow.remove();
-          // FIXED: Update scroll indicators after removing
           setTimeout(() => {
             setupScrollIndicators();
           }, 100);
@@ -1829,7 +1725,7 @@
         // Setup REAL search for new input
         setupRealSearch(newRow.querySelector('.card-input'));
 
-        // FIXED: Scroll to new card and update indicators
+        // Scroll to new card and update indicators
         newRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         setTimeout(() => {
           setupScrollIndicators();
@@ -1840,7 +1736,6 @@
       document.querySelectorAll('.remove-btn').forEach(btn => {
         btn.addEventListener('click', function() {
           btn.closest('.card-row').remove();
-          // FIXED: Update scroll indicators after removing
           setTimeout(() => {
             setupScrollIndicators();
           }, 100);
@@ -1977,6 +1872,7 @@
           currentSuggestion = suggestion;
         }
 
+        // FIXED: Updated to handle multiple options and confidence levels
         function showSearchResult(container, input, query, result) {
           const existing = container.querySelector('.search-suggestion');
           if (existing) existing.remove();
@@ -1985,7 +1881,44 @@
           suggestion.className = 'search-suggestion';
           
           if (result && result.match) {
-            // Card found in your real Shopify inventory
+            let confidenceBadge = '';
+            let actionButtons = '';
+            let warningText = '';
+            
+            // Handle different confidence levels and multiple options
+            if (result.needsConfirmation && result.allOptions && result.allOptions.length > 1) {
+              confidenceBadge = '<span class="search-badge not-found">⚠️ Multiple Options Found</span>';
+              warningText = `Found ${result.allOptions.length} items with this tag - please confirm the correct one.`;
+              actionButtons = `
+                <button type="button" class="suggestion-btn confirm-btn">✅ Use This</button>
+                <button type="button" class="suggestion-btn search-more-btn" style="background: #3b82f6;">🔍 See All ${result.allOptions.length} Options</button>
+                <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
+              `;
+            } else {
+              switch(result.confidence) {
+                case 'high':
+                  confidenceBadge = '<span class="search-badge found">✅ High Confidence</span>';
+                  break;
+                case 'medium':
+                  confidenceBadge = '<span class="search-badge" style="background: #f59e0b;">⚠️ Medium Confidence</span>';
+                  warningText = 'Medium confidence match - please verify this is correct.';
+                  break;
+                case 'low':
+                  confidenceBadge = '<span class="search-badge not-found">⚠️ Low Confidence</span>';
+                  warningText = 'Low confidence match - this might not be the right card.';
+                  break;
+                case 'single_match':
+                  confidenceBadge = '<span class="search-badge found">✅ Perfect Match</span>';
+                  break;
+              }
+              
+              actionButtons = `
+                <button type="button" class="suggestion-btn confirm-btn">✅ Use This</button>
+                ${result.allOptions && result.allOptions.length > 1 ? `<button type="button" class="suggestion-btn search-more-btn" style="background: #3b82f6;">🔍 See All ${result.allOptions.length} Options</button>` : ''}
+                <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
+              `;
+            }
+
             suggestion.innerHTML = `
               <div class="suggestion-content">
                 <div class="suggestion-info">
@@ -1993,17 +1926,28 @@
                   <div class="suggestion-details">
                     <span>SKU: ${result.sku || 'N/A'}</span>
                     <span>Price: ${result.retailPrice.toFixed(2)}</span>
-                    <span class="search-badge found">Found</span>
+                    ${confidenceBadge}
                   </div>
+                  ${result.alternativeCount > 0 ? `<div style="font-size: 12px; color: #6b7280; margin-top: 4px;">${result.alternativeCount} other option(s) with same tag available</div>` : ''}
+                  ${warningText ? `<div style="font-size: 12px; color: #f59e0b; margin-top: 4px; font-weight: 500;">${warningText}</div>` : ''}
                 </div>
                 <div class="suggestion-actions">
-                  <button type="button" class="suggestion-btn confirm-btn">✅ Use This</button>
-                  <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
+                  ${actionButtons}
                 </div>
               </div>
             `;
+
+            // Handle "See All Options" button
+            const seeAllBtn = suggestion.querySelector('.search-more-btn');
+            if (seeAllBtn && result.allOptions) {
+              seeAllBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                showAllOptions(container, input, query, result.allOptions);
+              });
+            }
           } else {
-            // Card not found in your real Shopify inventory
+            // Handle not found case
             suggestion.innerHTML = `
               <div class="suggestion-content">
                 <div class="suggestion-info">
@@ -2024,7 +1968,104 @@
           container.appendChild(suggestion);
           currentSuggestion = suggestion;
 
-          // Handle suggestion actions
+          // Setup event handlers
+          setupSuggestionEventHandlers(suggestion, input, result);
+        }
+
+        // NEW: Show all available options when multiple matches found
+        function showAllOptions(container, input, query, allOptions) {
+          const existing = container.querySelector('.search-suggestion');
+          if (existing) existing.remove();
+
+          const suggestion = document.createElement('div');
+          suggestion.className = 'search-suggestion';
+          suggestion.style.maxHeight = '400px';
+          suggestion.style.overflowY = 'auto';
+
+          let optionsHTML = `
+            <div style="padding: 16px; border-bottom: 1px solid #e5e7eb; background: #f9fafb;">
+              <div style="font-weight: 600; margin-bottom: 8px;">📋 Found ${allOptions.length} options for "${query}":</div>
+              <div style="font-size: 12px; color: #6b7280;">Click on the correct card:</div>
+            </div>
+          `;
+
+          allOptions.forEach((option, index) => {
+            const stockStatus = option.inventory > 0 ? `${option.inventory} in stock` : 'Out of stock';
+            const stockColor = option.inventory > 0 ? '#059669' : '#dc2626';
+            
+            optionsHTML += `
+              <div class="option-item" data-option-index="${index}" style="
+                padding: 14px 16px; 
+                border-bottom: 1px solid #f3f4f6; 
+                cursor: pointer;
+                transition: background 0.2s;
+                background: white;
+              " onmouseover="this.style.background='#f0f9ff'" onmouseout="this.style.background='white'">
+                <div style="font-weight: 600; margin-bottom: 6px; color: #1f2937;">${option.fullTitle}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div style="font-size: 12px; color: #6b7280;">
+                    SKU: <strong>${option.sku || 'N/A'}</strong> • Price: <strong>${option.price.toFixed(2)}</strong>
+                  </div>
+                  <div style="font-size: 11px; color: ${stockColor}; font-weight: 500;">
+                    ${stockStatus}
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+
+          optionsHTML += `
+            <div style="padding: 12px 16px; border-top: 2px solid #e5e7eb; background: #f9fafb;">
+              <button type="button" class="suggestion-btn reject-btn" style="width: 100%;">❌ None of these are correct</button>
+            </div>
+          `;
+
+          suggestion.innerHTML = optionsHTML;
+          container.appendChild(suggestion);
+          currentSuggestion = suggestion;
+
+          // Handle option selection
+          suggestion.querySelectorAll('.option-item').forEach((item, index) => {
+            item.addEventListener('click', function() {
+              const selectedOption = allOptions[index];
+              
+              // Update input with selected option
+              input.classList.remove('not-found');
+              input.classList.add('confirmed');
+              input.value = selectedOption.fullTitle;
+              
+              // Store the exact selected result data
+              input.setAttribute('data-search-result', JSON.stringify({
+                match: selectedOption.fullTitle,
+                sku: selectedOption.sku,
+                retailPrice: selectedOption.price,
+                suggestedTradeValue: calculateSuggestedTradeValue(selectedOption.price),
+                maximumTradeValue: calculateMaximumTradeValue(selectedOption.price),
+                searchMethod: 'user_selected',
+                inventoryItemId: selectedOption.inventoryItemId,
+                productId: selectedOption.productId,
+                variantId: selectedOption.variantId
+              }));
+              
+              suggestion.remove();
+              currentSuggestion = null;
+              
+              console.log(`✅ User selected: ${selectedOption.fullTitle} (SKU: ${selectedOption.sku})`);
+            });
+          });
+
+          // Handle reject button
+          const rejectBtn = suggestion.querySelector('.reject-btn');
+          if (rejectBtn) {
+            rejectBtn.addEventListener('click', function() {
+              suggestion.remove();
+              currentSuggestion = null;
+              input.focus();
+            });
+          }
+        }
+
+        function setupSuggestionEventHandlers(suggestion, input, result) {
           const confirmBtn = suggestion.querySelector('.confirm-btn');
           const continueBtn = suggestion.querySelector('.continue-btn');
           const rejectBtn = suggestion.querySelector('.reject-btn');
@@ -2036,14 +2077,16 @@
               input.classList.remove('not-found');
               input.classList.add('confirmed');
               input.value = result.match;
-              // FIXED: Store complete result including SKU, price, and variant info
+              // Store complete result including SKU, price, and variant info
               input.setAttribute('data-search-result', JSON.stringify({
                 match: result.match,
                 sku: result.sku,
                 retailPrice: result.retailPrice,
                 suggestedTradeValue: result.suggestedTradeValue,
                 maximumTradeValue: result.maximumTradeValue,
-                searchMethod: 'confirmed_search'
+                searchMethod: 'confirmed_search',
+                confidence: result.confidence,
+                inventoryItemId: result.inventoryItemId
               }));
               suggestion.remove();
               currentSuggestion = null;
@@ -2124,6 +2167,35 @@
         }
       }
 
+      // Trade value calculation functions (to match API)
+      function calculateSuggestedTradeValue(marketValue) {
+        const price = parseFloat(marketValue);
+        
+        if (price >= 50.00) return parseFloat((price * 0.75).toFixed(2));
+        if (price >= 25.00) return parseFloat((price * 0.50).toFixed(2));
+        if (price >= 15.01) return parseFloat((price * 0.35).toFixed(2));
+        if (price >= 8.00) return parseFloat((price * 0.40).toFixed(2));
+        if (price >= 5.00) return parseFloat((price * 0.35).toFixed(2));
+        if (price >= 3.01) return parseFloat((price * 0.25).toFixed(2));
+        if (price >= 2.00) return 0.10;
+        if (price >= 0.01) return 0.01;
+        return 0;
+      }
+
+      function calculateMaximumTradeValue(marketValue) {
+        const price = parseFloat(marketValue);
+        
+        if (price >= 50.00) return parseFloat((price * 0.75).toFixed(2));
+        if (price >= 25.00) return parseFloat((price * 0.70).toFixed(2));
+        if (price >= 15.01) return parseFloat((price * 0.65).toFixed(2));
+        if (price >= 8.00) return parseFloat((price * 0.50).toFixed(2));
+        if (price >= 5.00) return parseFloat((price * 0.35).toFixed(2));
+        if (price >= 3.01) return parseFloat((price * 0.25).toFixed(2));
+        if (price >= 2.00) return 0.50;
+        if (price >= 0.01) return 0.01;
+        return 0;
+      }
+
       // REAL estimate functionality
       estimateBtn.addEventListener('click', async function() {
         const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
@@ -2138,7 +2210,7 @@
                 cardName: input.value,
                 quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
                 condition: row.querySelector('[name="cardCondition"]').value,
-                // FIXED: Pass the exact SKU from search to ensure same variant
+                // Pass the exact SKU from search to ensure same variant
                 sku: result.sku,
                 searchMethod: 'exact_sku' // Tell API to use this exact SKU
               };
@@ -2206,7 +2278,7 @@
         }
       });
 
-      // REAL form submission - FIXED: Now shows trade success properly
+      // REAL form submission
       document.getElementById('trade-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -2223,7 +2295,7 @@
                 cardName: input.value,
                 quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
                 condition: row.querySelector('[name="cardCondition"]').value,
-                // FIXED: Pass the exact SKU from search to ensure same variant
+                // Pass the exact SKU from search to ensure same variant
                 sku: result.sku,
                 searchMethod: 'exact_sku' // Tell API to use this exact SKU
               };
@@ -2289,7 +2361,7 @@
             throw new Error(data.error || 'Failed to process trade');
           }
 
-          // FIXED: Show success information in the trade success section
+          // Show success information in the trade success section
           showTradeSuccess(data, payoutMethod);
           
           // Also show an alert with key info for immediate feedback
@@ -2323,7 +2395,7 @@
             input.removeAttribute('data-search-result');
           });
 
-          // FIXED: Update scroll indicators after reset
+          // Update scroll indicators after reset
           setTimeout(() => {
             setupScrollIndicators();
           }, 100);
@@ -2338,7 +2410,7 @@
         }
       });
 
-      // FIXED: Function to show trade success with all details (NO auto-receipt generation)
+      // Function to show trade success with all details
       function showTradeSuccess(data, payoutMethod) {
         let successHTML = '';
 
@@ -2442,7 +2514,7 @@
         generateBarcodes(data.results || []);
       }
 
-      // NEW: Generate POS Receipt optimized for Star TSP100III thermal printer
+      // Generate POS Receipt optimized for Star TSP100III thermal printer
       function generatePOSReceipt(data, payoutMethod) {
         const receiptSection = document.getElementById('pos-receipt-section');
         const currentDate = new Date();
@@ -2576,7 +2648,7 @@
         posReceiptDiv.classList.add('visible');
       }
 
-      // FIXED: Code 128 barcode generation with improved SKU detection
+      // Code 128 barcode generation with improved SKU detection
       function generateBarcodes(results) {
         const barcodeContent = document.getElementById('barcode-content');
         barcodeContent.innerHTML = '';
@@ -2695,7 +2767,7 @@
         }, 100);
       }
 
-      // FIXED: Function to render Code 128 barcode with better error handling
+      // Function to render Code 128 barcode with better error handling
       function renderBarcode(containerId, sku) {
         try {
           const element = document.getElementById(containerId);
@@ -2799,7 +2871,7 @@
         }, 1000);
       });
 
-      // FIXED: Print barcodes functionality - Use dedicated print window
+      // Print barcodes functionality - Use dedicated print window
       document.getElementById('print-barcodes').addEventListener('click', function() {
         const barcodeSection = document.getElementById('barcode-section');
         
@@ -2812,7 +2884,7 @@
         }
       });
 
-      // FIXED: Generate clean print page for barcodes
+      // Generate clean print page for barcodes
       function generateBarcodesPrintPage() {
         // Get barcode data from current page
         const barcodeLabels = document.querySelectorAll('.barcode-label');
@@ -3092,7 +3164,7 @@
         // Show results
         estimateResults.classList.add('visible');
 
-        // FIXED: Update scroll indicators for estimate results
+        // Update scroll indicators for estimate results
         setTimeout(() => {
           setupScrollIndicators();
         }, 300);
