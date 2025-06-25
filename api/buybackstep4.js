@@ -108,7 +108,7 @@ module.exports = async function handler(req, res) {
       return 0;
     }
 
-    // FIXED: Helper function to normalize card names/tags for search
+    // Helper function to normalize card names/tags for search
     function normalizeSearchTerm(term) {
       if (!term) return '';
       
@@ -118,7 +118,7 @@ module.exports = async function handler(req, res) {
       return normalized;
     }
 
-    // FIXED: Helper function to extract potential tags from card names
+    // Helper function to extract potential tags from card names
     function extractPotentialTags(cardName) {
       if (!cardName) return [];
       
@@ -146,6 +146,60 @@ module.exports = async function handler(req, res) {
       return [...new Set(tags)]; // Remove duplicates
     }
 
+    // Normalize text for comparison
+    function normalizeForComparison(text) {
+      if (!text) return '';
+      
+      return text
+        .toLowerCase()
+        .replace(/[^\w\s]/g, ' ')  // Replace punctuation with spaces
+        .replace(/\s+/g, ' ')      // Collapse multiple spaces
+        .trim();
+    }
+
+    // Simple similarity calculation (Jaccard similarity on word sets)
+    function calculateSimilarity(str1, str2) {
+      const words1 = new Set(str1.split(' ').filter(w => w.length > 1));
+      const words2 = new Set(str2.split(' ').filter(w => w.length > 1));
+      
+      const intersection = new Set([...words1].filter(x => words2.has(x)));
+      const union = new Set([...words1, ...words2]);
+      
+      if (union.size === 0) return 0;
+      
+      return intersection.size / union.size;
+    }
+
+    // Enhanced variant matching that considers both product and variant titles
+    function findBestVariantMatch(searchName, options) {
+      let bestScore = 0;
+      let bestOption = options[0]; // Default to first option
+
+      const normalizedSearch = normalizeForComparison(searchName);
+
+      options.forEach(option => {
+        // Compare against full title (product + variant)
+        const normalizedFull = normalizeForComparison(option.fullTitle);
+        const fullScore = calculateSimilarity(normalizedSearch, normalizedFull);
+        
+        // Also compare against just product title
+        const normalizedProduct = normalizeForComparison(option.productTitle);
+        const productScore = calculateSimilarity(normalizedSearch, normalizedProduct);
+        
+        // Use the better score
+        const score = Math.max(fullScore, productScore * 0.9); // Slight preference for full title matches
+        
+        console.log(`🔍 Scoring "${option.fullTitle}": ${score.toFixed(3)} (full: ${fullScore.toFixed(3)}, product: ${productScore.toFixed(3)})`);
+        
+        if (score > bestScore) {
+          bestScore = score;
+          bestOption = option;
+        }
+      });
+
+      return { option: bestOption, score: bestScore };
+    }
+
     // Get location ID for inventory updates
     let locationId = null;
     if (!estimateMode) {
@@ -164,7 +218,7 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // FIXED: Get variant by exact SKU - for frontend confirmed searches
+    // Get variant by exact SKU - for frontend confirmed searches
     const getVariantBySku = async (sku) => {
       console.log('🎯 Getting exact variant by SKU:', sku);
       
@@ -233,7 +287,7 @@ module.exports = async function handler(req, res) {
       return { found: false };
     };
 
-    // FIXED: Search by title with better normalization
+    // Search by title with better normalization
     const searchByTitle = async (query) => {
       console.log('🔍 Searching by title:', query);
       
@@ -342,21 +396,20 @@ module.exports = async function handler(req, res) {
       return { found: false };
     };
 
-    // FIXED: Search by tag with improved format handling
-    const searchByTag = async (tag) => {
-      console.log('🏷️ Searching by tag:', tag);
+    // FIXED: Enhanced tag search that returns ALL matches, not just the first one
+    const searchByTagWithAllOptions = async (tag, originalCardName) => {
+      console.log('🏷️ Searching by tag for ALL options:', tag, 'for card:', originalCardName);
       
-      // Normalize the tag for search (remove slashes, etc.)
       const normalizedTag = normalizeSearchTerm(tag);
       
       const query = `{
-        products(first: 5, query: "tag:${normalizedTag}") {
+        products(first: 20, query: "tag:${normalizedTag}") {
           edges {
             node {
               id
               title
               tags
-              variants(first: 1) {
+              variants(first: 5) {
                 edges {
                   node {
                     id
@@ -366,6 +419,10 @@ module.exports = async function handler(req, res) {
                     inventoryQuantity
                     inventoryItem {
                       id
+                    }
+                    product {
+                      id
+                      title
                     }
                   }
                 }
@@ -385,63 +442,94 @@ module.exports = async function handler(req, res) {
       });
 
       const json = await graphqlRes.json();
-      console.log(`🏷️ Tag search for "${normalizedTag}" response:`, JSON.stringify(json, null, 2));
+      console.log(`🏷️ Tag search for "${normalizedTag}" found ${json?.data?.products?.edges?.length || 0} products`);
       
-      const productEdge = json?.data?.products?.edges?.[0];
+      const products = json?.data?.products?.edges || [];
       
-      if (productEdge?.node?.variants?.edges?.[0]) {
+      if (products.length === 0) {
+        return { found: false };
+      }
+
+      // Flatten all variants from all products
+      const allOptions = [];
+      products.forEach(productEdge => {
         const product = productEdge.node;
-        const variant = product.variants.edges[0].node;
-        
-        console.log(`🏷️ Tag search found:`, {
-          title: product.title,
-          tags: product.tags,
-          sku: variant.sku,
-          price: variant.price
+        product.variants.edges.forEach(variantEdge => {
+          const variant = variantEdge.node;
+          allOptions.push({
+            productTitle: product.title,
+            variantTitle: variant.title,
+            sku: variant.sku,
+            price: parseFloat(variant.price || 0),
+            inventory: variant.inventoryQuantity,
+            inventoryItemId: variant.inventoryItem?.id?.replace('gid://shopify/InventoryItem/', ''),
+            fullTitle: variant.title !== 'Default Title' ? `${product.title} - ${variant.title}` : product.title,
+            productId: product.id,
+            variantId: variant.id
+          });
         });
+      });
+
+      console.log(`🔍 Found ${allOptions.length} total variants across ${products.length} products`);
+
+      if (allOptions.length === 1) {
+        // Only one option, return it directly
+        const option = allOptions[0];
+        return {
+          found: true,
+          product: { title: option.productTitle },
+          variant: {
+            sku: option.sku,
+            price: option.price,
+            inventory_item_id: option.inventoryItemId
+          },
+          searchMethod: 'tag_single',
+          confidence: 'high'
+        };
+      }
+
+      // Multiple options - find best match or return for user selection
+      const bestMatch = findBestVariantMatch(originalCardName, allOptions);
+      
+      if (bestMatch.score > 0.8) {
+        // High confidence match
+        console.log(`🎯 High confidence match: "${bestMatch.option.fullTitle}" (score: ${bestMatch.score.toFixed(2)})`);
         
         return {
           found: true,
-          product: { title: product.title },
+          product: { title: bestMatch.option.productTitle },
           variant: {
-            sku: variant.sku,
-            price: variant.price,
-            inventory_item_id: variant.inventoryItem?.id?.replace('gid://shopify/InventoryItem/', '')
+            sku: bestMatch.option.sku,
+            price: bestMatch.option.price,
+            inventory_item_id: bestMatch.option.inventoryItemId
           },
-          searchMethod: 'tag'
+          searchMethod: 'tag_confident',
+          confidence: 'high',
+          alternativeCount: allOptions.length - 1,
+          allOptions: allOptions // Include all options for frontend
         };
       }
+
+      // Medium/low confidence - return best guess but flag for user confirmation
+      console.log(`⚠️ Multiple options found, best guess: "${bestMatch.option.fullTitle}" (score: ${bestMatch.score.toFixed(2)})`);
       
-      console.log(`🏷️ No products found with tag "${normalizedTag}"`);
-      return { found: false };
+      return {
+        found: true,
+        product: { title: bestMatch.option.productTitle },
+        variant: {
+          sku: bestMatch.option.sku,
+          price: bestMatch.option.price,
+          inventory_item_id: bestMatch.option.inventoryItemId
+        },
+        searchMethod: 'tag_uncertain',
+        confidence: bestMatch.score > 0.5 ? 'medium' : 'low',
+        alternativeCount: allOptions.length - 1,
+        allOptions: allOptions, // Include all options for frontend selection
+        needsConfirmation: true
+      };
     };
 
-    // FIXED: Enhanced search with multiple tag attempts
-    const searchByMultipleTags = async (cardName) => {
-      console.log('🏷️ Searching by multiple tags for:', cardName);
-      
-      const potentialTags = extractPotentialTags(cardName);
-      
-      for (const tag of potentialTags) {
-        if (!tag || tag.length < 2) continue;
-        
-        try {
-          const result = await searchByTag(tag);
-          if (result.found) {
-            console.log(`✅ Found via tag "${tag}": ${result.product.title}`);
-            return result;
-          }
-        } catch (error) {
-          console.log(`❌ Tag search failed for "${tag}":`, error.message);
-          continue;
-        }
-      }
-      
-      console.log(`❌ No matches found with any tag for: ${cardName}`);
-      return { found: false };
-    };
-
-    // FIXED: Main search function with enhanced tag search
+    // FIXED: Updated main search function with enhanced tag search
     const searchCard = async (card) => {
       const { cardName, sku, searchMethod } = card;
       
@@ -461,10 +549,22 @@ module.exports = async function handler(req, res) {
         }
       }
       
-      // PRIORITY 2: Try multiple tag searches (most likely to work for your format)
-      const tagResult = await searchByMultipleTags(cardName);
-      if (tagResult.found) {
-        return tagResult;
+      // PRIORITY 2: Try enhanced tag search with multiple options
+      const potentialTags = extractPotentialTags(cardName);
+      
+      for (const tag of potentialTags) {
+        if (!tag || tag.length < 2) continue;
+        
+        try {
+          const result = await searchByTagWithAllOptions(tag, cardName);
+          if (result.found) {
+            console.log(`✅ Found via tag "${tag}": ${result.product.title}`);
+            return result;
+          }
+        } catch (error) {
+          console.log(`❌ Tag search failed for "${tag}":`, error.message);
+          continue;
+        }
       }
       
       // FALLBACK: Use other search methods
@@ -489,6 +589,172 @@ module.exports = async function handler(req, res) {
       console.log(`❌ No matches found for: ${cardName}`);
       return { found: false };
     };
+
+    // FIXED: Enhanced inventory update function that uses exact inventory_item_id
+    async function updateInventoryForVariant(variant, quantity, cardName, locationId) {
+      // Ensure we have all required data
+      if (!variant.inventory_item_id) {
+        console.error(`❌ No inventory_item_id for ${cardName}, cannot update inventory`);
+        return false;
+      }
+
+      if (!locationId) {
+        console.error(`❌ No location ID available, cannot update inventory`);
+        return false;
+      }
+
+      try {
+        console.log(`📦 Updating inventory for ${cardName}:`);
+        console.log(`  - SKU: ${variant.sku}`);
+        console.log(`  - Location ID: ${locationId}`);
+        console.log(`  - Inventory Item ID: ${variant.inventory_item_id}`);
+        console.log(`  - Quantity adjustment: +${quantity}`);
+        
+        const adjustRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/inventory_levels/adjust.json`, {
+          method: 'POST',
+          headers: {
+            'X-Shopify-Access-Token': ACCESS_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            location_id: parseInt(locationId),
+            inventory_item_id: parseInt(variant.inventory_item_id),
+            available_adjustment: parseInt(quantity)
+          })
+        });
+        
+        console.log(`📦 Inventory adjustment response status: ${adjustRes.status}`);
+        
+        if (adjustRes.ok) {
+          const adjustData = await adjustRes.json();
+          console.log(`✅ Inventory updated for ${cardName}: +${quantity}`);
+          console.log(`📦 New inventory level:`, adjustData.inventory_level);
+          return true;
+        } else {
+          const errorText = await adjustRes.text();
+          console.error(`❌ Failed to update inventory for ${cardName}:`, errorText);
+          console.error(`📦 Request details:`, {
+            location_id: parseInt(locationId),
+            inventory_item_id: parseInt(variant.inventory_item_id),
+            available_adjustment: parseInt(quantity)
+          });
+          return false;
+        }
+      } catch (inventoryErr) {
+        console.error(`❌ Failed to update inventory for ${cardName}:`, inventoryErr);
+        return false;
+      }
+    }
+
+    // FIXED: Updated main processing loop to handle exact inventory updates
+    async function processTradeCards(cards, estimateMode, locationId) {
+      let totalSuggestedValue = 0;
+      let totalMaximumValue = 0;
+      let totalRetailValue = 0;
+      const results = [];
+      const inventoryUpdates = []; // Track inventory updates for verification
+
+      console.log('⏱️ Processing', cards.length, 'cards');
+
+      for (const card of cards) {
+        const { cardName, sku = null, quantity = 1, condition = 'NM', searchMethod = null } = card;
+        
+        console.log(`🃏 Processing: ${cardName}`);
+        console.log(`  - SKU: ${sku}`);
+        console.log(`  - Quantity: ${quantity}`);
+        console.log(`  - Search Method: ${searchMethod}`);
+        
+        const searchResult = await searchCard(card);
+        
+        if (!searchResult.found) {
+          console.log('❌ No match found for:', cardName);
+          results.push({
+            cardName,
+            match: null,
+            retailPrice: 0,
+            suggestedTradeValue: 0,
+            maximumTradeValue: 0,
+            quantity,
+            condition,
+            sku: null,
+            searchMethod: 'none',
+            inventoryUpdated: false
+          });
+          continue;
+        }
+
+        const product = searchResult.product;
+        const variant = searchResult.variant;
+        const variantPrice = parseFloat(variant.price || 0);
+        const suggestedTradeValue = calculateSuggestedTradeValue(variantPrice);
+        const maximumTradeValue = calculateMaximumTradeValue(variantPrice);
+        
+        totalSuggestedValue += suggestedTradeValue * quantity;
+        totalMaximumValue += maximumTradeValue * quantity;
+        totalRetailValue += variantPrice * quantity;
+
+        console.log(`✅ Found: ${product.title} - $${variantPrice} (Suggested: $${suggestedTradeValue})`);
+        console.log(`  - Final SKU: ${variant.sku}`);
+        console.log(`  - Search Method: ${searchResult.searchMethod}`);
+        console.log(`  - Inventory Item ID: ${variant.inventory_item_id}`);
+
+        // Update inventory if not in estimate mode and we have the required data
+        let inventoryUpdated = false;
+        if (!estimateMode && locationId && variant.inventory_item_id) {
+          inventoryUpdated = await updateInventoryForVariant(variant, quantity, cardName, locationId);
+          
+          if (inventoryUpdated) {
+            inventoryUpdates.push({
+              cardName,
+              sku: variant.sku,
+              inventoryItemId: variant.inventory_item_id,
+              quantityAdded: quantity
+            });
+          }
+        } else {
+          console.log(`📦 Skipping inventory update for ${cardName}:`);
+          console.log(`  - Estimate mode: ${estimateMode}`);
+          console.log(`  - Location ID: ${locationId}`);
+          console.log(`  - Inventory Item ID: ${variant.inventory_item_id}`);
+        }
+
+        results.push({
+          cardName,
+          match: product.title,
+          retailPrice: variantPrice,
+          suggestedTradeValue,
+          maximumTradeValue,
+          quantity,
+          condition,
+          sku: variant.sku,
+          searchMethod: searchResult.searchMethod,
+          inventoryUpdated,
+          inventoryItemId: variant.inventory_item_id,
+          // Include additional data for debugging and frontend
+          confidence: searchResult.confidence,
+          alternativeCount: searchResult.alternativeCount,
+          allOptions: searchResult.allOptions
+        });
+      }
+
+      // Log inventory update summary
+      if (inventoryUpdates.length > 0) {
+        console.log('📦 Inventory Update Summary:');
+        inventoryUpdates.forEach(update => {
+          console.log(`  ✅ ${update.cardName} (SKU: ${update.sku}): +${update.quantityAdded}`);
+        });
+      }
+
+      return {
+        results,
+        totals: {
+          totalSuggestedValue,
+          totalMaximumValue,
+          totalRetailValue
+        },
+        inventoryUpdates
+      };
+    }
 
     // Customer and store credit functions (unchanged)
     const findOrCreateCustomer = async (email) => {
@@ -621,123 +887,23 @@ module.exports = async function handler(req, res) {
       }
     };
 
-    // Process cards with enhanced tag search
-    let totalSuggestedValue = 0;
-    let totalMaximumValue = 0;
-    let totalRetailValue = 0;
-    const results = [];
-
-    console.log('⏱️ Processing', cards.length, 'cards');
-
-    for (const card of cards) {
-      const { cardName, sku = null, quantity = 1, condition = 'NM', searchMethod = null } = card;
-      
-      console.log(`🃏 Processing: ${cardName}`);
-      console.log(`  - SKU: ${sku}`);
-      console.log(`  - Quantity: ${quantity}`);
-      console.log(`  - Search Method: ${searchMethod}`);
-      
-      const searchResult = await searchCard(card);
-      
-      if (!searchResult.found) {
-        console.log('❌ No match found for:', cardName);
-        results.push({
-          cardName,
-          match: null,
-          retailPrice: 0,
-          suggestedTradeValue: 0,
-          maximumTradeValue: 0,
-          quantity,
-          condition,
-          sku: null,
-          searchMethod: 'none'
-        });
-        continue;
-      }
-
-      const product = searchResult.product;
-      const variant = searchResult.variant;
-      const variantPrice = parseFloat(variant.price || 0);
-      const suggestedTradeValue = calculateSuggestedTradeValue(variantPrice);
-      const maximumTradeValue = calculateMaximumTradeValue(variantPrice);
-      
-      totalSuggestedValue += suggestedTradeValue * quantity;
-      totalMaximumValue += maximumTradeValue * quantity;
-      totalRetailValue += variantPrice * quantity;
-
-      console.log(`✅ Found: ${product.title} - ${variantPrice} (Suggested: ${suggestedTradeValue})`);
-      console.log(`  - Final SKU: ${variant.sku}`);
-      console.log(`  - Search Method: ${searchResult.searchMethod}`);
-
-      // Update inventory if not in estimate mode
-      if (!estimateMode && locationId && variant.inventory_item_id) {
-        try {
-          console.log(`📦 Updating inventory for ${cardName}:`);
-          console.log(`  - Location ID: ${locationId}`);
-          console.log(`  - Inventory Item ID: ${variant.inventory_item_id}`);
-          console.log(`  - Quantity adjustment: +${quantity}`);
-          
-          const adjustRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/inventory_levels/adjust.json`, {
-            method: 'POST',
-            headers: {
-              'X-Shopify-Access-Token': ACCESS_TOKEN,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              location_id: parseInt(locationId),
-              inventory_item_id: parseInt(variant.inventory_item_id),
-              available_adjustment: parseInt(quantity)
-            })
-          });
-          
-          console.log(`📦 Inventory adjustment response status: ${adjustRes.status}`);
-          
-          if (adjustRes.ok) {
-            const adjustData = await adjustRes.json();
-            console.log(`✅ Inventory updated for ${cardName}: +${quantity}`);
-            console.log(`📦 New inventory level:`, adjustData.inventory_level);
-          } else {
-            const errorText = await adjustRes.text();
-            console.error(`❌ Failed to update inventory for ${cardName}:`, errorText);
-            console.error(`📦 Request details:`, {
-              location_id: parseInt(locationId),
-              inventory_item_id: parseInt(variant.inventory_item_id),
-              available_adjustment: parseInt(quantity)
-            });
-          }
-        } catch (inventoryErr) {
-          console.error(`❌ Failed to update inventory for ${cardName}:`, inventoryErr);
-        }
-      } else {
-        console.log(`📦 Skipping inventory update for ${cardName}:`);
-        console.log(`  - Estimate mode: ${estimateMode}`);
-        console.log(`  - Location ID: ${locationId}`);
-        console.log(`  - Inventory Item ID: ${variant.inventory_item_id}`);
-      }
-
-      results.push({
-        cardName,
-        match: product.title,
-        retailPrice: variantPrice,
-        suggestedTradeValue,
-        maximumTradeValue,
-        quantity,
-        condition,
-        sku: variant.sku,
-        searchMethod: searchResult.searchMethod
-      });
-    }
+    // Process cards with enhanced tag search and exact inventory updates
+    const processingResult = await processTradeCards(cards, estimateMode, locationId);
+    const { results, totals, inventoryUpdates } = processingResult;
 
     // Calculate final payout
-    const finalPayout = validatedOverride !== null ? validatedOverride : totalSuggestedValue;
+    const finalPayout = validatedOverride !== null ? validatedOverride : totals.totalSuggestedValue;
     const overrideUsed = validatedOverride !== null;
 
     console.log('💰 Final calculations:', {
-      totalSuggestedValue,
-      totalMaximumValue,
-      totalRetailValue,
+      totalSuggestedValue: totals.totalSuggestedValue,
+      totalMaximumValue: totals.totalMaximumValue,
+      totalRetailValue: totals.totalRetailValue,
       finalPayout,
-      overrideUsed
+      overrideUsed,
+      inventoryUpdatesAttempted: results.filter(r => r.match).length,
+      inventoryUpdatesSuccessful: results.filter(r => r.inventoryUpdated).length,
+      inventoryUpdateFailures: results.filter(r => r.match && !r.inventoryUpdated).length
     });
 
     // Handle payouts (only if not estimate mode)
@@ -804,9 +970,9 @@ module.exports = async function handler(req, res) {
       payoutMethod,
       customerEmail,
       results,
-      suggestedTotal: totalSuggestedValue.toFixed(2),
-      maximumTotal: totalMaximumValue.toFixed(2),
-      totalRetailValue: totalRetailValue.toFixed(2),
+      suggestedTotal: totals.totalSuggestedValue.toFixed(2),
+      maximumTotal: totals.totalMaximumValue.toFixed(2),
+      totalRetailValue: totals.totalRetailValue.toFixed(2),
       finalPayout: finalPayout.toFixed(2),
       overrideUsed,
       overrideAmount: overrideUsed ? finalPayout.toFixed(2) : null,
@@ -825,16 +991,26 @@ module.exports = async function handler(req, res) {
       processingStats: {
         totalCards: cards.length,
         cardsFound: results.filter(r => r.match).length,
-        cardsNotFound: results.filter(r => !r.match).length
+        cardsNotFound: results.filter(r => !r.match).length,
+        inventoryUpdatesSuccessful: results.filter(r => r.inventoryUpdated).length,
+        inventoryUpdatesFailed: results.filter(r => r.match && !r.inventoryUpdated).length
       },
-      // Enhanced debug info for tag searches
+      // Enhanced debug info
       debug: {
         exactSkuMatches: results.filter(r => r.searchMethod === 'exact_sku').length,
         titleMatches: results.filter(r => r.searchMethod === 'title').length,
         skuMatches: results.filter(r => r.searchMethod === 'sku').length,
-        tagMatches: results.filter(r => r.searchMethod === 'tag').length,
+        tagMatches: results.filter(r => r.searchMethod?.startsWith('tag')).length,
+        uncertainMatches: results.filter(r => r.confidence === 'low' || r.confidence === 'medium').length,
+        multipleOptionsAvailable: results.filter(r => r.alternativeCount > 0).length,
         searchMethodBreakdown: results.reduce((acc, r) => {
           acc[r.searchMethod] = (acc[r.searchMethod] || 0) + 1;
+          return acc;
+        }, {}),
+        confidenceBreakdown: results.reduce((acc, r) => {
+          if (r.confidence) {
+            acc[r.confidence] = (acc[r.confidence] || 0) + 1;
+          }
           return acc;
         }, {})
       }
@@ -843,6 +1019,8 @@ module.exports = async function handler(req, res) {
     console.log('✅ Processing complete');
     console.log('🎯 Search method breakdown:', response.debug.searchMethodBreakdown);
     console.log('🏷️ Tag matches:', response.debug.tagMatches);
+    console.log('⚠️ Uncertain matches:', response.debug.uncertainMatches);
+    console.log('🔀 Multiple options available:', response.debug.multipleOptionsAvailable);
     console.log('=== API REQUEST END ===');
     
     res.status(200).json(response);
