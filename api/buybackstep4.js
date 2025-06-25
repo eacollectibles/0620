@@ -108,6 +108,44 @@ module.exports = async function handler(req, res) {
       return 0;
     }
 
+    // FIXED: Helper function to normalize card names/tags for search
+    function normalizeSearchTerm(term) {
+      if (!term) return '';
+      
+      // Convert "138/131" format to "138131" for tag searches
+      const normalized = term.replace(/[\/\-\s]/g, '');
+      console.log(`🔄 Normalized "${term}" to "${normalized}"`);
+      return normalized;
+    }
+
+    // FIXED: Helper function to extract potential tags from card names
+    function extractPotentialTags(cardName) {
+      if (!cardName) return [];
+      
+      const tags = [];
+      
+      // Look for number/number patterns (like 138/131)
+      const numberPattern = /(\d+)[\/\-](\d+)/g;
+      let match;
+      while ((match = numberPattern.exec(cardName)) !== null) {
+        // Add both original and normalized versions
+        tags.push(match[0]); // Original: "138/131"
+        tags.push(match[1] + match[2]); // Normalized: "138131"
+      }
+      
+      // Look for standalone numbers that might be set numbers
+      const standaloneNumbers = cardName.match(/\b\d{3,6}\b/g);
+      if (standaloneNumbers) {
+        tags.push(...standaloneNumbers);
+      }
+      
+      // Also try the full card name as a tag (normalized)
+      tags.push(normalizeSearchTerm(cardName));
+      
+      console.log(`🏷️ Extracted potential tags from "${cardName}":`, tags);
+      return [...new Set(tags)]; // Remove duplicates
+    }
+
     // Get location ID for inventory updates
     let locationId = null;
     if (!estimateMode) {
@@ -195,7 +233,7 @@ module.exports = async function handler(req, res) {
       return { found: false };
     };
 
-    // Real Shopify search functions
+    // FIXED: Search by title with better normalization
     const searchByTitle = async (query) => {
       console.log('🔍 Searching by title:', query);
       
@@ -304,15 +342,20 @@ module.exports = async function handler(req, res) {
       return { found: false };
     };
 
+    // FIXED: Search by tag with improved format handling
     const searchByTag = async (tag) => {
       console.log('🏷️ Searching by tag:', tag);
       
+      // Normalize the tag for search (remove slashes, etc.)
+      const normalizedTag = normalizeSearchTerm(tag);
+      
       const query = `{
-        products(first: 1, query: "tag:${tag}") {
+        products(first: 5, query: "tag:${normalizedTag}") {
           edges {
             node {
               id
               title
+              tags
               variants(first: 1) {
                 edges {
                   node {
@@ -342,11 +385,20 @@ module.exports = async function handler(req, res) {
       });
 
       const json = await graphqlRes.json();
+      console.log(`🏷️ Tag search for "${normalizedTag}" response:`, JSON.stringify(json, null, 2));
+      
       const productEdge = json?.data?.products?.edges?.[0];
       
       if (productEdge?.node?.variants?.edges?.[0]) {
         const product = productEdge.node;
         const variant = product.variants.edges[0].node;
+        
+        console.log(`🏷️ Tag search found:`, {
+          title: product.title,
+          tags: product.tags,
+          sku: variant.sku,
+          price: variant.price
+        });
         
         return {
           found: true,
@@ -360,10 +412,36 @@ module.exports = async function handler(req, res) {
         };
       }
       
+      console.log(`🏷️ No products found with tag "${normalizedTag}"`);
       return { found: false };
     };
 
-    // FIXED: Main search function with exact SKU priority
+    // FIXED: Enhanced search with multiple tag attempts
+    const searchByMultipleTags = async (cardName) => {
+      console.log('🏷️ Searching by multiple tags for:', cardName);
+      
+      const potentialTags = extractPotentialTags(cardName);
+      
+      for (const tag of potentialTags) {
+        if (!tag || tag.length < 2) continue;
+        
+        try {
+          const result = await searchByTag(tag);
+          if (result.found) {
+            console.log(`✅ Found via tag "${tag}": ${result.product.title}`);
+            return result;
+          }
+        } catch (error) {
+          console.log(`❌ Tag search failed for "${tag}":`, error.message);
+          continue;
+        }
+      }
+      
+      console.log(`❌ No matches found with any tag for: ${cardName}`);
+      return { found: false };
+    };
+
+    // FIXED: Main search function with enhanced tag search
     const searchCard = async (card) => {
       const { cardName, sku, searchMethod } = card;
       
@@ -379,26 +457,31 @@ module.exports = async function handler(req, res) {
           console.log('✅ Exact SKU match found');
           return exactResult;
         } else {
-          console.warn('⚠️ Exact SKU not found, falling back to name search');
+          console.warn('⚠️ Exact SKU not found, falling back to other methods');
         }
       }
       
-      // FALLBACK: Use original search methods
-      const searchQueries = [
-        { query: cardName, method: searchByTitle },
-        { query: sku || cardName, method: searchBySKU },
-        { query: cardName, method: searchByTag }
+      // PRIORITY 2: Try multiple tag searches (most likely to work for your format)
+      const tagResult = await searchByMultipleTags(cardName);
+      if (tagResult.found) {
+        return tagResult;
+      }
+      
+      // FALLBACK: Use other search methods
+      const searchMethods = [
+        { query: cardName, method: searchByTitle, name: 'title' },
+        { query: sku || cardName, method: searchBySKU, name: 'sku' }
       ].filter(s => s.query); // Remove null/empty queries
 
-      for (const { query, method } of searchQueries) {
+      for (const { query, method, name } of searchMethods) {
         try {
           const result = await method(query);
           if (result.found) {
-            console.log(`✅ Found via ${result.searchMethod}: ${result.product.title}`);
+            console.log(`✅ Found via ${name}: ${result.product.title}`);
             return result;
           }
         } catch (error) {
-          console.log(`❌ Search method failed for ${query}:`, error.message);
+          console.log(`❌ ${name} search failed for ${query}:`, error.message);
           continue;
         }
       }
@@ -407,7 +490,7 @@ module.exports = async function handler(req, res) {
       return { found: false };
     };
 
-    // Customer and store credit functions
+    // Customer and store credit functions (unchanged)
     const findOrCreateCustomer = async (email) => {
       try {
         // Search for existing customer
@@ -538,7 +621,7 @@ module.exports = async function handler(req, res) {
       }
     };
 
-    // FIXED: Process cards with exact SKU support
+    // Process cards with enhanced tag search
     let totalSuggestedValue = 0;
     let totalMaximumValue = 0;
     let totalRetailValue = 0;
@@ -744,17 +827,22 @@ module.exports = async function handler(req, res) {
         cardsFound: results.filter(r => r.match).length,
         cardsNotFound: results.filter(r => !r.match).length
       },
-      // ADDED: For debugging SKU consistency
+      // Enhanced debug info for tag searches
       debug: {
         exactSkuMatches: results.filter(r => r.searchMethod === 'exact_sku').length,
         titleMatches: results.filter(r => r.searchMethod === 'title').length,
         skuMatches: results.filter(r => r.searchMethod === 'sku').length,
-        tagMatches: results.filter(r => r.searchMethod === 'tag').length
+        tagMatches: results.filter(r => r.searchMethod === 'tag').length,
+        searchMethodBreakdown: results.reduce((acc, r) => {
+          acc[r.searchMethod] = (acc[r.searchMethod] || 0) + 1;
+          return acc;
+        }, {})
       }
     };
 
     console.log('✅ Processing complete');
-    console.log('🎯 Exact SKU matches:', response.debug.exactSkuMatches);
+    console.log('🎯 Search method breakdown:', response.debug.searchMethodBreakdown);
+    console.log('🏷️ Tag matches:', response.debug.tagMatches);
     console.log('=== API REQUEST END ===');
     
     res.status(200).json(response);
