@@ -61,13 +61,21 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid or missing cards array' });
     }
 
-    // Shopify configuration from Vercel environment variables
+    // Complete Shopify configuration from Vercel environment variables
     const SHOPIFY_DOMAIN = process.env.SHOPIFY_DOMAIN;
-    const ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
+    const SHOPIFY_API_KEY = process.env.SHOPIFY_API_KEY;
+    const SHOPIFY_API_SECRET = process.env.SHOPIFY_API_SECRET;
+    const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
 
     // Validate required environment variables
-    if (!SHOPIFY_DOMAIN || !ACCESS_TOKEN) {
+    if (!SHOPIFY_DOMAIN || !SHOPIFY_API_KEY || !SHOPIFY_API_SECRET || !SHOPIFY_ACCESS_TOKEN) {
       console.error('❌ Missing required environment variables');
+      console.error('Required credentials status:', {
+        SHOPIFY_DOMAIN: !!SHOPIFY_DOMAIN,
+        SHOPIFY_API_KEY: !!SHOPIFY_API_KEY,
+        SHOPIFY_API_SECRET: !!SHOPIFY_API_SECRET,
+        SHOPIFY_ACCESS_TOKEN: !!SHOPIFY_ACCESS_TOKEN
+      });
       return res.status(500).json({ 
         error: 'Server configuration error',
         details: 'Missing Shopify credentials'
@@ -76,8 +84,38 @@ module.exports = async function handler(req, res) {
 
     console.log('🛍️ Shopify config:', {
       domain: SHOPIFY_DOMAIN,
-      hasToken: !!ACCESS_TOKEN
+      hasApiKey: !!SHOPIFY_API_KEY,
+      hasApiSecret: !!SHOPIFY_API_SECRET,
+      hasAccessToken: !!SHOPIFY_ACCESS_TOKEN
     });
+
+    // Helper function for authenticated Shopify API requests
+    const makeShopifyRequest = async (endpoint, options = {}) => {
+      const defaultHeaders = {
+        'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
+        'Content-Type': 'application/json',
+        'User-Agent': `Trade-in-System/1.0 (API Key: ${SHOPIFY_API_KEY.substring(0, 8)}...)`
+      };
+
+      return fetch(`https://${SHOPIFY_DOMAIN}${endpoint}`, {
+        ...options,
+        headers: {
+          ...defaultHeaders,
+          ...options.headers
+        }
+      });
+    };
+
+    // Helper function for GraphQL requests
+    const makeShopifyGraphQLRequest = async (query, variables = {}) => {
+      return makeShopifyRequest('/admin/api/2023-10/graphql.json', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          query,
+          variables
+        })
+      });
+    };
 
     // Trade rate calculation functions
     function calculateMaximumTradeValue(marketValue) {
@@ -204,12 +242,7 @@ module.exports = async function handler(req, res) {
     let locationId = null;
     if (!estimateMode) {
       try {
-        const locationRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/locations.json`, {
-          headers: {
-            'X-Shopify-Access-Token': ACCESS_TOKEN,
-            'Content-Type': 'application/json'
-          }
-        });
+        const locationRes = await makeShopifyRequest('/admin/api/2023-10/locations.json');
         const locations = await locationRes.json();
         locationId = locations.locations?.[0]?.id;
         console.log('📍 Location ID:', locationId);
@@ -243,15 +276,7 @@ module.exports = async function handler(req, res) {
         }
       }`;
 
-      const graphqlRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/graphql.json`, {
-        method: 'POST',
-        headers: {
-          'X-Shopify-Access-Token': ACCESS_TOKEN,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ query })
-      });
-
+      const graphqlRes = await makeShopifyGraphQLRequest(query);
       const json = await graphqlRes.json();
       console.log('🎯 Exact SKU GraphQL response:', JSON.stringify(json, null, 2));
       
@@ -291,14 +316,8 @@ module.exports = async function handler(req, res) {
     const searchByTitle = async (query) => {
       console.log('🔍 Searching by title:', query);
       
-      const productRes = await fetch(
-        `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/products.json?title=${encodeURIComponent(query)}`,
-        {
-          headers: {
-            'X-Shopify-Access-Token': ACCESS_TOKEN,
-            'Content-Type': 'application/json'
-          }
-        }
+      const productRes = await makeShopifyRequest(
+        `/admin/api/2023-10/products.json?title=${encodeURIComponent(query)}`
       );
 
       const productData = await productRes.json();
@@ -353,15 +372,7 @@ module.exports = async function handler(req, res) {
         }
       }`;
 
-      const graphqlRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/graphql.json`, {
-        method: 'POST',
-        headers: {
-          'X-Shopify-Access-Token': ACCESS_TOKEN,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ query })
-      });
-
+      const graphqlRes = await makeShopifyGraphQLRequest(query);
       const json = await graphqlRes.json();
       console.log('🔍 SKU GraphQL response:', JSON.stringify(json, null, 2));
       
@@ -432,15 +443,7 @@ module.exports = async function handler(req, res) {
         }
       }`;
 
-      const graphqlRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/graphql.json`, {
-        method: 'POST',
-        headers: {
-          'X-Shopify-Access-Token': ACCESS_TOKEN,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ query })
-      });
-
+      const graphqlRes = await makeShopifyGraphQLRequest(query);
       const json = await graphqlRes.json();
       console.log(`🏷️ Tag search for "${normalizedTag}" found ${json?.data?.products?.edges?.length || 0} products`);
       
@@ -610,12 +613,8 @@ module.exports = async function handler(req, res) {
         console.log(`  - Inventory Item ID: ${variant.inventory_item_id}`);
         console.log(`  - Quantity adjustment: +${quantity}`);
         
-        const adjustRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/inventory_levels/adjust.json`, {
+        const adjustRes = await makeShopifyRequest('/admin/api/2023-10/inventory_levels/adjust.json', {
           method: 'POST',
-          headers: {
-            'X-Shopify-Access-Token': ACCESS_TOKEN,
-            'Content-Type': 'application/json'
-          },
           body: JSON.stringify({
             location_id: parseInt(locationId),
             inventory_item_id: parseInt(variant.inventory_item_id),
@@ -756,18 +755,12 @@ module.exports = async function handler(req, res) {
       };
     }
 
-    // Customer and store credit functions (unchanged)
+    // Customer and store credit functions with updated API calls
     const findOrCreateCustomer = async (email) => {
       try {
         // Search for existing customer
-        const searchRes = await fetch(
-          `https://${SHOPIFY_DOMAIN}/admin/api/2023-10/customers/search.json?query=email:${encodeURIComponent(email)}`,
-          {
-            headers: {
-              'X-Shopify-Access-Token': ACCESS_TOKEN,
-              'Content-Type': 'application/json'
-            }
-          }
+        const searchRes = await makeShopifyRequest(
+          `/admin/api/2023-10/customers/search.json?query=email:${encodeURIComponent(email)}`
         );
         
         const searchData = await searchRes.json();
@@ -778,12 +771,8 @@ module.exports = async function handler(req, res) {
         }
 
         // Create new customer
-        const createRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/customers.json`, {
+        const createRes = await makeShopifyRequest('/admin/api/2023-10/customers.json', {
           method: 'POST',
-          headers: {
-            'X-Shopify-Access-Token': ACCESS_TOKEN,
-            'Content-Type': 'application/json'
-          },
           body: JSON.stringify({
             customer: {
               email: email,
@@ -847,17 +836,7 @@ module.exports = async function handler(req, res) {
           }
         };
 
-        const graphqlRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/graphql.json`, {
-          method: 'POST',
-          headers: {
-            'X-Shopify-Access-Token': ACCESS_TOKEN,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            query: mutation,
-            variables: variables
-          })
-        });
+        const graphqlRes = await makeShopifyGraphQLRequest(mutation, variables);
 
         if (!graphqlRes.ok) {
           throw new Error(`HTTP Error ${graphqlRes.status}: ${await graphqlRes.text()}`);
@@ -927,16 +906,12 @@ module.exports = async function handler(req, res) {
         }
       } else if (payoutMethod === "gift-card") {
         try {
-          const giftCardRes = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/gift_cards.json`, {
+          const giftCardRes = await makeShopifyRequest('/admin/api/2023-10/gift_cards.json', {
             method: "POST",
-            headers: {
-              "X-Shopify-Access-Token": ACCESS_TOKEN,
-              "Content-Type": "application/json"
-            },
             body: JSON.stringify({
               gift_card: {
                 initial_value: finalPayout.toFixed(2),
-                note: `Trade-in payout for ${employeeName || "Unknown"}`,
+                note: `Trade-in payout for ${employeeName || "Unknown"}${overrideUsed ? ` (Override)` : ''}`,
                 currency: "CAD"
               }
             })
@@ -962,7 +937,7 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // Return response
+    // Return response with enhanced debugging information
     const response = {
       success: true,
       estimate: estimateMode,
@@ -1012,11 +987,18 @@ module.exports = async function handler(req, res) {
             acc[r.confidence] = (acc[r.confidence] || 0) + 1;
           }
           return acc;
-        }, {})
+        }, {}),
+        apiCredentialsUsed: {
+          domain: SHOPIFY_DOMAIN,
+          apiKeyPresent: !!SHOPIFY_API_KEY,
+          apiSecretPresent: !!SHOPIFY_API_SECRET,
+          accessTokenPresent: !!SHOPIFY_ACCESS_TOKEN
+        }
       }
     };
 
     console.log('✅ Processing complete');
+    console.log('🔑 API Credentials Status:', response.debug.apiCredentialsUsed);
     console.log('🎯 Search method breakdown:', response.debug.searchMethodBreakdown);
     console.log('🏷️ Tag matches:', response.debug.tagMatches);
     console.log('⚠️ Uncertain matches:', response.debug.uncertainMatches);
