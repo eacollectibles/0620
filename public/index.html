@@ -67,30 +67,6 @@
       margin: 0 auto;
     }
 
-    /* Header */
-    .header {
-      text-align: center;
-      margin-bottom: 48px;
-    }
-
-    .logo {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      background: var(--primary);
-      color: white;
-      padding: 16px 32px;
-      border-radius: var(--border-radius-xl);
-      box-shadow: var(--shadow-lg);
-      font-size: 24px;
-      font-weight: 700;
-      letter-spacing: -0.025em;
-    }
-
-    .logo-icon {
-      font-size: 28px;
-    }
-
     /* Customer Portal Link Styles */
     .customer-portal-section {
       background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
@@ -901,261 +877,6 @@
       border-top: 1px solid rgba(56, 161, 105, 0.2);
     }
 
-    /* POS Receipt Styles - Optimized for Star TSP100III thermal printer */
-    .pos-receipt {
-      background: white;
-      border: 2px solid var(--gray-300);
-      border-radius: var(--border-radius-lg);
-      padding: 24px;
-      margin: 20px 0;
-      display: none;
-      page-break-inside: avoid;
-      max-width: 280px;
-      margin: 20px auto;
-      font-family: 'Courier New', monospace;
-    }
-
-    .pos-receipt.visible {
-      display: block;
-    }
-
-    .receipt-header {
-      text-align: center;
-      border-bottom: 2px solid #000;
-      padding-bottom: 16px;
-      margin-bottom: 16px;
-    }
-
-    .receipt-store-name {
-      font-size: 20px;
-      font-weight: bold;
-      font-family: var(--font-mono);
-      letter-spacing: 1px;
-      margin-bottom: 8px;
-    }
-
-    .receipt-store-info {
-      font-size: 12px;
-      line-height: 1.4;
-      font-family: var(--font-mono);
-    }
-
-    .receipt-transaction-info {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      font-family: var(--font-mono);
-      margin: 16px 0;
-      padding: 8px 0;
-      border-bottom: 1px dashed #000;
-    }
-
-    .receipt-title {
-      text-align: center;
-      font-size: 16px;
-      font-weight: bold;
-      font-family: var(--font-mono);
-      margin: 16px 0;
-      letter-spacing: 1px;
-    }
-
-    .receipt-items {
-      margin: 16px 0;
-    }
-
-    .receipt-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      font-size: 12px;
-      font-family: var(--font-mono);
-      margin-bottom: 8px;
-      line-height: 1.3;
-    }
-
-    .receipt-item-name {
-      flex: 1;
-      margin-right: 8px;
-      word-wrap: break-word;
-    }
-
-    .receipt-item-details {
-      font-size: 10px;
-      color: #666;
-      margin-top: 2px;
-    }
-
-    .receipt-item-value {
-      text-align: right;
-      white-space: nowrap;
-      min-width: 60px;
-    }
-
-    .receipt-total-line {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      font-family: var(--font-mono);
-      margin-bottom: 4px;
-    }
-
-    .receipt-total-line.final {
-      font-size: 16px;
-      font-weight: bold;
-      border-top: 1px solid #000;
-      padding-top: 8px;
-      margin-top: 8px;
-    }
-
-    .receipt-payout {
-      text-align: center;
-      font-size: 14px;
-      font-family: var(--font-mono);
-      font-weight: bold;
-      margin: 16px 0;
-      padding: 12px;
-      border: 2px solid #000;
-      background: #f0f0f0;
-    }
-
-    .receipt-gift-card {
-      text-align: center;
-      font-family: var(--font-mono);
-      margin: 16px 0;
-      padding: 12px;
-      border: 2px dashed #000;
-    }
-
-    .receipt-gift-card-code {
-      font-size: 18px;
-      font-weight: bold;
-      letter-spacing: 2px;
-      margin: 8px 0;
-    }
-
-    .receipt-footer {
-      text-align: center;
-      font-size: 10px;
-      font-family: var(--font-mono);
-      margin-top: 20px;
-      padding-top: 16px;
-      border-top: 1px dashed #000;
-    }
-
-    .receipt-footer p {
-      margin: 4px 0;
-      line-height: 1.3;
-    }
-
-    .receipt-signature {
-      margin-top: 24px;
-      border-top: 1px solid #000;
-      padding-top: 16px;
-    }
-
-    .receipt-signature-line {
-      border-bottom: 1px solid #000;
-      height: 40px;
-      margin: 8px 0 4px 0;
-    }
-
-    .receipt-signature-label {
-      font-size: 10px;
-      font-family: var(--font-mono);
-    }
-
-    /* Barcode/Label Printing Styles - Avery 7666 Format */
-    .barcode-section {
-      background: white;
-      border: 2px solid var(--gray-300);
-      border-radius: var(--border-radius-lg);
-      padding: 24px;
-      margin: 20px 0;
-      page-break-inside: avoid;
-    }
-
-    .barcode-header {
-      text-align: center;
-      margin-bottom: 20px;
-      border-bottom: 1px solid var(--gray-200);
-      padding-bottom: 16px;
-    }
-
-    /* Avery 5160 Grid Layout - 3 columns x 10 rows = 30 labels per sheet */
-    .barcode-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0;
-      margin: 20px 0;
-      background: white;
-    }
-
-    /* Avery 5160 Individual Label - 2⅝" x 1" with proper printable area */
-    .barcode-label {
-      width: 2.625in;
-      height: 1in;
-      border: 1px dashed var(--gray-300);
-      padding: 4px 6px;
-      font-family: var(--font-mono);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      background: white;
-      box-sizing: border-box;
-      page-break-inside: avoid;
-      overflow: visible;
-    }
-
-    .barcode-item-name {
-      display: none;
-    }
-
-    .barcode-sku {
-      font-size: 6px;
-      color: var(--gray-800);
-      margin-bottom: 1px;
-      white-space: nowrap;
-      font-weight: 600;
-      line-height: 1;
-    }
-
-    /* Code 128 Barcode - Real barcode using JsBarcode library */
-    .barcode-display {
-      background: white;
-      border: 1px solid #ddd;
-      padding: 1px;
-      margin: 1px 0;
-      overflow: visible;
-      line-height: 1;
-      height: 60px;
-      width: calc(100% - 4px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .barcode-svg {
-      max-width: 100%;
-      max-height: 100%;
-    }
-
-    .barcode-number {
-      font-size: 5px;
-      color: var(--gray-800);
-      margin-top: 1px;
-      letter-spacing: 0.5px;
-      white-space: nowrap;
-      font-weight: 500;
-      font-family: 'Courier New', monospace;
-      line-height: 1;
-    }
-
-    .barcode-details {
-      display: none;
-    }
-
     /* Status bar */
     .status-bar {
       background: white;
@@ -1246,146 +967,6 @@
       }
     }
 
-    /* Debug section styles */
-    .debug-section {
-      background: #f8f9fa;
-      border: 1px solid #dee2e6;
-      border-radius: var(--border-radius-lg);
-      padding: 20px;
-      margin: 20px 0;
-      font-family: var(--font-mono);
-      font-size: 12px;
-    }
-
-    .debug-title {
-      font-weight: bold;
-      color: #495057;
-      margin-bottom: 10px;
-    }
-
-    .debug-content {
-      background: white;
-      padding: 10px;
-      border-radius: var(--border-radius);
-      white-space: pre-wrap;
-      max-height: 200px;
-      overflow-y: auto;
-      border: 1px solid #ced4da;
-    }
-
-    /* Print styles optimized for Star TSP100III thermal receipt printer */
-    @media print {
-      .receipt-print-mode {
-        margin: 0 !important;
-        padding: 0 !important;
-      }
-      
-      .receipt-print-mode @page {
-        size: 72mm auto;
-        margin: 2mm 1mm;
-      }
-      
-      .receipt-print-mode body {
-        margin: 0 !important;
-        padding: 0 !important;
-        font-size: 11px;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-        background: white !important;
-        width: 72mm;
-        font-family: 'Courier New', monospace !important;
-      }
-      
-      .receipt-print-mode * {
-        visibility: hidden !important;
-      }
-      
-      .receipt-print-mode .pos-receipt,
-      .receipt-print-mode .pos-receipt * {
-        visibility: visible !important;
-      }
-      
-      .receipt-print-mode .pos-receipt {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 72mm !important;
-        max-width: none !important;
-        margin: 0 !important;
-        padding: 4px 2mm !important;
-        border: none !important;
-        border-radius: 0 !important;
-        background: white !important;
-        box-shadow: none !important;
-        page-break-inside: avoid !important;
-        font-family: 'Courier New', monospace !important;
-      }
-
-      /* Barcode print styles */
-      .barcode-print-mode {
-        margin: 0 !important;
-        padding: 0 !important;
-      }
-      
-      .barcode-print-mode @page {
-        size: letter;
-        margin: 0.5in 0.1875in 0.5in 0.1875in;
-      }
-      
-      .barcode-print-mode body {
-        margin: 0 !important;
-        padding: 0 !important;
-        background: white !important;
-        font-family: 'Courier New', monospace !important;
-      }
-      
-      .barcode-print-mode * {
-        visibility: hidden !important;
-      }
-      
-      .barcode-print-mode .barcode-grid,
-      .barcode-print-mode .barcode-label,
-      .barcode-print-mode .barcode-sku,
-      .barcode-print-mode .barcode-display,
-      .barcode-print-mode .barcode-svg,
-      .barcode-print-mode .barcode-number {
-        visibility: visible !important;
-      }
-      
-      .barcode-print-mode .barcode-grid {
-        position: absolute !important;
-        top: 0.5in !important;
-        left: 0.1875in !important;
-        width: 7.875in !important;
-        height: 10in !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        gap: 0 !important;
-        display: grid !important;
-        grid-template-columns: repeat(3, 2.625in) !important;
-        grid-template-rows: repeat(10, 1in) !important;
-        background: white !important;
-        page-break-inside: avoid !important;
-      }
-      
-      .barcode-print-mode .barcode-label {
-        border: none !important;
-        width: 2.625in !important;
-        height: 1in !important;
-        margin: 0 !important;
-        padding: 4px 6px !important;
-        page-break-inside: avoid !important;
-        box-sizing: border-box !important;
-        background: white !important;
-        overflow: visible !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: center !important;
-        align-items: center !important;
-        text-align: center !important;
-      }
-    }
-
     @media (max-width: 768px) {
       body {
         padding: 16px;
@@ -1454,47 +1035,6 @@
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
-    }
-
-    /* Micro-interactions */
-    .btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: left 0.5s;
-    }
-
-    .btn:hover::before {
-      left: 100%;
-    }
-
-    /* Visual indicator for scrollable areas */
-    .scrollable-indicator {
-      position: relative;
-    }
-
-    .scrollable-indicator::after {
-      content: '⬇️ Scroll for more';
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      background: var(--accent);
-      color: white;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      pointer-events: none;
-      z-index: 1001;
-    }
-
-    .scrollable-indicator.show-scroll-hint::after {
-      opacity: 0.8;
     }
   </style>
 </head>
@@ -1622,7 +1162,7 @@
                 </button>
               </div>
               
-              <div class="cards-list scrollable-indicator" id="card-list">
+              <div class="cards-list" id="card-list">
                 <div class="card-row">
                   <div class="card-input-container">
                     <input type="text" class="card-input" name="cardName" placeholder="Enter card name or SKU" required>
@@ -1645,7 +1185,7 @@
               <div class="estimate-title">📊 Trade Estimate</div>
             </div>
             
-            <div id="estimate-cards" class="scrollable-indicator">
+            <div id="estimate-cards">
               <!-- Estimate cards will be inserted here -->
             </div>
 
@@ -1721,34 +1261,6 @@
           </div>
         </div>
 
-        <!-- POS Receipt Section - Star TSP100III optimized -->
-        <div id="pos-receipt-section" class="pos-receipt" style="display: none;">
-          <div id="pos-receipt">
-            <!-- Receipt content will be generated here -->
-          </div>
-        </div>
-
-        <!-- Debug section for troubleshooting SKU data -->
-        <div id="debug-section" class="debug-section" style="display: none;">
-          <div class="debug-title">🔍 Debug: API Response Data</div>
-          <div id="debug-content" class="debug-content">
-            No debug data available
-          </div>
-        </div>
-
-        <!-- Code 128 Barcode Section - Real barcodes with actual SKUs -->
-        <div id="barcode-section" class="barcode-section" style="display: none;">
-          <div class="barcode-header">
-            <h3 style="margin: 0; color: var(--gray-800);">📊 Code 128 Barcode Labels</h3>
-            <div style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">
-              Avery 5160 • 2⅝" x 1" • Code 128 Format • Socket S740 Compatible
-            </div>
-          </div>
-          <div id="barcode-content" class="barcode-grid">
-            <!-- Code 128 barcode labels will be generated here -->
-          </div>
-        </div>
-
         <!-- Status Bar -->
         <div class="status-bar" id="status-bar">
           <div class="status-text">Ready to process trades...</div>
@@ -1766,7 +1278,6 @@
 
     // Customer Portal Functions
     function openCustomerPortal() {
-      // Replace '/customer-portal.html' with your actual customer portal file path
       const portalUrl = '/customer-portal.html';
       window.open(portalUrl, '_blank');
     }
@@ -1774,7 +1285,6 @@
     function copyPortalLink() {
       const portalUrl = window.location.origin + '/customer-portal.html';
       navigator.clipboard.writeText(portalUrl).then(function() {
-        // Show success feedback
         const btn = event.target.closest('.portal-btn');
         const originalText = btn.innerHTML;
         btn.innerHTML = '<span>✅</span><span>Copied!</span>';
@@ -1791,7 +1301,6 @@
 
     function generateQRCode() {
       const portalUrl = window.location.origin + '/customer-portal.html';
-      // You can implement QR code generation here or use a service like:
       const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(portalUrl)}`;
       window.open(qrUrl, '_blank');
     }
@@ -1814,37 +1323,6 @@
       const overrideTotal = document.getElementById('overrideTotal');
       const tradeSuccess = document.getElementById('trade-success');
       const successContent = document.getElementById('success-content');
-
-      // Setup scroll indicators for better UX
-      function setupScrollIndicators() {
-        const scrollableElements = document.querySelectorAll('.scrollable-indicator');
-        
-        scrollableElements.forEach(element => {
-          function checkScroll() {
-            if (element.scrollHeight > element.clientHeight) {
-              if (element.scrollTop + element.clientHeight < element.scrollHeight - 10) {
-                element.classList.add('show-scroll-hint');
-              } else {
-                element.classList.remove('show-scroll-hint');
-              }
-            } else {
-              element.classList.remove('show-scroll-hint');
-            }
-          }
-
-          element.addEventListener('scroll', checkScroll);
-          
-          // Check on content changes
-          const observer = new MutationObserver(checkScroll);
-          observer.observe(element, { childList: true, subtree: true });
-          
-          // Initial check
-          setTimeout(checkScroll, 100);
-        });
-      }
-
-      // Setup scroll indicators
-      setupScrollIndicators();
 
       // Show/hide customer email section
       document.querySelectorAll('input[name="payoutMethod"]').forEach(radio => {
@@ -1869,10 +1347,460 @@
           <select class="form-select" name="cardCondition" required style="width: 120px;">
             <option value="NM">Near Mint</option>
             <option value="LP">Lightly Played</option>
-            <option value="MP">Moderatelys {
-      border-top: 2px solid #000;
-      padding-top: 8px;
-      margin-top: 16px;
-    }
+            <option value="MP">Moderately Played</option>
+          </select>
+          <button type="button" class="remove-btn">✖</button>
+        `;
+        cardList.appendChild(newRow);
 
-    .receipt-total
+        // Setup remove functionality
+        newRow.querySelector('.remove-btn').addEventListener('click', function() {
+          newRow.remove();
+        });
+
+        // Setup search for new input
+        setupRealSearch(newRow.querySelector('.card-input'));
+      });
+
+      // Setup remove functionality for existing cards
+      document.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          btn.closest('.card-row').remove();
+        });
+      });
+
+      // Setup search for existing inputs
+      document.querySelectorAll('.card-input').forEach(setupRealSearch);
+
+      // Search functionality
+      function setupRealSearch(input) {
+        let searchTimeout;
+        let currentSuggestion = null;
+
+        input.addEventListener('input', function() {
+          const query = this.value.trim();
+          
+          if (currentSuggestion) {
+            currentSuggestion.remove();
+            currentSuggestion = null;
+          }
+
+          if (searchTimeout) {
+            clearTimeout(searchTimeout);
+          }
+
+          if (query.length < 2) {
+            input.classList.remove('confirmed', 'not-found');
+            return;
+          }
+
+          searchTimeout = setTimeout(async () => {
+            await performRealSearch(query, input);
+          }, 500);
+        });
+
+        async function performRealSearch(query, input) {
+          const container = input.closest('.card-input-container');
+          
+          try {
+            const response = await fetch(`${API_URL}?estimate=true`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                cards: [{ cardName: query, quantity: 1, condition: 'NM' }],
+                employeeName: 'Preview',
+                payoutMethod: 'cash'
+              })
+            });
+
+            const data = await response.json();
+            
+            if (!response.ok) {
+              throw new Error(data.error || 'Search failed');
+            }
+
+            const result = data.results && data.results[0];
+            showSearchResult(container, input, query, result);
+
+          } catch (error) {
+            console.error('Search error:', error);
+          }
+        }
+
+        function showSearchResult(container, input, query, result) {
+          const existing = container.querySelector('.search-suggestion');
+          if (existing) existing.remove();
+
+          const suggestion = document.createElement('div');
+          suggestion.className = 'search-suggestion';
+          
+          if (result && result.match) {
+            suggestion.innerHTML = `
+              <div class="suggestion-content">
+                <div class="suggestion-info">
+                  <div class="suggestion-name">✅ ${result.match}</div>
+                  <div class="suggestion-details">
+                    <span>SKU: ${result.sku || 'N/A'}</span>
+                    <span>Price: ${result.retailPrice.toFixed(2)}</span>
+                    <span class="search-badge found">Found</span>
+                  </div>
+                </div>
+                <div class="suggestion-actions">
+                  <button type="button" class="suggestion-btn confirm-btn">✅ Use This</button>
+                  <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
+                </div>
+              </div>
+            `;
+          } else {
+            suggestion.innerHTML = `
+              <div class="suggestion-content">
+                <div class="suggestion-info">
+                  <div class="suggestion-name">❌ "${query}" not found</div>
+                  <div class="suggestion-details">
+                    <span>This item is not in your Shopify inventory</span>
+                    <span class="search-badge not-found">Not Found</span>
+                  </div>
+                </div>
+                <div class="suggestion-actions">
+                  <button type="button" class="suggestion-btn continue-btn">⚠️ Continue Anyway</button>
+                  <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
+                </div>
+              </div>
+            `;
+          }
+
+          container.appendChild(suggestion);
+          currentSuggestion = suggestion;
+
+          // Setup event handlers
+          const confirmBtn = suggestion.querySelector('.confirm-btn');
+          const continueBtn = suggestion.querySelector('.continue-btn');
+          const rejectBtn = suggestion.querySelector('.reject-btn');
+
+          if (confirmBtn) {
+            confirmBtn.addEventListener('click', function() {
+              input.classList.remove('not-found');
+              input.classList.add('confirmed');
+              input.value = result.match;
+              input.setAttribute('data-search-result', JSON.stringify({
+                match: result.match,
+                sku: result.sku,
+                retailPrice: result.retailPrice,
+                searchMethod: 'confirmed_search'
+              }));
+              suggestion.remove();
+              currentSuggestion = null;
+            });
+          }
+
+          if (continueBtn) {
+            continueBtn.addEventListener('click', function() {
+              input.classList.remove('confirmed');
+              input.classList.add('not-found');
+              suggestion.remove();
+              currentSuggestion = null;
+            });
+          }
+
+          if (rejectBtn) {
+            rejectBtn.addEventListener('click', function() {
+              suggestion.remove();
+              currentSuggestion = null;
+            });
+          }
+        }
+      }
+
+      // Estimate functionality
+      estimateBtn.addEventListener('click', async function() {
+        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
+          const input = row.querySelector('[name="cardName"]');
+          const searchResult = input.getAttribute('data-search-result');
+          
+          if (searchResult) {
+            try {
+              const result = JSON.parse(searchResult);
+              return {
+                cardName: input.value,
+                quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+                condition: row.querySelector('[name="cardCondition"]').value,
+                sku: result.sku,
+                searchMethod: 'exact_sku'
+              };
+            } catch (e) {
+              console.warn('Failed to parse search result:', e);
+            }
+          }
+          
+          return {
+            cardName: input.value,
+            quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+            condition: row.querySelector('[name="cardCondition"]').value
+          };
+        });
+
+        if (cards.length === 0) {
+          alert('Please add at least one card to estimate.');
+          return;
+        }
+
+        estimateBtn.innerHTML = '<span class="spinner"></span><span>Calculating...</span>';
+        estimateBtn.disabled = true;
+
+        try {
+          const response = await fetch(`${API_URL}?estimate=true`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              cards: cards,
+              employeeName: 'Preview',
+              payoutMethod: 'cash'
+            })
+          });
+
+          const data = await response.json();
+          lastApiResponse = data;
+
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to get estimate');
+          }
+
+          showEstimateResults(data);
+          document.getElementById('override-section').style.display = 'flex';
+          document.getElementById('submit-trade').style.display = 'inline-flex';
+
+        } catch (error) {
+          console.error('Estimate error:', error);
+          alert('Error: ' + error.message);
+        } finally {
+          estimateBtn.innerHTML = '<span>📊</span><span>Get Estimate</span>';
+          estimateBtn.disabled = false;
+        }
+      });
+
+      function showEstimateResults(data) {
+        const estimateCards = document.getElementById('estimate-cards');
+        estimateCards.innerHTML = '';
+
+        data.results.forEach(card => {
+          const cardElement = document.createElement('div');
+          cardElement.className = 'estimate-card';
+          cardElement.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <div>
+                <div style="font-weight: 600; color: var(--gray-800);">
+                  ${card.match || card.cardName}
+                  ${!card.match ? ' ❌ Not Found' : ' ✅'}
+                </div>
+                <div style="font-size: 14px; color: var(--gray-500);">
+                  Quantity: ${card.quantity}
+                  ${card.sku ? ` • SKU: ${card.sku}` : ''}
+                </div>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center;">
+              <div>
+                <div style="font-size: 12px; color: var(--gray-500);">Retail</div>
+                <div style="font-weight: 600;">${card.retailPrice ? card.retailPrice.toFixed(2) : '0.00'}</div>
+              </div>
+              <div>
+                <div style="font-size: 12px; color: var(--gray-500);">Suggested</div>
+                <div style="font-weight: 600; color: var(--accent);">${card.suggestedTradeValue ? card.suggestedTradeValue.toFixed(2) : '0.00'}</div>
+              </div>
+              <div>
+                <div style="font-size: 12px; color: var(--gray-500);">Maximum</div>
+                <div style="font-weight: 600; color: var(--success);">${card.maximumTradeValue ? card.maximumTradeValue.toFixed(2) : '0.00'}</div>
+              </div>
+            </div>
+          `;
+          estimateCards.appendChild(cardElement);
+        });
+
+        document.getElementById('total-retail').textContent = `${data.totalRetailValue || '0.00'}`;
+        document.getElementById('total-suggested').textContent = `${data.suggestedTotal || '0.00'}`;
+        document.getElementById('total-maximum').textContent = `${data.maximumTotal || '0.00'}`;
+
+        estimateResults.classList.add('visible');
+      }
+
+      // Override functionality
+      overrideToggle.addEventListener('click', function() {
+        if (overrideContainer.style.display === 'none') {
+          overrideContainer.style.display = 'flex';
+          this.innerHTML = '<span>💰</span><span>Override Active</span>';
+          this.style.background = 'var(--error)';
+          overrideTotal.focus();
+        } else {
+          hideOverride();
+        }
+      });
+
+      overrideCancel.addEventListener('click', hideOverride);
+
+      function hideOverride() {
+        overrideContainer.style.display = 'none';
+        overrideToggle.innerHTML = '<span>💰</span><span>Override Amount</span>';
+        overrideToggle.style.background = 'var(--warning)';
+        overrideTotal.value = '';
+      }
+
+      // Form submission
+      document.getElementById('trade-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
+          const input = row.querySelector('[name="cardName"]');
+          const searchResult = input.getAttribute('data-search-result');
+          
+          if (searchResult) {
+            try {
+              const result = JSON.parse(searchResult);
+              return {
+                cardName: input.value,
+                quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+                condition: row.querySelector('[name="cardCondition"]').value,
+                sku: result.sku,
+                searchMethod: 'exact_sku'
+              };
+            } catch (e) {
+              console.warn('Failed to parse search result:', e);
+            }
+          }
+          
+          return {
+            cardName: input.value,
+            quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+            condition: row.querySelector('[name="cardCondition"]').value
+          };
+        });
+
+        const submitBtn = document.getElementById('submit-trade');
+        submitBtn.innerHTML = '<span class="spinner"></span><span>Processing...</span>';
+        submitBtn.disabled = true;
+
+        try {
+          const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              cards: cards,
+              employeeName: formData.get('employeeName'),
+              payoutMethod: formData.get('payoutMethod'),
+              customerEmail: formData.get('customerEmail'),
+              overrideTotal: formData.get('overrideTotal') || null
+            })
+          });
+
+          const data = await response.json();
+          lastApiResponse = data;
+
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to process trade');
+          }
+
+          // Show success
+          showTradeSuccess(data, formData.get('payoutMethod'));
+
+          // Reset form
+          this.reset();
+          estimateResults.classList.remove('visible');
+          document.getElementById('override-section').style.display = 'none';
+          document.getElementById('submit-trade').style.display = 'none';
+          hideOverride();
+
+        } catch (error) {
+          console.error('Trade error:', error);
+          alert('Failed to process trade: ' + error.message);
+        } finally {
+          submitBtn.innerHTML = '<span>✅</span><span>Process Trade</span>';
+          submitBtn.disabled = false;
+        }
+      });
+
+      function showTradeSuccess(data, payoutMethod) {
+        let successHTML = '';
+
+        if (payoutMethod === 'gift-card' && data.giftCardCode) {
+          successHTML += `
+            <div class="gift-card-display">
+              <div class="gift-card-title">🎁 Gift Card Created</div>
+              <div class="gift-card-code">${data.giftCardCode}</div>
+              <div class="gift-card-instructions">
+                Please save this code and give it to the customer.
+              </div>
+            </div>
+          `;
+        } else if (payoutMethod === 'store-credit' && data.customer) {
+          successHTML += `
+            <div class="store-credit-display">
+              <div style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">🏪 Store Credit Issued</div>
+              <div class="payout-amount">${data.finalPayout} CAD</div>
+              <div>Customer: ${data.customer.email}</div>
+            </div>
+          `;
+        } else if (payoutMethod === 'cash') {
+          successHTML += `
+            <div class="cash-display">
+              <div style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">💵 Cash Payout</div>
+              <div class="payout-amount">${data.finalPayout} CAD</div>
+            </div>
+          `;
+        }
+
+        successHTML += `
+          <div class="success-card">
+            <h4 style="margin: 0 0 16px 0;">📦 Processing Summary</h4>
+            <div class="success-details">
+              <div class="detail-item">
+                <div class="detail-label">Employee</div>
+                <div class="detail-value">${data.employeeName}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Final Amount</div>
+                <div class="detail-value">${data.finalPayout} CAD</div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        successContent.innerHTML = successHTML;
+        tradeSuccess.classList.add('visible');
+
+        let alertMessage = `✅ Trade Completed Successfully!\n\n`;
+        alertMessage += `💰 Amount: ${data.finalPayout} CAD\n`;
+        
+        if (payoutMethod === 'gift-card' && data.giftCardCode) {
+          alertMessage += `🎁 Gift Card Code: ${data.giftCardCode}\n`;
+          alertMessage += `\n⚠️ SAVE THIS CODE! Give it to the customer.`;
+        }
+        
+        alert(alertMessage);
+      }
+
+      // Success section handlers
+      document.getElementById('close-success').addEventListener('click', function() {
+        tradeSuccess.classList.remove('visible');
+      });
+
+      document.getElementById('new-trade').addEventListener('click', function() {
+        tradeSuccess.classList.remove('visible');
+      });
+
+      document.getElementById('print-receipt').addEventListener('click', function() {
+        alert('Receipt printing functionality would be implemented here.');
+      });
+
+      document.getElementById('print-barcodes').addEventListener('click', function() {
+        alert('Barcode printing functionality would be implemented here.');
+      });
+    });
+  </script>
+</body>
+</html>
