@@ -1156,29 +1156,36 @@
             <div class="multiple-options-header">
               <div class="multiple-options-title">🔍 Found ${optionCount} matches for "${query}"</div>
               <div class="multiple-options-subtitle">Select the card you want to use:</div>
+              <input type="text" class="options-search" placeholder="🔍 Filter results..." autocomplete="off">
+              <div class="options-count">Showing <span class="visible-count">${optionCount}</span> of ${optionCount} options</div>
+              <div class="keyboard-hint">💡 Use arrow keys to navigate, Enter to select</div>
             </div>
+            <div class="options-list">
           `;
           
           if (options.length > 0) {
             options.forEach((option, index) => {
               const isRecommended = index === 0;
+              const stockLevel = option.inventory || option.inventoryQuantity || 0;
+              const stockClass = stockLevel > 10 ? 'high' : stockLevel > 0 ? 'medium' : 'low';
+              
               html += `
-                <div class="option-item" data-option-index="${index}">
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="flex: 1;">
-                      <div style="font-weight: 600; color: var(--gray-800); margin-bottom: 4px;">
+                <div class="option-item" data-option-index="${index}" data-search-text="${(option.fullTitle || option.productTitle || '').toLowerCase()}">
+                  <div class="option-content">
+                    <div class="option-details">
+                      <div class="option-title">
                         ${isRecommended ? '⭐ ' : ''}${option.fullTitle || option.productTitle}
-                        ${isRecommended ? ' <span style="color: var(--success); font-size: 12px;">(Recommended)</span>' : ''}
                       </div>
-                      <div style="font-size: 14px; color: var(--gray-500); display: flex; gap: 12px;">
-                        <span>SKU: ${option.sku || 'N/A'}</span>
-                        <span>Price: ${option.price ? option.price.toFixed(2) : '0.00'}</span>
-                        <span>Stock: ${option.inventory || option.inventoryQuantity || 0}</span>
+                      <div class="option-meta">
+                        <span class="option-badge">SKU: ${option.sku || 'N/A'}</span>
+                        <span class="option-badge price">${option.price ? option.price.toFixed(2) : '0.00'}</span>
+                        <span class="option-badge stock">Stock: ${stockLevel}</span>
+                        ${isRecommended ? '<span class="option-badge recommended">⭐ Recommended</span>' : ''}
                       </div>
                     </div>
-                    <div style="margin-left: 12px;">
-                      <button type="button" class="suggestion-btn confirm-btn" data-option-index="${index}">
-                        ✅ Select
+                    <div class="option-select">
+                      <button type="button" class="option-select-btn ${isRecommended ? 'recommended' : ''}" data-option-index="${index}">
+                        ${isRecommended ? '⭐ Select' : '✅ Select'}
                       </button>
                     </div>
                   </div>
@@ -1187,21 +1194,21 @@
             });
           } else if (result.match) {
             html += `
-              <div class="option-item" data-option-index="0">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <div style="flex: 1;">
-                    <div style="font-weight: 600; color: var(--gray-800); margin-bottom: 4px;">
-                      ⭐ ${result.match} <span style="color: var(--success); font-size: 12px;">(Best Match)</span>
+              <div class="option-item" data-option-index="0" data-search-text="${result.match.toLowerCase()}">
+                <div class="option-content">
+                  <div class="option-details">
+                    <div class="option-title">
+                      ⭐ ${result.match}
                     </div>
-                    <div style="font-size: 14px; color: var(--gray-500); display: flex; gap: 12px;">
-                      <span>SKU: ${result.sku || 'N/A'}</span>
-                      <span>Price: ${result.retailPrice ? result.retailPrice.toFixed(2) : '0.00'}</span>
-                      <span class="search-badge found">Found</span>
+                    <div class="option-meta">
+                      <span class="option-badge">SKU: ${result.sku || 'N/A'}</span>
+                      <span class="option-badge price">${result.retailPrice ? result.retailPrice.toFixed(2) : '0.00'}</span>
+                      <span class="option-badge recommended">⭐ Best Match</span>
                     </div>
                   </div>
-                  <div style="margin-left: 12px;">
-                    <button type="button" class="suggestion-btn confirm-btn" data-option-index="0">
-                      ✅ Select
+                  <div class="option-select">
+                    <button type="button" class="option-select-btn recommended" data-option-index="0">
+                      ⭐ Select
                     </button>
                   </div>
                 </div>
@@ -1210,6 +1217,7 @@
           }
           
           html += `
+            </div>
             <div class="multiple-options-footer">
               <button type="button" class="suggestion-btn reject-btn">❌ None of these</button>
               <button type="button" class="suggestion-btn continue-btn">⚠️ Continue with "${query}"</button>
@@ -1220,8 +1228,98 @@
           container.appendChild(suggestion);
           currentSuggestion = suggestion;
 
-          // Event handlers
-          suggestion.querySelectorAll('.confirm-btn').forEach(btn => {
+          // Enhanced functionality
+          const searchInput = suggestion.querySelector('.options-search');
+          const optionsList = suggestion.querySelector('.options-list');
+          const visibleCountSpan = suggestion.querySelector('.visible-count');
+          let selectedIndex = 0;
+          let visibleOptions = suggestion.querySelectorAll('.option-item');
+
+          // Search filtering
+          searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            const allOptions = suggestion.querySelectorAll('.option-item');
+            let visibleCount = 0;
+            
+            allOptions.forEach((option, index) => {
+              const searchText = option.getAttribute('data-search-text') || '';
+              const isVisible = searchText.includes(searchTerm);
+              
+              if (isVisible) {
+                option.classList.remove('hidden');
+                visibleCount++;
+              } else {
+                option.classList.add('hidden');
+              }
+            });
+            
+            visibleOptions = suggestion.querySelectorAll('.option-item:not(.hidden)');
+            visibleCountSpan.textContent = visibleCount;
+            selectedIndex = 0;
+            updateSelection();
+            
+            if (visibleCount === 0) {
+              if (!optionsList.querySelector('.no-results')) {
+                const noResults = document.createElement('div');
+                noResults.className = 'no-results';
+                noResults.innerHTML = `
+                  <div>🔍 No matches found for "${searchTerm}"</div>
+                  <div style="font-size: 12px; margin-top: 8px;">Try a different search term or use the options below</div>
+                `;
+                optionsList.appendChild(noResults);
+              }
+            } else {
+              const noResults = optionsList.querySelector('.no-results');
+              if (noResults) noResults.remove();
+            }
+          });
+
+          // Keyboard navigation
+          function updateSelection() {
+            visibleOptions.forEach((option, index) => {
+              if (index === selectedIndex) {
+                option.style.background = '#dbeafe';
+                option.style.transform = 'translateX(8px)';
+                option.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+              } else {
+                option.style.background = '';
+                option.style.transform = '';
+              }
+            });
+          }
+
+          searchInput.addEventListener('keydown', function(e) {
+            switch(e.key) {
+              case 'ArrowDown':
+                e.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, visibleOptions.length - 1);
+                updateSelection();
+                break;
+              case 'ArrowUp':
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, 0);
+                updateSelection();
+                break;
+              case 'Enter':
+                e.preventDefault();
+                if (visibleOptions[selectedIndex]) {
+                  const btn = visibleOptions[selectedIndex].querySelector('.option-select-btn');
+                  if (btn) btn.click();
+                }
+                break;
+              case 'Escape':
+                e.preventDefault();
+                suggestion.remove();
+                currentSuggestion = null;
+                break;
+            }
+          });
+
+          // Auto-focus search input
+          setTimeout(() => searchInput.focus(), 100);
+
+          // Event handlers for option selection
+          suggestion.querySelectorAll('.option-select-btn').forEach(btn => {
             btn.addEventListener('click', function() {
               const optionIndex = parseInt(this.getAttribute('data-option-index'));
               let selectedOption;
@@ -1245,8 +1343,15 @@
                 retailPrice: selectedOption.price || result.retailPrice,
                 searchMethod: 'confirmed_search'
               }));
-              suggestion.remove();
-              currentSuggestion = null;
+              
+              // Visual feedback
+              this.innerHTML = '✅ Selected!';
+              this.style.background = '#38a169';
+              
+              setTimeout(() => {
+                suggestion.remove();
+                currentSuggestion = null;
+              }, 300);
             });
           });
 
@@ -1269,6 +1374,15 @@
               currentSuggestion = null;
             });
           }
+
+          // Close on outside click
+          document.addEventListener('click', function closeOnOutside(e) {
+            if (!suggestion.contains(e.target) && !input.contains(e.target)) {
+              suggestion.remove();
+              currentSuggestion = null;
+              document.removeEventListener('click', closeOnOutside);
+            }
+          });
         }
 
         function showSingleResult(container, input, query, result) {
