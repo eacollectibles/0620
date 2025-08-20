@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Trade-In Your Cards</title>
-  <!-- JsBarcode library for generating real Code 128 barcodes -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
   
   <style>
     :root {
@@ -309,24 +307,6 @@
       background: var(--primary);
       color: white;
       box-shadow: var(--shadow-md);
-    }
-
-    /* Customer email section */
-    .customer-email {
-      margin-top: 20px;
-      padding: 24px;
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(59, 130, 246, 0.02) 100%);
-      border: 1px solid rgba(59, 130, 246, 0.2);
-      border-radius: var(--border-radius);
-      opacity: 0;
-      max-height: 0;
-      overflow: hidden;
-      transition: all 0.3s ease;
-    }
-
-    .customer-email.visible {
-      opacity: 1;
-      max-height: 200px;
     }
 
     /* Cards section */
@@ -997,4 +977,817 @@
           </div>
 
           <!-- Step 3: Choose Payout Method -->
-          <div class="step-section" data-step="
+          <div class="step-section" data-step="3">
+            <h3 class="step-title">
+              <span>💰</span>
+              <span>How would you like to be paid?</span>
+            </h3>
+
+            <div class="info-box warning">
+              <div class="info-icon">⚠️</div>
+              <div class="info-content">
+                <strong>Important:</strong> Store credit typically offers the best value! Gift cards and cash may have different rates.
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Payout Method</label>
+              <div class="payout-options">
+                <div class="payout-option">
+                  <input type="radio" class="payout-radio" name="payoutMethod" value="store-credit" id="store-credit" required>
+                  <label class="payout-label" for="store-credit">
+                    <span>🏪</span>
+                    <span>Store Credit<br><small>Best Value!</small></span>
+                  </label>
+                </div>
+                <div class="payout-option">
+                  <input type="radio" class="payout-radio" name="payoutMethod" value="gift-card" id="gift-card" required>
+                  <label class="payout-label" for="gift-card">
+                    <span>🎁</span>
+                    <span>Gift Card<br><small>Great for Gifts</small></span>
+                  </label>
+                </div>
+                <div class="payout-option">
+                  <input type="radio" class="payout-radio" name="payoutMethod" value="cash" id="cash" required>
+                  <label class="payout-label" for="cash">
+                    <span>💵</span>
+                    <span>Cash<br><small>Instant Payout</small></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-box success">
+              <div class="info-icon">📋</div>
+              <div class="info-content">
+                <strong>Next:</strong> Review your submission and get an instant estimate before finalizing your trade-in request.
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4: Review & Submit -->
+          <div class="step-section" data-step="4">
+            <h3 class="step-title">
+              <span>✅</span>
+              <span>Review Your Trade-In Request</span>
+            </h3>
+
+            <div class="info-box">
+              <div class="info-icon">🔍</div>
+              <div class="info-content">
+                Please review all information below. Once submitted, our team will process your request and contact you within 24 hours.
+              </div>
+            </div>
+
+            <!-- Review Summary -->
+            <div id="review-summary" style="background: var(--gray-50); border-radius: var(--border-radius); padding: 24px; margin: 24px 0;">
+              <h4 style="margin: 0 0 16px 0; color: var(--gray-800);">📋 Trade-In Summary</h4>
+              <div id="summary-content">
+                <!-- Summary will be populated by JavaScript -->
+              </div>
+            </div>
+
+            <!-- Get Estimate Button -->
+            <div style="text-align: center; margin: 32px 0;">
+              <button type="button" class="btn btn-primary" id="get-estimate">
+                <span>📊</span>
+                <span>Get Instant Estimate</span>
+              </button>
+            </div>
+
+            <!-- Estimate Results -->
+            <div id="estimate-results" class="estimate-results">
+              <div class="estimate-header">
+                <div class="estimate-title">📊 Your Trade-In Estimate</div>
+              </div>
+              
+              <div id="estimate-cards">
+                <!-- Estimate cards will be inserted here -->
+              </div>
+
+              <div class="estimate-totals">
+                <div class="total-item">
+                  <div class="total-label">Retail Value</div>
+                  <div class="total-value" id="total-retail">$0.00</div>
+                </div>
+                <div class="total-item">
+                  <div class="total-label">Your Payout</div>
+                  <div class="total-value primary" id="total-payout">$0.00</div>
+                </div>
+              </div>
+
+              <div class="info-box success" style="margin-top: 24px;">
+                <div class="info-icon">✨</div>
+                <div class="info-content">
+                  <strong>Great!</strong> This is your estimated payout. Final amounts may vary slightly based on actual card condition when we receive them.
+                </div>
+              </div>
+            </div>
+
+            <!-- Final Submit Button -->
+            <div style="text-align: center; margin: 32px 0;">
+              <button type="submit" class="btn btn-success" id="submit-request" style="display: none;">
+                <span>🚀</span>
+                <span>Submit Trade-In Request</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="step-navigation">
+            <button type="button" class="btn btn-secondary" id="prev-step" style="display: none;">
+              <span>←</span>
+              <span>Previous</span>
+            </button>
+            <button type="button" class="btn btn-primary" id="next-step">
+              <span>Next</span>
+              <span>→</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Success Section -->
+        <div id="success-section" class="success-section">
+          <div class="success-icon">🎉</div>
+          <h2 class="success-title">Trade-In Request Submitted!</h2>
+          <p class="success-message">
+            Thank you for your trade-in request! We've received your submission and will review it within 24 hours.
+          </p>
+          
+          <div class="submission-id">
+            <strong>Submission ID:</strong> <span id="submission-id-display">TR-2025-XXXX</span>
+          </div>
+
+          <div class="info-box success">
+            <div class="info-icon">📧</div>
+            <div class="info-content">
+              <strong>What's Next?</strong><br>
+              • You'll receive a confirmation email shortly<br>
+              • Our team will review your cards and confirm the final payout<br>
+              • We'll contact you within 24 hours with next steps<br>
+              • Keep your submission ID for reference
+            </div>
+          </div>
+
+          <div style="margin-top: 32px;">
+            <button type="button" class="btn btn-primary" id="new-request">
+              <span>🔄</span>
+              <span>Submit Another Request</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // API configuration - adjust this to match your actual API endpoints
+    const API_URL = '/api/buybackstep4'; // For estimates and card search
+    const SUBMISSION_API_URL = '/api/customer-submissions'; // For submitting requests
+
+    // Global variables
+    let currentStep = 1;
+    const totalSteps = 4;
+    let lastApiResponse = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeCustomerPortal();
+    });
+
+    function initializeCustomerPortal() {
+      setupStepNavigation();
+      setupCardManagement();
+      setupPayoutMethodHandling();
+      setupFormSubmission();
+      setupSearchFunctionality();
+    }
+
+    // Step Navigation
+    function setupStepNavigation() {
+      const nextBtn = document.getElementById('next-step');
+      const prevBtn = document.getElementById('prev-step');
+
+      nextBtn.addEventListener('click', function() {
+        if (validateCurrentStep()) {
+          if (currentStep < totalSteps) {
+            goToStep(currentStep + 1);
+          }
+        }
+      });
+
+      prevBtn.addEventListener('click', function() {
+        if (currentStep > 1) {
+          goToStep(currentStep - 1);
+        }
+      });
+    }
+
+    function goToStep(step) {
+      // Hide current step
+      document.querySelector(`.step-section[data-step="${currentStep}"]`).classList.remove('active');
+      document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.remove('active');
+      document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.add('completed');
+
+      // Show new step
+      currentStep = step;
+      document.querySelector(`.step-section[data-step="${currentStep}"]`).classList.add('active');
+      document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.add('active');
+
+      // Update navigation buttons
+      updateNavigationButtons();
+
+      // Special handling for review step
+      if (currentStep === 4) {
+        updateReviewSummary();
+      }
+
+      // Scroll to top
+      document.querySelector('.main-card').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function updateNavigationButtons() {
+      const nextBtn = document.getElementById('next-step');
+      const prevBtn = document.getElementById('prev-step');
+
+      prevBtn.style.display = currentStep > 1 ? 'inline-flex' : 'none';
+      
+      if (currentStep === totalSteps) {
+        nextBtn.style.display = 'none';
+      } else {
+        nextBtn.style.display = 'inline-flex';
+        nextBtn.innerHTML = currentStep === totalSteps - 1 ? 
+          '<span>Review</span><span>→</span>' : 
+          '<span>Next</span><span>→</span>';
+      }
+    }
+
+    function validateCurrentStep() {
+      switch (currentStep) {
+        case 1:
+          return validateContactInfo();
+        case 2:
+          return validateCards();
+        case 3:
+          return validatePayoutMethod();
+        case 4:
+          return true;
+        default:
+          return true;
+      }
+    }
+
+    function validateContactInfo() {
+      const name = document.getElementById('customerName').value.trim();
+      const email = document.getElementById('customerEmail').value.trim();
+
+      if (!name) {
+        alert('Please enter your full name.');
+        document.getElementById('customerName').focus();
+        return false;
+      }
+
+      if (!email || !isValidEmail(email)) {
+        alert('Please enter a valid email address.');
+        document.getElementById('customerEmail').focus();
+        return false;
+      }
+
+      return true;
+    }
+
+    function validateCards() {
+      const cardRows = document.querySelectorAll('.card-row');
+      
+      if (cardRows.length === 0) {
+        alert('Please add at least one card to trade.');
+        return false;
+      }
+
+      for (let row of cardRows) {
+        const cardName = row.querySelector('[name="cardName"]').value.trim();
+        const quantity = row.querySelector('[name="cardQuantity"]').value;
+
+        if (!cardName) {
+          alert('Please fill in all card names.');
+          row.querySelector('[name="cardName"]').focus();
+          return false;
+        }
+
+        if (!quantity || quantity < 1) {
+          alert('Please enter a valid quantity for all cards.');
+          row.querySelector('[name="cardQuantity"]').focus();
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    function validatePayoutMethod() {
+      const selectedMethod = document.querySelector('input[name="payoutMethod"]:checked');
+      
+      if (!selectedMethod) {
+        alert('Please select a payout method.');
+        return false;
+      }
+
+      return true;
+    }
+
+    function isValidEmail(email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    }
+
+    // Card Management
+    function setupCardManagement() {
+      const addCardBtn = document.getElementById('add-card');
+      const cardList = document.getElementById('card-list');
+
+      addCardBtn.addEventListener('click', function() {
+        const newRow = document.createElement('div');
+        newRow.className = 'card-row';
+        newRow.innerHTML = `
+          <div class="card-input-container">
+            <input type="text" class="card-input" name="cardName" placeholder="Enter card name or SKU" required>
+          </div>
+          <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
+          <select class="form-select" name="cardCondition" required style="width: 120px;">
+            <option value="NM">Near Mint</option>
+            <option value="LP">Lightly Played</option>
+            <option value="MP">Moderately Played</option>
+          </select>
+          <button type="button" class="remove-btn">✖</button>
+        `;
+        cardList.appendChild(newRow);
+
+        // Setup remove functionality
+        newRow.querySelector('.remove-btn').addEventListener('click', function() {
+          if (cardList.children.length > 1) {
+            newRow.remove();
+          } else {
+            alert('You must have at least one card in your trade-in request.');
+          }
+        });
+
+        // Setup search for new input
+        setupCardSearch(newRow.querySelector('.card-input'));
+      });
+
+      // Setup remove functionality for existing cards
+      document.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const cardList = document.getElementById('card-list');
+          if (cardList.children.length > 1) {
+            btn.closest('.card-row').remove();
+          } else {
+            alert('You must have at least one card in your trade-in request.');
+          }
+        });
+      });
+
+      // Setup search for existing inputs
+      document.querySelectorAll('.card-input').forEach(setupCardSearch);
+    }
+
+    // Search Functionality
+    function setupSearchFunctionality() {
+      document.querySelectorAll('.card-input').forEach(setupCardSearch);
+    }
+
+    function setupCardSearch(input) {
+      let searchTimeout;
+      let currentSuggestion = null;
+
+      input.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        if (currentSuggestion) {
+          currentSuggestion.remove();
+          currentSuggestion = null;
+        }
+
+        if (searchTimeout) {
+          clearTimeout(searchTimeout);
+        }
+
+        if (query.length < 2) {
+          input.classList.remove('confirmed', 'not-found');
+          return;
+        }
+
+        searchTimeout = setTimeout(async () => {
+          await performCardSearch(query, input);
+        }, 500);
+      });
+
+      async function performCardSearch(query, input) {
+        const container = input.closest('.card-input-container');
+        
+        try {
+          const response = await fetch(`${API_URL}?estimate=true`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              cards: [{ cardName: query, quantity: 1, condition: 'NM' }],
+              employeeName: 'Customer Portal',
+              payoutMethod: 'cash'
+            })
+          });
+
+          const data = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(data.error || 'Search failed');
+          }
+
+          const result = data.results && data.results[0];
+          showSearchResult(container, input, query, result);
+
+        } catch (error) {
+          console.error('Search error:', error);
+          // Don't show error to customer - just let them continue
+        }
+      }
+
+      function showSearchResult(container, input, query, result) {
+        const existing = container.querySelector('.search-suggestion');
+        if (existing) existing.remove();
+
+        const suggestion = document.createElement('div');
+        suggestion.className = 'search-suggestion';
+        
+        if (result && result.match) {
+          suggestion.innerHTML = `
+            <div class="suggestion-content">
+              <div class="suggestion-info">
+                <div class="suggestion-name">✅ ${result.match}</div>
+                <div class="suggestion-details">
+                  <span>SKU: ${result.sku || 'N/A'}</span>
+                  <span>Est. Value: ${result.retailPrice ? result.retailPrice.toFixed(2) : '0.00'}</span>
+                  <span class="search-badge found">Found</span>
+                </div>
+              </div>
+              <div class="suggestion-actions">
+                <button type="button" class="suggestion-btn confirm-btn">✅ Use This</button>
+                <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
+              </div>
+            </div>
+          `;
+        } else {
+          suggestion.innerHTML = `
+            <div class="suggestion-content">
+              <div class="suggestion-info">
+                <div class="suggestion-name">❓ "${query}" - Manual Review</div>
+                <div class="suggestion-details">
+                  <span>This item will be manually reviewed by our team</span>
+                  <span class="search-badge not-found">Manual Review</span>
+                </div>
+              </div>
+              <div class="suggestion-actions">
+                <button type="button" class="suggestion-btn continue-btn">✅ Continue</button>
+                <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
+              </div>
+            </div>
+          `;
+        }
+
+        container.appendChild(suggestion);
+        currentSuggestion = suggestion;
+
+        // Setup event handlers
+        const confirmBtn = suggestion.querySelector('.confirm-btn');
+        const continueBtn = suggestion.querySelector('.continue-btn');
+        const rejectBtn = suggestion.querySelector('.reject-btn');
+
+        if (confirmBtn) {
+          confirmBtn.addEventListener('click', function() {
+            input.classList.remove('not-found');
+            input.classList.add('confirmed');
+            input.value = result.match;
+            input.setAttribute('data-search-result', JSON.stringify({
+              match: result.match,
+              sku: result.sku,
+              retailPrice: result.retailPrice,
+              searchMethod: 'confirmed_search'
+            }));
+            suggestion.remove();
+            currentSuggestion = null;
+          });
+        }
+
+        if (continueBtn) {
+          continueBtn.addEventListener('click', function() {
+            input.classList.remove('confirmed');
+            input.classList.add('not-found');
+            suggestion.remove();
+            currentSuggestion = null;
+          });
+        }
+
+        if (rejectBtn) {
+          rejectBtn.addEventListener('click', function() {
+            suggestion.remove();
+            currentSuggestion = null;
+          });
+        }
+      }
+    }
+
+    // Payout Method Handling
+    function setupPayoutMethodHandling() {
+      // No special handling needed for customer portal - all methods are valid
+    }
+
+    // Review Summary
+    function updateReviewSummary() {
+      const name = document.getElementById('customerName').value;
+      const email = document.getElementById('customerEmail').value;
+      const phone = document.getElementById('customerPhone').value;
+      const payoutMethod = document.querySelector('input[name="payoutMethod"]:checked')?.value;
+
+      const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
+        return {
+          name: row.querySelector('[name="cardName"]').value,
+          quantity: row.querySelector('[name="cardQuantity"]').value,
+          condition: row.querySelector('[name="cardCondition"]').value
+        };
+      });
+
+      const payoutMethodNames = {
+        'store-credit': '🏪 Store Credit',
+        'gift-card': '🎁 Gift Card',
+        'cash': '💵 Cash'
+      };
+
+      let summaryHTML = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px;">
+          <div>
+            <strong>📧 Contact Information</strong><br>
+            <strong>Name:</strong> ${name}<br>
+            <strong>Email:</strong> ${email}<br>
+            ${phone ? `<strong>Phone:</strong> ${phone}<br>` : ''}
+          </div>
+          <div>
+            <strong>💰 Payout Method</strong><br>
+            ${payoutMethodNames[payoutMethod] || 'Not selected'}
+          </div>
+        </div>
+        
+        <div>
+          <strong>🃏 Cards (${cards.length} total)</strong><br>
+          <div style="margin-top: 8px;">
+      `;
+
+      cards.forEach(card => {
+        summaryHTML += `
+          <div style="background: white; padding: 12px; margin: 4px 0; border-radius: 8px; border: 1px solid var(--gray-200);">
+            <strong>${card.name}</strong> - Qty: ${card.quantity} - Condition: ${card.condition}
+          </div>
+        `;
+      });
+
+      summaryHTML += `
+          </div>
+        </div>
+      `;
+
+      document.getElementById('summary-content').innerHTML = summaryHTML;
+    }
+
+    // Estimate Functionality
+    function setupEstimateFunctionality() {
+      const estimateBtn = document.getElementById('get-estimate');
+      
+      estimateBtn.addEventListener('click', async function() {
+        await getTradeEstimate();
+      });
+    }
+
+    async function getTradeEstimate() {
+      const estimateBtn = document.getElementById('get-estimate');
+      const estimateResults = document.getElementById('estimate-results');
+      
+      const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
+        const input = row.querySelector('[name="cardName"]');
+        const searchResult = input.getAttribute('data-search-result');
+        
+        if (searchResult) {
+          try {
+            const result = JSON.parse(searchResult);
+            return {
+              cardName: input.value,
+              quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+              condition: row.querySelector('[name="cardCondition"]').value,
+              sku: result.sku,
+              searchMethod: 'exact_sku'
+            };
+          } catch (e) {
+            console.warn('Failed to parse search result:', e);
+          }
+        }
+        
+        return {
+          cardName: input.value,
+          quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+          condition: row.querySelector('[name="cardCondition"]').value
+        };
+      });
+
+      estimateBtn.innerHTML = '<span class="spinner"></span><span>Calculating...</span>';
+      estimateBtn.disabled = true;
+
+      try {
+        const response = await fetch(`${API_URL}?estimate=true`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            cards: cards,
+            employeeName: 'Customer Portal',
+            payoutMethod: document.querySelector('input[name="payoutMethod"]:checked').value
+          })
+        });
+
+        const data = await response.json();
+        lastApiResponse = data;
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to get estimate');
+        }
+
+        showEstimateResults(data);
+        document.getElementById('submit-request').style.display = 'inline-flex';
+
+      } catch (error) {
+        console.error('Estimate error:', error);
+        alert('Error getting estimate: ' + error.message);
+      } finally {
+        estimateBtn.innerHTML = '<span>📊</span><span>Get Instant Estimate</span>';
+        estimateBtn.disabled = false;
+      }
+    }
+
+    function showEstimateResults(data) {
+      const estimateCards = document.getElementById('estimate-cards');
+      estimateCards.innerHTML = '';
+
+      data.results.forEach(card => {
+        const cardElement = document.createElement('div');
+        cardElement.className = 'estimate-card';
+        cardElement.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div>
+              <div style="font-weight: 600; color: var(--gray-800);">
+                ${card.match || card.cardName}
+                ${!card.match ? ' ❓ Manual Review' : ' ✅'}
+              </div>
+              <div style="font-size: 14px; color: var(--gray-500);">
+                Quantity: ${card.quantity} • Condition: ${card.condition}
+                ${card.sku ? ` • SKU: ${card.sku}` : ''}
+              </div>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; text-align: center;">
+            <div>
+              <div style="font-size: 12px; color: var(--gray-500);">Retail Value</div>
+              <div style="font-weight: 600;">${card.retailPrice ? card.retailPrice.toFixed(2) : '0.00'}</div>
+            </div>
+            <div>
+              <div style="font-size: 12px; color: var(--gray-500);">Your Payout</div>
+              <div style="font-weight: 600; color: var(--primary);">${card.suggestedTradeValue ? card.suggestedTradeValue.toFixed(2) : 'TBD'}</div>
+            </div>
+          </div>
+        `;
+        estimateCards.appendChild(cardElement);
+      });
+
+      document.getElementById('total-retail').textContent = `${data.totalRetailValue || '0.00'}`;
+      document.getElementById('total-payout').textContent = `${data.suggestedTotal || '0.00'}`;
+
+      document.getElementById('estimate-results').classList.add('visible');
+    }
+
+    // Form Submission
+    function setupFormSubmission() {
+      const form = document.getElementById('customer-trade-form');
+      const estimateBtn = document.getElementById('get-estimate');
+      
+      // Setup estimate button
+      estimateBtn.addEventListener('click', async function() {
+        await getTradeEstimate();
+      });
+      
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        await submitTradeRequest();
+      });
+    }
+
+    async function submitTradeRequest() {
+      const submitBtn = document.getElementById('submit-request');
+      
+      // Gather all form data
+      const formData = {
+        customerName: document.getElementById('customerName').value,
+        customerEmail: document.getElementById('customerEmail').value,
+        customerPhone: document.getElementById('customerPhone').value,
+        payoutMethod: document.querySelector('input[name="payoutMethod"]:checked').value,
+        submissionType: 'customer_request',
+        estimateData: lastApiResponse // Include the estimate data
+      };
+
+      // Gather cards data
+      const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
+        const input = row.querySelector('[name="cardName"]');
+        const searchResult = input.getAttribute('data-search-result');
+        
+        if (searchResult) {
+          try {
+            const result = JSON.parse(searchResult);
+            return {
+              cardName: input.value,
+              quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+              condition: row.querySelector('[name="cardCondition"]').value,
+              sku: result.sku,
+              searchMethod: 'exact_sku'
+            };
+          } catch (e) {
+            console.warn('Failed to parse search result:', e);
+          }
+        }
+        
+        return {
+          cardName: input.value,
+          quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+          condition: row.querySelector('[name="cardCondition"]').value
+        };
+      });
+
+      submitBtn.innerHTML = '<span class="spinner"></span><span>Submitting...</span>';
+      submitBtn.disabled = true;
+
+      try {
+        // Real API submission to your backend
+        const response = await fetch(SUBMISSION_API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            customerName: formData.customerName,
+            customerEmail: formData.customerEmail,
+            customerPhone: formData.customerPhone,
+            payoutMethod: formData.payoutMethod,
+            cards: cards,
+            estimateData: formData.estimateData
+          })
+        });
+
+        const result = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(result.error || 'Failed to submit trade-in request');
+        }
+        
+        // Set the submission ID for display
+        document.getElementById('submission-id-display').textContent = result.submissionId;
+        
+        console.log('Trade-in submission successful:', result);
+        
+        showSuccessSection();
+
+      } catch (error) {
+        console.error('Submission error:', error);
+        alert('Error submitting request: ' + error.message);
+      } finally {
+        submitBtn.innerHTML = '<span>🚀</span><span>Submit Trade-In Request</span>';
+        submitBtn.disabled = false;
+      }
+    }
+
+    function showSuccessSection() {
+      // Hide the form
+      document.getElementById('customer-trade-form').style.display = 'none';
+      
+      // Show success section
+      document.getElementById('success-section').classList.add('visible');
+      
+      // Setup new request button
+      document.getElementById('new-request').addEventListener('click', function() {
+        // Reload the page to start over
+        window.location.reload();
+      });
+    }
+
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      updateNavigationButtons();
+      setupEstimateFunctionality();
+    });
+  </script>
+</body>
+</html>
