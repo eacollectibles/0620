@@ -1404,7 +1404,13 @@
           }
 
           const result = data.results && data.results[0];
-          showSearchResult(container, input, query, result);
+          
+          // Check if we have multiple options available
+          if (result && result.allOptions && result.allOptions.length > 1) {
+            showMultipleOptions(container, input, query, result);
+          } else {
+            showSearchResult(container, input, query, result);
+          }
 
         } catch (error) {
           console.error('Search error:', error);
