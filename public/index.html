@@ -26,15 +26,13 @@
       --gray-800: #1a202c;
       --gray-900: #171923;
       --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
       --border-radius: 8px;
       --border-radius-lg: 12px;
       --border-radius-xl: 16px;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }
 
     * {
@@ -67,17 +65,10 @@
       border: 1px solid rgba(59, 130, 246, 0.3);
     }
 
-    .portal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
     .portal-title {
       font-size: 20px;
       font-weight: 700;
-      margin: 0;
+      margin: 0 0 16px 0;
       display: flex;
       align-items: center;
       gap: 12px;
@@ -105,7 +96,6 @@
       border-radius: var(--border-radius);
       background: rgba(255, 255, 255, 0.1);
       color: white;
-      text-decoration: none;
       font-weight: 600;
       font-size: 14px;
       transition: all 0.2s ease;
@@ -124,19 +114,13 @@
       border-color: white;
     }
 
-    .portal-btn.primary:hover {
-      background: #f8fafc;
-      color: #1e40af;
-    }
-
     .portal-url {
-      font-family: var(--font-mono);
+      font-family: Monaco, monospace;
       background: rgba(255, 255, 255, 0.1);
       padding: 8px 12px;
       border-radius: var(--border-radius);
       font-size: 12px;
       margin-top: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     /* Main card */
@@ -159,14 +143,12 @@
       font-size: 28px;
       font-weight: 700;
       margin: 0;
-      letter-spacing: -0.025em;
     }
 
     .card-subtitle {
       font-size: 16px;
       opacity: 0.9;
       margin: 8px 0 0 0;
-      font-weight: 400;
     }
 
     .card-content {
@@ -188,7 +170,6 @@
       gap: 8px;
     }
 
-    /* Employee and payout section */
     .employee-payout-grid {
       display: grid;
       grid-template-columns: 1fr 2fr;
@@ -199,7 +180,6 @@
       border: 1px solid var(--gray-200);
     }
 
-    /* Form controls */
     .form-group {
       margin-bottom: 24px;
     }
@@ -220,7 +200,6 @@
       font-size: 16px;
       background: white;
       transition: all 0.2s ease;
-      font-family: var(--font-family);
     }
 
     .form-input:focus, .form-select:focus {
@@ -278,7 +257,7 @@
     .customer-email {
       margin-top: 20px;
       padding: 24px;
-      background: linear-gradient(135deg, rgba(49, 130, 206, 0.05) 0%, rgba(49, 130, 206, 0.02) 100%);
+      background: rgba(49, 130, 206, 0.05);
       border: 1px solid rgba(49, 130, 206, 0.2);
       border-radius: var(--border-radius-lg);
       opacity: 0;
@@ -313,7 +292,6 @@
       padding: 24px 32px;
       max-height: 60vh;
       overflow-y: auto;
-      overflow-x: visible;
     }
 
     .card-row {
@@ -376,20 +354,8 @@
       border-radius: 0 0 var(--border-radius) var(--border-radius);
       box-shadow: var(--shadow-lg);
       z-index: 1000;
-      animation: slideDown 0.2s ease;
       max-height: 400px;
       overflow-y: auto;
-    }
-
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-8px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
     }
 
     .suggestion-content {
@@ -398,19 +364,16 @@
       justify-content: space-between;
       align-items: center;
       gap: 16px;
-      min-height: 60px;
     }
 
     .suggestion-info {
       flex: 1;
-      min-width: 0;
     }
 
     .suggestion-name {
       font-weight: 600;
       color: var(--gray-800);
       margin-bottom: 4px;
-      word-wrap: break-word;
     }
 
     .suggestion-details {
@@ -423,9 +386,6 @@
     }
 
     .search-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
       padding: 4px 8px;
       background: var(--accent);
       color: white;
@@ -433,7 +393,6 @@
       font-size: 12px;
       font-weight: 500;
       text-transform: uppercase;
-      white-space: nowrap;
     }
 
     .search-badge.found {
@@ -447,7 +406,6 @@
     .suggestion-actions {
       display: flex;
       gap: 8px;
-      flex-shrink: 0;
     }
 
     .suggestion-btn {
@@ -468,7 +426,6 @@
 
     .confirm-btn:hover {
       background: #2f855a;
-      transform: translateY(-1px);
     }
 
     .reject-btn {
@@ -476,17 +433,49 @@
       color: var(--gray-700);
     }
 
-    .reject-btn:hover {
-      background: var(--gray-300);
-    }
-
     .continue-btn {
       background: var(--warning);
       color: white;
     }
 
-    .continue-btn:hover {
-      background: #b7791f;
+    /* Multiple options dropdown */
+    .multiple-options-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--gray-200);
+      background: var(--gray-50);
+      text-align: center;
+    }
+
+    .multiple-options-title {
+      font-weight: 600;
+      color: var(--gray-800);
+      margin-bottom: 4px;
+    }
+
+    .multiple-options-subtitle {
+      font-size: 14px;
+      color: var(--gray-500);
+    }
+
+    .multiple-options-footer {
+      padding: 16px;
+      border-top: 1px solid var(--gray-200);
+      background: var(--gray-50);
+      text-align: center;
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .option-item {
+      padding: 14px 16px;
+      border-bottom: 1px solid #f3f4f6;
+      transition: background 0.2s;
+      background: white;
+    }
+
+    .option-item:hover {
+      background: #f0f9ff;
     }
 
     /* Remove button */
@@ -526,18 +515,11 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s ease;
-      text-decoration: none;
-      position: relative;
-      overflow: hidden;
     }
 
     .btn:hover {
       transform: translateY(-2px);
       box-shadow: var(--shadow-lg);
-    }
-
-    .btn:active {
-      transform: translateY(0);
     }
 
     .btn-primary {
@@ -568,7 +550,7 @@
 
     /* Estimate results */
     .estimate-results {
-      background: linear-gradient(135deg, rgba(49, 130, 206, 0.05) 0%, rgba(49, 130, 206, 0.02) 100%);
+      background: rgba(49, 130, 206, 0.05);
       border: 1px solid rgba(49, 130, 206, 0.2);
       border-radius: var(--border-radius-lg);
       padding: 32px;
@@ -647,9 +629,9 @@
       color: var(--accent);
     }
 
-    /* Trade Success Results */
+    /* Trade Success */
     .trade-success {
-      background: linear-gradient(135deg, rgba(56, 161, 105, 0.05) 0%, rgba(56, 161, 105, 0.02) 100%);
+      background: rgba(56, 161, 105, 0.05);
       border: 2px solid var(--success);
       border-radius: var(--border-radius-lg);
       padding: 32px;
@@ -670,8 +652,6 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 24px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid rgba(56, 161, 105, 0.2);
     }
 
     .success-title {
@@ -684,33 +664,28 @@
       margin: 24px 0;
     }
 
-    .success-card {
-      background: white;
-      border-radius: var(--border-radius);
+    .gift-card-display, .store-credit-display, .cash-display {
+      color: white;
       padding: 24px;
-      margin-bottom: 16px;
-      border: 1px solid rgba(56, 161, 105, 0.2);
-      box-shadow: var(--shadow-sm);
+      border-radius: var(--border-radius-lg);
+      text-align: center;
+      margin: 20px 0;
     }
 
     .gift-card-display {
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-      color: white;
-      padding: 32px;
-      border-radius: var(--border-radius-lg);
-      text-align: center;
-      margin: 20px 0;
-      border: 3px solid var(--accent);
     }
 
-    .gift-card-title {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 16px;
+    .store-credit-display {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+    }
+
+    .cash-display {
+      background: linear-gradient(135deg, var(--success) 0%, #48bb78 100%);
     }
 
     .gift-card-code {
-      font-family: var(--font-mono);
+      font-family: Monaco, monospace;
       font-size: 32px;
       font-weight: 700;
       letter-spacing: 4px;
@@ -719,32 +694,7 @@
       padding: 16px 24px;
       border-radius: var(--border-radius);
       margin: 16px 0;
-      border: 2px dashed var(--accent);
       word-break: break-all;
-    }
-
-    .gift-card-instructions {
-      font-size: 16px;
-      margin-top: 16px;
-      opacity: 0.9;
-    }
-
-    .store-credit-display {
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
-      color: white;
-      padding: 24px;
-      border-radius: var(--border-radius-lg);
-      text-align: center;
-      margin: 20px 0;
-    }
-
-    .cash-display {
-      background: linear-gradient(135deg, var(--success) 0%, #48bb78 100%);
-      color: white;
-      padding: 24px;
-      border-radius: var(--border-radius-lg);
-      text-align: center;
-      margin: 20px 0;
     }
 
     .payout-amount {
@@ -753,58 +703,12 @@
       margin: 16px 0;
     }
 
-    .success-details {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin: 20px 0;
-    }
-
-    .detail-item {
-      background: rgba(255, 255, 255, 0.8);
-      padding: 16px;
-      border-radius: var(--border-radius);
-      text-align: center;
-    }
-
-    .detail-label {
-      font-size: 14px;
-      color: var(--gray-600);
-      margin-bottom: 4px;
-    }
-
-    .detail-value {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--gray-800);
-    }
-
     .success-actions {
       display: flex;
       gap: 16px;
       justify-content: center;
       flex-wrap: wrap;
       margin-top: 24px;
-      padding-top: 24px;
-      border-top: 1px solid rgba(56, 161, 105, 0.2);
-    }
-
-    /* Status bar */
-    .status-bar {
-      background: white;
-      border: 1px solid var(--gray-200);
-      border-radius: var(--border-radius-lg);
-      padding: 20px 24px;
-      margin: 32px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .status-text {
-      font-weight: 500;
-      color: var(--gray-700);
     }
 
     /* Override section */
@@ -823,21 +727,9 @@
       background: rgba(214, 158, 46, 0.1);
       border: 1px solid rgba(214, 158, 46, 0.3);
       border-radius: var(--border-radius);
-      animation: slideIn 0.3s ease;
     }
 
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateX(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    /* Loading states */
+    /* Loading spinner */
     .spinner {
       display: inline-block;
       width: 16px;
@@ -853,52 +745,24 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Button states */
     .btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       transform: none !important;
     }
 
-    /* Responsive design */
+    /* Responsive */
     @media (max-width: 768px) {
-      body {
-        padding: 16px;
-      }
-
-      .card-content {
-        padding: 24px;
-      }
-
       .employee-payout-grid {
         grid-template-columns: 1fr;
-        gap: 24px;
       }
-
       .card-row {
         grid-template-columns: 1fr;
         gap: 12px;
       }
-
       .actions {
         flex-direction: column;
         align-items: stretch;
-      }
-
-      .btn {
-        justify-content: center;
-      }
-
-      .estimate-totals {
-        grid-template-columns: 1fr;
-      }
-
-      .portal-actions {
-        flex-direction: column;
-      }
-
-      .portal-btn {
-        justify-content: center;
       }
     }
   </style>
@@ -907,16 +771,14 @@
   <div class="container">
     <!-- Customer Portal Section -->
     <div class="customer-portal-section">
-      <div class="portal-header">
-        <h3 class="portal-title">
-          <span>👥</span>
-          <span>Customer Self-Service Portal</span>
-        </h3>
-      </div>
+      <h3 class="portal-title">
+        <span>👥</span>
+        <span>Customer Self-Service Portal</span>
+      </h3>
       
       <p class="portal-description">
         🚀 Share this link with customers so they can submit their own trade-in requests online. 
-        They'll get instant estimates and can complete the entire process digitally - no more manual card entry!
+        They'll get instant estimates and can complete the entire process digitally!
       </p>
       
       <div class="portal-actions">
@@ -943,13 +805,11 @@
 
     <!-- Main Card -->
     <div class="main-card">
-      <!-- Card Header -->
       <div class="card-header">
         <h1 class="card-title">Trade-In Processing</h1>
         <p class="card-subtitle">Process card trades with real Shopify integration</p>
       </div>
 
-      <!-- Card Content -->
       <div class="card-content">
         <form id="trade-form">
           <!-- Employee & Payout Section -->
@@ -999,7 +859,6 @@
                   </div>
                 </div>
 
-                <!-- Customer Email Section -->
                 <div id="customer-email" class="customer-email">
                   <div class="form-group">
                     <label class="form-label" for="customerEmail">Customer Email</label>
@@ -1050,9 +909,7 @@
               <div class="estimate-title">📊 Trade Estimate</div>
             </div>
             
-            <div id="estimate-cards">
-              <!-- Estimate cards will be inserted here -->
-            </div>
+            <div id="estimate-cards"></div>
 
             <div class="estimate-totals">
               <div class="total-item">
@@ -1077,7 +934,6 @@
               <span>Get Estimate</span>
             </button>
             
-            <!-- Override section - hidden by default -->
             <div id="override-section" class="override-section" style="display: none;">
               <button type="button" class="btn btn-warning" id="override-toggle">
                 <span>💰</span>
@@ -1091,7 +947,6 @@
               </div>
             </div>
             
-            <!-- Submit button - hidden by default -->
             <button type="submit" class="btn btn-success" id="submit-trade" style="display: none;">
               <span>✅</span>
               <span>Process Trade</span>
@@ -1106,9 +961,7 @@
             <button type="button" class="btn btn-secondary" id="close-success" style="padding: 8px 12px;">✖ Close</button>
           </div>
           
-          <div id="success-content" class="success-content">
-            <!-- Success content will be inserted here dynamically -->
-          </div>
+          <div id="success-content" class="success-content"></div>
 
           <div class="success-actions">
             <button type="button" class="btn btn-primary" id="new-trade">
@@ -1125,29 +978,21 @@
             </button>
           </div>
         </div>
-
-        <!-- Status Bar -->
-        <div class="status-bar" id="status-bar">
-          <div class="status-text">Ready to process trades...</div>
-        </div>
       </div>
     </div>
   </div>
 
   <script>
-    // API configuration
-    const API_URL = '/api/buybackstep4'; 
+    const API_URL = '/api/buybackstep4';
     let lastApiResponse = null;
 
-    // Customer Portal Functions
     function openCustomerPortal() {
-      const portalUrl = '/customer-portal.html';
-      window.open(portalUrl, '_blank');
+      window.open('/customer-portal.html', '_blank');
     }
 
     function copyPortalLink() {
       const portalUrl = window.location.origin + '/customer-portal.html';
-      navigator.clipboard.writeText(portalUrl).then(function() {
+      navigator.clipboard.writeText(portalUrl).then(() => {
         const btn = event.target.closest('.portal-btn');
         const originalText = btn.innerHTML;
         btn.innerHTML = '<span>✅</span><span>Copied!</span>';
@@ -1157,7 +1002,7 @@
           btn.innerHTML = originalText;
           btn.style.background = '';
         }, 2000);
-      }).catch(function(err) {
+      }).catch(err => {
         alert('Failed to copy link: ' + err);
       });
     }
@@ -1169,13 +1014,11 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-      // Set the portal URL display on page load
       const portalUrlDisplay = document.getElementById('portal-url-display');
       if (portalUrlDisplay) {
         portalUrlDisplay.textContent = window.location.origin + '/customer-portal.html';
       }
 
-      // Get DOM elements
       const customerEmail = document.getElementById('customer-email');
       const addCardBtn = document.getElementById('add-card');
       const cardList = document.getElementById('card-list');
@@ -1217,13 +1060,11 @@
         `;
         cardList.appendChild(newRow);
 
-        // Setup remove functionality
         newRow.querySelector('.remove-btn').addEventListener('click', function() {
           newRow.remove();
         });
 
-        // Setup search for new input
-        setupRealSearch(newRow.querySelector('.card-input'));
+        setupSearch(newRow.querySelector('.card-input'));
       });
 
       // Setup remove functionality for existing cards
@@ -1234,10 +1075,10 @@
       });
 
       // Setup search for existing inputs
-      document.querySelectorAll('.card-input').forEach(setupRealSearch);
+      document.querySelectorAll('.card-input').forEach(setupSearch);
 
       // Search functionality
-      function setupRealSearch(input) {
+      function setupSearch(input) {
         let searchTimeout;
         let currentSuggestion = null;
 
@@ -1259,11 +1100,11 @@
           }
 
           searchTimeout = setTimeout(async () => {
-            await performRealSearch(query, input);
+            await performSearch(query, input);
           }, 500);
         });
 
-        async function performRealSearch(query, input) {
+        async function performSearch(query, input) {
           const container = input.closest('.card-input-container');
           
           try {
@@ -1286,14 +1127,151 @@
             }
 
             const result = data.results && data.results[0];
-            showSearchResult(container, input, query, result);
+            
+            // Check for multiple options
+            if (result && result.allOptions && result.allOptions.length > 1) {
+              showMultipleOptions(container, input, query, result);
+            } else if (result && result.alternativeCount > 0) {
+              showMultipleOptions(container, input, query, result);
+            } else {
+              showSingleResult(container, input, query, result);
+            }
 
           } catch (error) {
             console.error('Search error:', error);
           }
         }
 
-        function showSearchResult(container, input, query, result) {
+        function showMultipleOptions(container, input, query, result) {
+          const existing = container.querySelector('.search-suggestion');
+          if (existing) existing.remove();
+
+          const suggestion = document.createElement('div');
+          suggestion.className = 'search-suggestion';
+          
+          const options = result.allOptions || [];
+          const optionCount = options.length || result.alternativeCount || 0;
+          
+          let html = `
+            <div class="multiple-options-header">
+              <div class="multiple-options-title">🔍 Found ${optionCount} matches for "${query}"</div>
+              <div class="multiple-options-subtitle">Select the card you want to use:</div>
+            </div>
+          `;
+          
+          if (options.length > 0) {
+            options.forEach((option, index) => {
+              const isRecommended = index === 0;
+              html += `
+                <div class="option-item" data-option-index="${index}">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="flex: 1;">
+                      <div style="font-weight: 600; color: var(--gray-800); margin-bottom: 4px;">
+                        ${isRecommended ? '⭐ ' : ''}${option.fullTitle || option.productTitle}
+                        ${isRecommended ? ' <span style="color: var(--success); font-size: 12px;">(Recommended)</span>' : ''}
+                      </div>
+                      <div style="font-size: 14px; color: var(--gray-500); display: flex; gap: 12px;">
+                        <span>SKU: ${option.sku || 'N/A'}</span>
+                        <span>Price: ${option.price ? option.price.toFixed(2) : '0.00'}</span>
+                        <span>Stock: ${option.inventory || option.inventoryQuantity || 0}</span>
+                      </div>
+                    </div>
+                    <div style="margin-left: 12px;">
+                      <button type="button" class="suggestion-btn confirm-btn" data-option-index="${index}">
+                        ✅ Select
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              `;
+            });
+          } else if (result.match) {
+            html += `
+              <div class="option-item" data-option-index="0">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div style="flex: 1;">
+                    <div style="font-weight: 600; color: var(--gray-800); margin-bottom: 4px;">
+                      ⭐ ${result.match} <span style="color: var(--success); font-size: 12px;">(Best Match)</span>
+                    </div>
+                    <div style="font-size: 14px; color: var(--gray-500); display: flex; gap: 12px;">
+                      <span>SKU: ${result.sku || 'N/A'}</span>
+                      <span>Price: ${result.retailPrice ? result.retailPrice.toFixed(2) : '0.00'}</span>
+                      <span class="search-badge found">Found</span>
+                    </div>
+                  </div>
+                  <div style="margin-left: 12px;">
+                    <button type="button" class="suggestion-btn confirm-btn" data-option-index="0">
+                      ✅ Select
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+          
+          html += `
+            <div class="multiple-options-footer">
+              <button type="button" class="suggestion-btn reject-btn">❌ None of these</button>
+              <button type="button" class="suggestion-btn continue-btn">⚠️ Continue with "${query}"</button>
+            </div>
+          `;
+
+          suggestion.innerHTML = html;
+          container.appendChild(suggestion);
+          currentSuggestion = suggestion;
+
+          // Event handlers
+          suggestion.querySelectorAll('.confirm-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+              const optionIndex = parseInt(this.getAttribute('data-option-index'));
+              let selectedOption;
+              
+              if (options.length > 0) {
+                selectedOption = options[optionIndex];
+              } else {
+                selectedOption = {
+                  fullTitle: result.match,
+                  sku: result.sku,
+                  price: result.retailPrice
+                };
+              }
+              
+              input.classList.remove('not-found');
+              input.classList.add('confirmed');
+              input.value = selectedOption.fullTitle || selectedOption.productTitle || result.match;
+              input.setAttribute('data-search-result', JSON.stringify({
+                match: selectedOption.fullTitle || selectedOption.productTitle || result.match,
+                sku: selectedOption.sku,
+                retailPrice: selectedOption.price || result.retailPrice,
+                searchMethod: 'confirmed_search'
+              }));
+              suggestion.remove();
+              currentSuggestion = null;
+            });
+          });
+
+          const continueBtn = suggestion.querySelector('.continue-btn');
+          const rejectBtn = suggestion.querySelector('.reject-btn');
+
+          if (continueBtn) {
+            continueBtn.addEventListener('click', function() {
+              input.classList.remove('confirmed');
+              input.classList.add('not-found');
+              suggestion.remove();
+              currentSuggestion = null;
+            });
+          }
+
+          if (rejectBtn) {
+            rejectBtn.addEventListener('click', function() {
+              input.value = '';
+              suggestion.remove();
+              currentSuggestion = null;
+            });
+          }
+        }
+
+        function showSingleResult(container, input, query, result) {
           const existing = container.querySelector('.search-suggestion');
           if (existing) existing.remove();
 
@@ -1338,7 +1316,6 @@
           container.appendChild(suggestion);
           currentSuggestion = suggestion;
 
-          // Setup event handlers
           const confirmBtn = suggestion.querySelector('.confirm-btn');
           const continueBtn = suggestion.querySelector('.continue-btn');
           const rejectBtn = suggestion.querySelector('.reject-btn');
@@ -1569,10 +1546,8 @@
             throw new Error(data.error || 'Failed to process trade');
           }
 
-          // Show success
           showTradeSuccess(data, formData.get('payoutMethod'));
 
-          // Reset form
           this.reset();
           estimateResults.classList.remove('visible');
           document.getElementById('override-section').style.display = 'none';
@@ -1594,11 +1569,9 @@
         if (payoutMethod === 'gift-card' && data.giftCardCode) {
           successHTML += `
             <div class="gift-card-display">
-              <div class="gift-card-title">🎁 Gift Card Created</div>
+              <div style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">🎁 Gift Card Created</div>
               <div class="gift-card-code">${data.giftCardCode}</div>
-              <div class="gift-card-instructions">
-                Please save this code and give it to the customer.
-              </div>
+              <div style="margin-top: 16px;">Please save this code and give it to the customer.</div>
             </div>
           `;
         } else if (payoutMethod === 'store-credit' && data.customer) {
@@ -1619,16 +1592,16 @@
         }
 
         successHTML += `
-          <div class="success-card">
+          <div style="background: white; border-radius: var(--border-radius); padding: 24px; margin: 16px 0; border: 1px solid rgba(56, 161, 105, 0.2);">
             <h4 style="margin: 0 0 16px 0;">📦 Processing Summary</h4>
-            <div class="success-details">
-              <div class="detail-item">
-                <div class="detail-label">Employee</div>
-                <div class="detail-value">${data.employeeName}</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+              <div style="text-align: center; padding: 16px; background: rgba(255, 255, 255, 0.8); border-radius: var(--border-radius);">
+                <div style="font-size: 14px; color: var(--gray-600); margin-bottom: 4px;">Employee</div>
+                <div style="font-size: 18px; font-weight: 600;">${data.employeeName}</div>
               </div>
-              <div class="detail-item">
-                <div class="detail-label">Final Amount</div>
-                <div class="detail-value">${data.finalPayout} CAD</div>
+              <div style="text-align: center; padding: 16px; background: rgba(255, 255, 255, 0.8); border-radius: var(--border-radius);">
+                <div style="font-size: 14px; color: var(--gray-600); margin-bottom: 4px;">Final Amount</div>
+                <div style="font-size: 18px; font-weight: 600;">${data.finalPayout} CAD</div>
               </div>
             </div>
           </div>
@@ -1637,12 +1610,10 @@
         successContent.innerHTML = successHTML;
         tradeSuccess.classList.add('visible');
 
-        let alertMessage = `✅ Trade Completed Successfully!\n\n`;
-        alertMessage += `💰 Amount: ${data.finalPayout} CAD\n`;
+        let alertMessage = `✅ Trade Completed Successfully!\n\n💰 Amount: ${data.finalPayout} CAD\n`;
         
         if (payoutMethod === 'gift-card' && data.giftCardCode) {
-          alertMessage += `🎁 Gift Card Code: ${data.giftCardCode}\n`;
-          alertMessage += `\n⚠️ SAVE THIS CODE! Give it to the customer.`;
+          alertMessage += `🎁 Gift Card Code: ${data.giftCardCode}\n\n⚠️ SAVE THIS CODE! Give it to the customer.`;
         }
         
         alert(alertMessage);
