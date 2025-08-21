@@ -1,0 +1,70 @@
+{
+  "version": 2,
+  "name": "shopify-image-match-api",
+  "description": "Card image matching API using Shopify product database",
+  "builds": [
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "functions": {
+    "api/shopify-image-match.js": {
+      "maxDuration": 30,
+      "memory": 1024
+    }
+  },
+  "env": {
+    "SHOPIFY_STORE_NAME": "ke40sv-my",
+    "NODE_ENV": "production"
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { 
+          "key": "Access-Control-Allow-Credentials", 
+          "value": "true" 
+        },
+        { 
+          "key": "Access-Control-Allow-Origin", 
+          "value": "*" 
+        },
+        { 
+          "key": "Access-Control-Allow-Methods", 
+          "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" 
+        },
+        { 
+          "key": "Access-Control-Allow-Headers", 
+          "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" 
+        },
+        {
+          "key": "Cache-Control",
+          "value": "s-maxage=60, stale-while-revalidate"
+        }
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/shopify-image-match",
+      "dest": "/api/shopify-image-match",
+      "methods": ["POST", "OPTIONS"]
+    },
+    {
+      "src": "/health",
+      "dest": "/api/health"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/api/$1",
+      "status": 404
+    }
+  ],
+  "regions": [
+    "iad1"
+  ],
+  "github": {
+    "silent": true
+  }
+}
