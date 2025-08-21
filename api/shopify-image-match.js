@@ -26,7 +26,7 @@ let lastCacheUpdate = null;
 const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
 
 // Main Vercel serverless function
-export default async function handler(req, res) {
+async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -300,4 +300,4 @@ function calculateSimpleTextMatch(extractedText, productTitle) {
 }
 
 // Export for ES modules
-export { handler as default };
+module.exports = handler;
