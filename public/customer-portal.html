@@ -1228,7 +1228,7 @@
             <div class="info-box">
               <div class="info-icon">📷</div>
               <div class="info-content">
-                <strong>Scan your cards!</strong> Use the camera button to scan cards automatically, or add them manually. Our system will try to identify the card and provide instant estimates.
+                <strong>Scan your cards!</strong> Use the camera button to scan cards and match them against our Shopify inventory automatically, or add them manually. Our system will compare your card images with our product database.
               </div>
             </div>
 
@@ -1482,7 +1482,7 @@
     // API configuration - adjust this to match your actual API endpoints
     const API_URL = '/api/buybackstep4'; // For estimates and card search
     const SUBMISSION_API_URL = '/api/customer-submissions'; // For submitting requests
-    const CARD_SCAN_API_URL = '/api/card-recognition'; // For card scanning/OCR
+    const CARD_SCAN_API_URL = '/api/shopify-image-match'; // For Shopify image database scanning
 
     // Global variables
     let currentStep = 1;
@@ -1991,7 +1991,7 @@
         return;
       }
       
-      // Create card data object
+      // Create card data object with Shopify-specific fields
       const cardData = {
         name: selectedScanResult.name,
         quantity: 1,
@@ -2000,8 +2000,13 @@
           match: selectedScanResult.name,
           sku: selectedScanResult.sku,
           retailPrice: selectedScanResult.retailPrice,
-          searchMethod: 'image_scan',
-          confidence: selectedScanResult.confidence
+          compareAtPrice: selectedScanResult.compareAtPrice,
+          searchMethod: 'shopify_image_scan',
+          confidence: selectedScanResult.confidence,
+          productId: selectedScanResult.productId,
+          variantId: selectedScanResult.variantId,
+          inventoryQuantity: selectedScanResult.inventoryQuantity,
+          imageUrl: selectedScanResult.imageUrl
         }
       };
       
@@ -2011,9 +2016,13 @@
       // Close camera modal
       closeCameraModal();
       
-      // Show success message
+      // Show success message with Shopify-specific info
       setTimeout(() => {
-        alert('Card successfully scanned and added to your trade-in request!');
+        if (selectedScanResult.productId) {
+          alert(`Card successfully matched with our inventory!\n\nProduct: ${selectedScanResult.name}\nSKU: ${selectedScanResult.sku}\nConfidence: ${Math.round(selectedScanResult.confidence * 100)}%`);
+        } else {
+          alert('Card scanned and added for manual review by our team.');
+        }
       }, 100);
     }
 
