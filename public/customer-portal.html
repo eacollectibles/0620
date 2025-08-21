@@ -1758,6 +1758,20 @@
           throw new Error('Camera not supported on this device');
         }
 
+        // Request permissions explicitly for desktop
+        try {
+          // First check what permissions we have
+          const permissionStatus = await navigator.permissions.query({ name: 'camera' });
+          console.log('Camera permission status:', permissionStatus.state);
+          
+          if (permissionStatus.state === 'denied') {
+            throw new Error('Camera permission denied. Please enable camera access in your browser settings.');
+          }
+        } catch (permError) {
+          // Permissions API might not be supported in all browsers - continue anyway
+          console.log('Permissions API not supported, proceeding with camera request');
+        }
+
         // Get available cameras
         const devices = await navigator.mediaDevices.enumerateDevices();
         availableCameras = devices.filter(device => device.kind === 'videoinput');
@@ -1770,7 +1784,7 @@
         const switchBtn = document.getElementById('switch-camera');
         switchBtn.style.display = availableCameras.length > 1 ? 'inline-flex' : 'none';
 
-        // Start camera
+        // Start camera with enhanced error handling
         await startCamera();
         
         // Show modal
@@ -1781,7 +1795,25 @@
 
       } catch (error) {
         console.error('Camera error:', error);
-        alert('Could not access camera: ' + error.message + '\n\nPlease ensure camera permissions are granted and try again.');
+        
+        // Enhanced error messages for different scenarios
+        let errorMessage = 'Could not access camera: ' + error.message;
+        
+        if (error.name === 'NotAllowedError' || error.message.includes('permission')) {
+          errorMessage = `Camera permission denied. To enable:
+          
+Chrome/Edge: Click the camera icon in the address bar
+Firefox: Click the camera icon next to the URL
+Safari: Go to Safari > Settings for This Website > Camera > Allow
+
+Then try scanning again.`;
+        } else if (error.name === 'NotFoundError') {
+          errorMessage = 'No camera found on this device. Please connect a camera and try again.';
+        } else if (error.name === 'NotSupportedError') {
+          errorMessage = 'Camera not supported on this device or browser. Try using a modern browser like Chrome, Firefox, or Edge.';
+        }
+        
+        alert(errorMessage);
       }
     }
 
@@ -1794,11 +1826,11 @@
           cameraStream.getTracks().forEach(track => track.stop());
         }
 
-        // Get camera constraints
+        // Force permission request with explicit constraints
         const constraints = {
           video: {
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
+            width: { ideal: 1280, min: 640 },
+            height: { ideal: 720, min: 480 },
             facingMode: currentCameraIndex === 0 ? 'environment' : 'user'
           },
           audio: false
@@ -1809,19 +1841,44 @@
           constraints.video.deviceId = { exact: availableCameras[currentCameraIndex].deviceId };
         }
 
+        console.log('Requesting camera access with constraints:', constraints);
+
+        // This should trigger the permission prompt
         cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+        
+        if (!cameraStream) {
+          throw new Error('Failed to get camera stream');
+        }
+
         video.srcObject = cameraStream;
         
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
           video.onloadedmetadata = () => {
-            video.play();
-            resolve();
+            video.play().then(() => {
+              console.log('Camera started successfully');
+              resolve();
+            }).catch(reject);
+          };
+          
+          video.onerror = (error) => {
+            console.error('Video error:', error);
+            reject(new Error('Failed to start video'));
           };
         });
 
       } catch (error) {
-        console.error('Failed to start camera:', error);
-        throw new Error('Failed to start camera. Please check permissions.');
+        console.error('Camera access failed:', error);
+        
+        // More specific error handling
+        if (error.name === 'NotAllowedError') {
+          throw new Error('Camera permission denied. Please allow camera access and try again.');
+        } else if (error.name === 'NotFoundError') {
+          throw new Error('No camera found. Please connect a camera and try again.');
+        } else if (error.name === 'OverconstrainedError') {
+          throw new Error('Camera constraints not supported. Trying fallback...');
+        } else {
+          throw new Error(`Camera error: ${error.message}`);
+        }
       }
     }
 
@@ -1896,6 +1953,11 @@
         // Create FormData for image upload
         const formData = new FormData();
         formData.append('image', imageBlob, 'card-scan.jpg');
+        formData.append('shopify_store', SHOPIFY_STORE_NAME);
+        formData.append('match_threshold', '0.7');
+        formData.append('max_results', '5');
+        
+        console.log('Sending image to API:', CARD_SCAN_API_URL);
         
         // Send to card recognition API
         const response = await fetch(CARD_SCAN_API_URL, {
@@ -1903,7 +1965,10 @@
           body: formData
         });
         
+        console.log('API Response status:', response.status);
+        
         const result = await response.json();
+        console.log('API Response data:', result);
         
         if (!response.ok) {
           throw new Error(result.error || 'Card recognition failed');
