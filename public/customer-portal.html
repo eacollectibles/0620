@@ -534,6 +534,240 @@
       transform: scale(1.05);
     }
 
+    /* Camera Modal */
+    .camera-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 10000;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .camera-modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .camera-modal-content {
+      background: white;
+      border-radius: var(--border-radius-xl);
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .camera-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px;
+      border-bottom: 1px solid var(--gray-200);
+      background: var(--gray-800);
+      color: white;
+      border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
+    }
+
+    .camera-header h3 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .close-camera {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: background 0.2s ease;
+    }
+
+    .close-camera:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .camera-container {
+      padding: 24px;
+      text-align: center;
+      position: relative;
+    }
+
+    #camera-video {
+      width: 100%;
+      max-width: 500px;
+      border-radius: var(--border-radius);
+      background: var(--gray-900);
+    }
+
+    .camera-overlay {
+      position: absolute;
+      top: 24px;
+      left: 24px;
+      right: 24px;
+      bottom: 100px;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .scan-frame {
+      position: relative;
+      width: 80%;
+      max-width: 400px;
+      aspect-ratio: 3/4;
+      border: 3px solid var(--primary);
+      border-radius: var(--border-radius);
+      background: rgba(59, 130, 246, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .scan-corners {
+      position: absolute;
+      top: -3px;
+      left: -3px;
+      right: -3px;
+      bottom: -3px;
+      border-radius: var(--border-radius);
+    }
+
+    .scan-corners::before,
+    .scan-corners::after {
+      content: '';
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      border: 4px solid var(--primary);
+    }
+
+    .scan-corners::before {
+      top: 0;
+      left: 0;
+      border-right: none;
+      border-bottom: none;
+      border-radius: var(--border-radius) 0 0 0;
+    }
+
+    .scan-corners::after {
+      bottom: 0;
+      right: 0;
+      border-left: none;
+      border-top: none;
+      border-radius: 0 0 var(--border-radius) 0;
+    }
+
+    .scan-guide {
+      text-align: center;
+      color: white;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .scan-guide p {
+      margin: 4px 0;
+    }
+
+    .camera-controls {
+      margin-top: 24px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .scan-results {
+      padding: 24px;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .scan-results h4 {
+      margin: 0 0 16px 0;
+      font-size: 18px;
+      color: var(--gray-800);
+    }
+
+    .scan-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 20px;
+      background: var(--gray-50);
+      border-radius: var(--border-radius);
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+
+    .scan-matches {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+
+    .scan-match {
+      background: white;
+      border: 2px solid var(--gray-200);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .scan-match:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-md);
+    }
+
+    .scan-match.selected {
+      border-color: var(--primary);
+      background: rgba(59, 130, 246, 0.05);
+    }
+
+    .scan-match-name {
+      font-weight: 600;
+      color: var(--gray-800);
+      margin-bottom: 4px;
+    }
+
+    .scan-match-details {
+      font-size: 14px;
+      color: var(--gray-500);
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .scan-match-confidence {
+      background: var(--primary);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .scan-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
     /* Buttons */
     .btn {
       display: inline-flex;
@@ -777,6 +1011,37 @@
       100% { transform: rotate(360deg); }
     }
 
+    /* Camera-specific mobile styles */
+    @media (max-width: 768px) {
+      .camera-modal-content {
+        margin: 0;
+        border-radius: 0;
+        height: 100vh;
+        max-height: none;
+      }
+
+      .camera-header {
+        border-radius: 0;
+      }
+
+      .camera-container {
+        padding: 16px;
+      }
+
+      .camera-controls {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 16px;
+        margin: 0 -16px;
+        border-top: 1px solid var(--gray-200);
+      }
+
+      .scan-frame {
+        width: 90%;
+      }
+    }
+
     /* Mobile responsiveness */
     @media (max-width: 768px) {
       body {
@@ -830,6 +1095,23 @@
 
       .progress-step:not(:last-child)::after {
         display: none;
+      }
+
+      .cards-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+      }
+
+      .cards-header > div {
+        display: flex;
+        gap: 8px;
+      }
+
+      .cards-header .btn {
+        flex: 1;
+        padding: 12px 16px;
+        font-size: 14px;
       }
     }
 
@@ -944,19 +1226,25 @@
             </h3>
 
             <div class="info-box">
-              <div class="info-icon">💡</div>
+              <div class="info-icon">📷</div>
               <div class="info-content">
-                <strong>Tips for better matches:</strong> Include set numbers, exact card names, and conditions. Our system will search our inventory and suggest matches as you type.
+                <strong>Scan your cards!</strong> Use the camera button to scan cards automatically, or add them manually. Our system will try to identify the card and provide instant estimates.
               </div>
             </div>
 
             <div class="cards-section">
               <div class="cards-header">
                 <h4 style="margin: 0; font-size: 16px; font-weight: 600;">Your Cards</h4>
-                <button type="button" class="btn btn-secondary" id="add-card">
-                  <span>➕</span>
-                  <span>Add Card</span>
-                </button>
+                <div style="display: flex; gap: 12px;">
+                  <button type="button" class="btn btn-secondary" id="scan-card">
+                    <span>📷</span>
+                    <span>Scan Card</span>
+                  </button>
+                  <button type="button" class="btn btn-secondary" id="add-card">
+                    <span>➕</span>
+                    <span>Add Manually</span>
+                  </button>
+                </div>
               </div>
               
               <div class="cards-list" id="card-list">
@@ -1138,17 +1426,72 @@
         </div>
       </div>
     </div>
+
+    <!-- Camera Modal -->
+    <div id="camera-modal" class="camera-modal">
+      <div class="camera-modal-content">
+        <div class="camera-header">
+          <h3>📷 Scan Your Card</h3>
+          <button type="button" class="close-camera" id="close-camera">✖</button>
+        </div>
+        
+        <div class="camera-container">
+          <video id="camera-video" autoplay playsinline></video>
+          <canvas id="camera-canvas" style="display: none;"></canvas>
+          
+          <div class="camera-overlay">
+            <div class="scan-frame">
+              <div class="scan-corners"></div>
+              <div class="scan-guide">
+                <p>📱 Position card within the frame</p>
+                <p>📍 Ensure good lighting and focus</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="camera-controls">
+            <button type="button" class="btn btn-primary" id="capture-btn">
+              <span>📸</span>
+              <span>Capture Card</span>
+            </button>
+            <button type="button" class="btn btn-secondary" id="switch-camera" style="display: none;">
+              <span>🔄</span>
+              <span>Switch Camera</span>
+            </button>
+          </div>
+        </div>
+        
+        <div class="scan-results" id="scan-results" style="display: none;">
+          <h4>🔍 Scanning Results</h4>
+          <div id="scan-status" class="scan-status">
+            <div class="spinner"></div>
+            <span>Analyzing card image...</span>
+          </div>
+          <div id="scan-matches" class="scan-matches"></div>
+          <div class="scan-actions">
+            <button type="button" class="btn btn-primary" id="accept-scan">Accept</button>
+            <button type="button" class="btn btn-secondary" id="retry-scan">Scan Again</button>
+            <button type="button" class="btn btn-secondary" id="manual-entry">Enter Manually</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
     // API configuration - adjust this to match your actual API endpoints
     const API_URL = '/api/buybackstep4'; // For estimates and card search
     const SUBMISSION_API_URL = '/api/customer-submissions'; // For submitting requests
+    const CARD_SCAN_API_URL = '/api/card-recognition'; // For card scanning/OCR
 
     // Global variables
     let currentStep = 1;
     const totalSteps = 4;
     let lastApiResponse = null;
+    let cameraStream = null;
+    let currentCameraIndex = 0;
+    let availableCameras = [];
+    let selectedScanResult = null;
 
     document.addEventListener('DOMContentLoaded', function() {
       initializeCustomerPortal();
@@ -1157,6 +1500,7 @@
     function initializeCustomerPortal() {
       setupStepNavigation();
       setupCardManagement();
+      setupCameraFunctionality();
       setupPayoutMethodHandling();
       setupFormSubmission();
       setupSearchFunctionality();
@@ -1302,36 +1646,15 @@
     // Card Management
     function setupCardManagement() {
       const addCardBtn = document.getElementById('add-card');
+      const scanCardBtn = document.getElementById('scan-card');
       const cardList = document.getElementById('card-list');
 
       addCardBtn.addEventListener('click', function() {
-        const newRow = document.createElement('div');
-        newRow.className = 'card-row';
-        newRow.innerHTML = `
-          <div class="card-input-container">
-            <input type="text" class="card-input" name="cardName" placeholder="Enter card name or SKU" required>
-          </div>
-          <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
-          <select class="form-select" name="cardCondition" required style="width: 120px;">
-            <option value="NM">Near Mint</option>
-            <option value="LP">Lightly Played</option>
-            <option value="MP">Moderately Played</option>
-          </select>
-          <button type="button" class="remove-btn">✖</button>
-        `;
-        cardList.appendChild(newRow);
+        addNewCardRow();
+      });
 
-        // Setup remove functionality
-        newRow.querySelector('.remove-btn').addEventListener('click', function() {
-          if (cardList.children.length > 1) {
-            newRow.remove();
-          } else {
-            alert('You must have at least one card in your trade-in request.');
-          }
-        });
-
-        // Setup search for new input
-        setupCardSearch(newRow.querySelector('.card-input'));
+      scanCardBtn.addEventListener('click', function() {
+        openCameraModal();
       });
 
       // Setup remove functionality for existing cards
@@ -1348,6 +1671,356 @@
 
       // Setup search for existing inputs
       document.querySelectorAll('.card-input').forEach(setupCardSearch);
+    }
+
+    function addNewCardRow(cardData = null) {
+      const cardList = document.getElementById('card-list');
+      const newRow = document.createElement('div');
+      newRow.className = 'card-row';
+      
+      const cardName = cardData ? cardData.name : '';
+      const quantity = cardData ? cardData.quantity : 1;
+      const condition = cardData ? cardData.condition : 'NM';
+      
+      newRow.innerHTML = `
+        <div class="card-input-container">
+          <input type="text" class="card-input" name="cardName" placeholder="Enter card name or SKU" value="${cardName}" required>
+        </div>
+        <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="${quantity}" required style="width: 80px;">
+        <select class="form-select" name="cardCondition" required style="width: 120px;">
+          <option value="NM" ${condition === 'NM' ? 'selected' : ''}>Near Mint</option>
+          <option value="LP" ${condition === 'LP' ? 'selected' : ''}>Lightly Played</option>
+          <option value="MP" ${condition === 'MP' ? 'selected' : ''}>Moderately Played</option>
+        </select>
+        <button type="button" class="remove-btn">✖</button>
+      `;
+      cardList.appendChild(newRow);
+
+      // Setup remove functionality
+      newRow.querySelector('.remove-btn').addEventListener('click', function() {
+        if (cardList.children.length > 1) {
+          newRow.remove();
+        } else {
+          alert('You must have at least one card in your trade-in request.');
+        }
+      });
+
+      // Setup search for new input
+      setupCardSearch(newRow.querySelector('.card-input'));
+
+      // If this was from a scan, mark it as confirmed
+      if (cardData && cardData.scanResult) {
+        const input = newRow.querySelector('.card-input');
+        input.classList.add('confirmed');
+        input.setAttribute('data-search-result', JSON.stringify(cardData.scanResult));
+      }
+
+      return newRow;
+    }
+
+    // Camera Functionality
+    function setupCameraFunctionality() {
+      const cameraModal = document.getElementById('camera-modal');
+      const closeCameraBtn = document.getElementById('close-camera');
+      const captureBtn = document.getElementById('capture-btn');
+      const switchCameraBtn = document.getElementById('switch-camera');
+      const acceptScanBtn = document.getElementById('accept-scan');
+      const retryScanBtn = document.getElementById('retry-scan');
+      const manualEntryBtn = document.getElementById('manual-entry');
+
+      closeCameraBtn.addEventListener('click', closeCameraModal);
+      captureBtn.addEventListener('click', captureCardImage);
+      switchCameraBtn.addEventListener('click', switchCamera);
+      acceptScanBtn.addEventListener('click', acceptScanResult);
+      retryScanBtn.addEventListener('click', resetScanInterface);
+      manualEntryBtn.addEventListener('click', () => {
+        closeCameraModal();
+        addNewCardRow();
+      });
+
+      // Close modal when clicking outside
+      cameraModal.addEventListener('click', function(e) {
+        if (e.target === cameraModal) {
+          closeCameraModal();
+        }
+      });
+    }
+
+    async function openCameraModal() {
+      const cameraModal = document.getElementById('camera-modal');
+      
+      try {
+        // Check if camera is available
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('Camera not supported on this device');
+        }
+
+        // Get available cameras
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        availableCameras = devices.filter(device => device.kind === 'videoinput');
+        
+        if (availableCameras.length === 0) {
+          throw new Error('No cameras found on this device');
+        }
+
+        // Show switch camera button if multiple cameras
+        const switchBtn = document.getElementById('switch-camera');
+        switchBtn.style.display = availableCameras.length > 1 ? 'inline-flex' : 'none';
+
+        // Start camera
+        await startCamera();
+        
+        // Show modal
+        cameraModal.classList.add('active');
+        
+        // Reset scan interface
+        resetScanInterface();
+
+      } catch (error) {
+        console.error('Camera error:', error);
+        alert('Could not access camera: ' + error.message + '\n\nPlease ensure camera permissions are granted and try again.');
+      }
+    }
+
+    async function startCamera() {
+      const video = document.getElementById('camera-video');
+      
+      try {
+        // Stop existing stream
+        if (cameraStream) {
+          cameraStream.getTracks().forEach(track => track.stop());
+        }
+
+        // Get camera constraints
+        const constraints = {
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: currentCameraIndex === 0 ? 'environment' : 'user'
+          },
+          audio: false
+        };
+
+        // If we have specific camera, use deviceId
+        if (availableCameras[currentCameraIndex]) {
+          constraints.video.deviceId = { exact: availableCameras[currentCameraIndex].deviceId };
+        }
+
+        cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+        video.srcObject = cameraStream;
+        
+        return new Promise((resolve) => {
+          video.onloadedmetadata = () => {
+            video.play();
+            resolve();
+          };
+        });
+
+      } catch (error) {
+        console.error('Failed to start camera:', error);
+        throw new Error('Failed to start camera. Please check permissions.');
+      }
+    }
+
+    async function switchCamera() {
+      if (availableCameras.length > 1) {
+        currentCameraIndex = (currentCameraIndex + 1) % availableCameras.length;
+        await startCamera();
+      }
+    }
+
+    function closeCameraModal() {
+      const cameraModal = document.getElementById('camera-modal');
+      
+      // Stop camera stream
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+      
+      // Hide modal
+      cameraModal.classList.remove('active');
+      
+      // Reset variables
+      currentCameraIndex = 0;
+      selectedScanResult = null;
+    }
+
+    async function captureCardImage() {
+      const video = document.getElementById('camera-video');
+      const canvas = document.getElementById('camera-canvas');
+      const captureBtn = document.getElementById('capture-btn');
+      
+      // Set canvas size to match video
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      // Draw video frame to canvas
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Convert to blob
+      canvas.toBlob(async (blob) => {
+        if (blob) {
+          // Disable capture button while processing
+          captureBtn.disabled = true;
+          captureBtn.innerHTML = '<span class="spinner"></span><span>Processing...</span>';
+          
+          try {
+            await processCardImage(blob);
+          } catch (error) {
+            console.error('Failed to process card image:', error);
+            alert('Failed to scan card. Please try again.');
+          } finally {
+            captureBtn.disabled = false;
+            captureBtn.innerHTML = '<span>📸</span><span>Capture Card</span>';
+          }
+        }
+      }, 'image/jpeg', 0.8);
+    }
+
+    async function processCardImage(imageBlob) {
+      const scanResults = document.getElementById('scan-results');
+      const scanStatus = document.getElementById('scan-status');
+      const scanMatches = document.getElementById('scan-matches');
+      
+      // Show scanning interface
+      scanResults.style.display = 'block';
+      scanStatus.innerHTML = '<div class="spinner"></div><span>Analyzing card image...</span>';
+      scanMatches.innerHTML = '';
+      
+      try {
+        // Create FormData for image upload
+        const formData = new FormData();
+        formData.append('image', imageBlob, 'card-scan.jpg');
+        
+        // Send to card recognition API
+        const response = await fetch(CARD_SCAN_API_URL, {
+          method: 'POST',
+          body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(result.error || 'Card recognition failed');
+        }
+        
+        displayScanResults(result);
+        
+      } catch (error) {
+        console.error('Card recognition error:', error);
+        
+        // Show fallback options
+        scanStatus.innerHTML = '❌ <span>Could not identify card automatically</span>';
+        scanMatches.innerHTML = `
+          <div class="scan-match" style="border-color: var(--warning); background: rgba(245, 158, 11, 0.05);">
+            <div class="scan-match-name">Manual Entry Required</div>
+            <div class="scan-match-details">
+              <span>Card could not be automatically identified</span>
+              <span style="background: var(--warning); color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">Manual Review</span>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function displayScanResults(results) {
+      const scanStatus = document.getElementById('scan-status');
+      const scanMatches = document.getElementById('scan-matches');
+      
+      if (results.matches && results.matches.length > 0) {
+        scanStatus.innerHTML = '✅ <span>Card identified! Select the best match:</span>';
+        
+        scanMatches.innerHTML = '';
+        results.matches.forEach((match, index) => {
+          const matchElement = document.createElement('div');
+          matchElement.className = 'scan-match';
+          matchElement.innerHTML = `
+            <div class="scan-match-name">${match.name}</div>
+            <div class="scan-match-details">
+              <span>SKU: ${match.sku || 'N/A'}</span>
+              <span>Set: ${match.set || 'Unknown'}</span>
+              <span>Est. Value: ${match.retailPrice || '0.00'}</span>
+              <span class="scan-match-confidence">${Math.round(match.confidence * 100)}% match</span>
+            </div>
+          `;
+          
+          matchElement.addEventListener('click', function() {
+            // Remove previous selection
+            document.querySelectorAll('.scan-match').forEach(el => el.classList.remove('selected'));
+            // Select this match
+            matchElement.classList.add('selected');
+            selectedScanResult = match;
+          });
+          
+          scanMatches.appendChild(matchElement);
+          
+          // Auto-select first match if high confidence
+          if (index === 0 && match.confidence > 0.8) {
+            matchElement.classList.add('selected');
+            selectedScanResult = match;
+          }
+        });
+        
+      } else {
+        scanStatus.innerHTML = '❓ <span>Card not found in our database</span>';
+        scanMatches.innerHTML = `
+          <div class="scan-match selected" style="border-color: var(--warning); background: rgba(245, 158, 11, 0.05);">
+            <div class="scan-match-name">Unknown Card - Manual Review</div>
+            <div class="scan-match-details">
+              <span>This card will be manually reviewed by our team</span>
+              <span style="background: var(--warning); color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">Manual Review</span>
+            </div>
+          </div>
+        `;
+        
+        selectedScanResult = {
+          name: 'Scanned Card - Manual Review',
+          sku: null,
+          retailPrice: 0,
+          confidence: 0,
+          scanMethod: 'image_scan'
+        };
+      }
+    }
+
+    function acceptScanResult() {
+      if (!selectedScanResult) {
+        alert('Please select a card match first.');
+        return;
+      }
+      
+      // Create card data object
+      const cardData = {
+        name: selectedScanResult.name,
+        quantity: 1,
+        condition: 'NM', // Default to Near Mint, user can change
+        scanResult: {
+          match: selectedScanResult.name,
+          sku: selectedScanResult.sku,
+          retailPrice: selectedScanResult.retailPrice,
+          searchMethod: 'image_scan',
+          confidence: selectedScanResult.confidence
+        }
+      };
+      
+      // Add card to the list
+      addNewCardRow(cardData);
+      
+      // Close camera modal
+      closeCameraModal();
+      
+      // Show success message
+      setTimeout(() => {
+        alert('Card successfully scanned and added to your trade-in request!');
+      }, 100);
+    }
+
+    function resetScanInterface() {
+      const scanResults = document.getElementById('scan-results');
+      scanResults.style.display = 'none';
+      selectedScanResult = null;
     }
 
     // Search Functionality
