@@ -2,7 +2,6 @@
   "name": "shopify-image-match-api",
   "version": "1.0.0",
   "main": "api/shopify-image-match.js",
-  "type": "module",
   "scripts": {
     "dev": "vercel dev",
     "build": "vercel build", 
