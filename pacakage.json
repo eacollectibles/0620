@@ -9,6 +9,9 @@
     "start": "vercel dev"
   },
   "dependencies": {
+    "shopify-api-node": "^3.12.6",
+    "@google-cloud/vision": "^4.0.2",
+    "sharp": "^0.32.6",
     "multiparty": "^4.2.3"
   },
   "devDependencies": {
