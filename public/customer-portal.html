@@ -1826,28 +1826,73 @@ Then try scanning again.`;
           cameraStream.getTracks().forEach(track => track.stop());
         }
 
-        // Force permission request with explicit constraints
-        const constraints = {
-          video: {
-            width: { ideal: 1280, min: 640 },
-            height: { ideal: 720, min: 480 },
-            facingMode: currentCameraIndex === 0 ? 'environment' : 'user'
+        // Try multiple constraint configurations, starting with most preferred
+        const constraintOptions = [
+          // First try: Ideal high quality
+          {
+            video: {
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+              facingMode: currentCameraIndex === 0 ? 'environment' : 'user'
+            },
+            audio: false
           },
-          audio: false
-        };
+          // Second try: Basic constraints
+          {
+            video: {
+              width: { ideal: 640 },
+              height: { ideal: 480 }
+            },
+            audio: false
+          },
+          // Third try: Minimal constraints
+          {
+            video: true,
+            audio: false
+          }
+        ];
 
-        // If we have specific camera, use deviceId
+        // If we have specific camera, try with deviceId first
         if (availableCameras[currentCameraIndex]) {
-          constraints.video.deviceId = { exact: availableCameras[currentCameraIndex].deviceId };
+          constraintOptions.unshift({
+            video: {
+              deviceId: { exact: availableCameras[currentCameraIndex].deviceId },
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            },
+            audio: false
+          });
         }
 
-        console.log('Requesting camera access with constraints:', constraints);
+        let lastError = null;
 
-        // This should trigger the permission prompt
-        cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
-        
+        for (let i = 0; i < constraintOptions.length; i++) {
+          try {
+            const constraints = constraintOptions[i];
+            console.log(`Trying camera constraints (attempt ${i + 1}):`, constraints);
+
+            cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+            
+            if (cameraStream) {
+              console.log('Camera started successfully with constraints:', constraints);
+              break;
+            }
+          } catch (error) {
+            console.log(`Constraint attempt ${i + 1} failed:`, error.name, error.message);
+            lastError = error;
+            
+            // If this was a permission error, don't try more constraints
+            if (error.name === 'NotAllowedError') {
+              throw error;
+            }
+            
+            // Continue to next constraint option
+            continue;
+          }
+        }
+
         if (!cameraStream) {
-          throw new Error('Failed to get camera stream');
+          throw lastError || new Error('Failed to get camera stream with any constraints');
         }
 
         video.srcObject = cameraStream;
@@ -1855,15 +1900,25 @@ Then try scanning again.`;
         return new Promise((resolve, reject) => {
           video.onloadedmetadata = () => {
             video.play().then(() => {
-              console.log('Camera started successfully');
+              console.log('Video playback started successfully');
               resolve();
-            }).catch(reject);
+            }).catch((playError) => {
+              console.error('Video play error:', playError);
+              reject(new Error('Failed to start video playback'));
+            });
           };
           
           video.onerror = (error) => {
-            console.error('Video error:', error);
-            reject(new Error('Failed to start video'));
+            console.error('Video element error:', error);
+            reject(new Error('Video element failed to load'));
           };
+          
+          // Timeout fallback
+          setTimeout(() => {
+            if (video.readyState === 0) {
+              reject(new Error('Video failed to load within timeout'));
+            }
+          }, 10000);
         });
 
       } catch (error) {
@@ -1875,7 +1930,9 @@ Then try scanning again.`;
         } else if (error.name === 'NotFoundError') {
           throw new Error('No camera found. Please connect a camera and try again.');
         } else if (error.name === 'OverconstrainedError') {
-          throw new Error('Camera constraints not supported. Trying fallback...');
+          throw new Error('Camera not compatible. Please try a different camera or browser.');
+        } else if (error.name === 'NotReadableError') {
+          throw new Error('Camera is being used by another application. Please close other camera apps and try again.');
         } else {
           throw new Error(`Camera error: ${error.message}`);
         }
