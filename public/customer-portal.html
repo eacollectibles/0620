@@ -2061,14 +2061,28 @@ Then try scanning again.`;
         results.matches.forEach((match, index) => {
           const matchElement = document.createElement('div');
           matchElement.className = 'scan-match';
+          
+          // Handle both API formats (name vs title)
+          const cardName = match.name || match.title || 'Unknown Card';
+          const cardSku = match.sku || 'N/A';
+          const cardSet = match.set || match.variant_title || 'Unknown';
+          const cardPrice = match.retailPrice || match.price || '0.00';
+          const confidence = match.confidence || 0;
+          
           matchElement.innerHTML = `
-            <div class="scan-match-name">${match.name}</div>
+            <div class="scan-match-name">${cardName}</div>
             <div class="scan-match-details">
-              <span>SKU: ${match.sku || 'N/A'}</span>
-              <span>Set: ${match.set || 'Unknown'}</span>
-              <span>Est. Value: ${match.retailPrice || '0.00'}</span>
-              <span class="scan-match-confidence">${Math.round(match.confidence * 100)}% match</span>
+              <span>SKU: ${cardSku}</span>
+              <span>Variant: ${cardSet}</span>
+              <span>Price: ${cardPrice}</span>
+              <span class="scan-match-confidence">${Math.round(confidence * 100)}% match</span>
             </div>
+            ${match.image_url ? `
+              <div style="margin-top: 8px;">
+                <img src="${match.image_url}" alt="${cardName}" 
+                     style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid var(--gray-200);">
+              </div>
+            ` : ''}
           `;
           
           matchElement.addEventListener('click', function() {
@@ -2076,15 +2090,39 @@ Then try scanning again.`;
             document.querySelectorAll('.scan-match').forEach(el => el.classList.remove('selected'));
             // Select this match
             matchElement.classList.add('selected');
-            selectedScanResult = match;
+            
+            // Store the result with normalized properties
+            selectedScanResult = {
+              name: cardName,
+              sku: cardSku,
+              retailPrice: parseFloat(cardPrice || 0),
+              compareAtPrice: match.compare_at_price ? parseFloat(match.compare_at_price) : null,
+              confidence: confidence,
+              scanMethod: 'shopify_image_scan',
+              productId: match.product_id,
+              variantId: match.variant_id,
+              inventoryQuantity: match.inventory_quantity,
+              imageUrl: match.image_url
+            };
           });
           
           scanMatches.appendChild(matchElement);
           
           // Auto-select first match if high confidence
-          if (index === 0 && match.confidence > 0.8) {
+          if (index === 0 && confidence > 0.8) {
             matchElement.classList.add('selected');
-            selectedScanResult = match;
+            selectedScanResult = {
+              name: cardName,
+              sku: cardSku,
+              retailPrice: parseFloat(cardPrice || 0),
+              compareAtPrice: match.compare_at_price ? parseFloat(match.compare_at_price) : null,
+              confidence: confidence,
+              scanMethod: 'shopify_image_scan',
+              productId: match.product_id,
+              variantId: match.variant_id,
+              inventoryQuantity: match.inventory_quantity,
+              imageUrl: match.image_url
+            };
           }
         });
         
