@@ -2014,7 +2014,16 @@ Then try scanning again.`;
         formData.append('match_threshold', '0.7');
         formData.append('max_results', '5');
         
+        console.log('=== CARD SCAN DEBUG INFO ===');
         console.log('Sending image to API:', CARD_SCAN_API_URL);
+        console.log('Image blob size:', imageBlob.size, 'bytes');
+        console.log('Image blob type:', imageBlob.type);
+        console.log('FormData contents:', {
+          shopify_store: SHOPIFY_STORE_NAME,
+          match_threshold: '0.7',
+          max_results: '5',
+          image_size: imageBlob.size
+        });
         
         // Send to card recognition API
         const response = await fetch(CARD_SCAN_API_URL, {
@@ -2022,10 +2031,28 @@ Then try scanning again.`;
           body: formData
         });
         
+        console.log('=== API RESPONSE DEBUG ===');
         console.log('API Response status:', response.status);
+        console.log('API Response headers:', Object.fromEntries(response.headers.entries()));
         
         const result = await response.json();
-        console.log('API Response data:', result);
+        console.log('=== FULL API RESPONSE DATA ===');
+        console.log('Raw response:', result);
+        console.log('Response type:', typeof result);
+        console.log('Has success property:', 'success' in result);
+        console.log('Has matches property:', 'matches' in result);
+        console.log('Success value:', result.success);
+        console.log('Matches count:', result.matches ? result.matches.length : 'No matches property');
+        console.log('Shop name:', result.shop_name);
+        console.log('Extracted text:', result.extracted_text);
+        console.log('Processing time:', result.processing_time);
+        console.log('Total products searched:', result.total_products_searched);
+        
+        if (result.matches && result.matches.length > 0) {
+          console.log('=== FIRST MATCH DETAILS ===');
+          console.log('First match:', result.matches[0]);
+          console.log('Match properties:', Object.keys(result.matches[0]));
+        }
         
         if (!response.ok) {
           throw new Error(result.error || result.message || 'Card recognition failed');
