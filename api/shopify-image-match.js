@@ -169,24 +169,45 @@ export default async function handler(req, res) {
         for (const tagFormat of tagFormats) {
           console.log(`🏷️ Searching for tag: "${tagFormat}"`);
           
-          const cardNumberResponse = await fetch(`https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=50&published_status=any&query=tag:"${encodeURIComponent(tagFormat)}"`, {
-            headers: {
-              'X-Shopify-Access-Token': shopifyToken,
-              'Content-Type': 'application/json'
-            }
-          });
-          
-          if (cardNumberResponse.ok) {
-            const cardNumberData = await cardNumberResponse.json();
-            const foundProducts = cardNumberData.products || [];
-            console.log(`📦 Found ${foundProducts.length} products with tag "${tagFormat}"`);
+          try {
+            const searchUrl = `https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=50&published_status=any&query=tag:"${encodeURIComponent(tagFormat)}"`;
+            console.log(`🔗 Full search URL: ${searchUrl}`);
             
-            if (foundProducts.length > 0) {
-              cardNumberProducts = foundProducts;
-              console.log(`✅ SUCCESS with tag format: "${tagFormat}"`);
-              console.log(`📋 Found products:`, foundProducts.map(p => p.title));
-              break; // Found products, stop trying other formats
+            const cardNumberResponse = await fetch(searchUrl, {
+              headers: {
+                'X-Shopify-Access-Token': shopifyToken,
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            console.log(`📡 Response status for tag "${tagFormat}": ${cardNumberResponse.status}`);
+            
+            if (cardNumberResponse.ok) {
+              const cardNumberData = await cardNumberResponse.json();
+              const foundProducts = cardNumberData.products || [];
+              console.log(`📦 Found ${foundProducts.length} products with tag "${tagFormat}"`);
+              
+              if (foundProducts.length > 0) {
+                console.log(`🎯 Products found with tag "${tagFormat}":`, foundProducts.map(p => ({
+                  title: p.title,
+                  id: p.id,
+                  tags: p.tags,
+                  status: p.status
+                })));
+                
+                cardNumberProducts = foundProducts;
+                console.log(`✅ SUCCESS with tag format: "${tagFormat}"`);
+                break; // Found products, stop trying other formats
+              } else {
+                console.log(`❌ No products found with tag "${tagFormat}"`);
+              }
+            } else {
+              console.log(`❌ API error for tag "${tagFormat}": ${cardNumberResponse.status} ${cardNumberResponse.statusText}`);
+              const errorText = await cardNumberResponse.text();
+              console.log(`Error details:`, errorText);
             }
+          } catch (tagError) {
+            console.log(`❌ Exception searching for tag "${tagFormat}":`, tagError.message);
           }
         }
         
@@ -194,12 +215,33 @@ export default async function handler(req, res) {
           products = cardNumberProducts;
           console.log(`🎯 Using ${cardNumberProducts.length} card-number-specific products for matching`);
         } else {
-          console.log('❌ No products found with any card number tag format');
+          console.log('❌ No products found with any card number tag format, trying general Pokemon search...');
+          
+          // Try general Pokemon search as fallback
+          console.log('🔍 Searching for general Pokemon products...');
+          const pokemonResponse = await fetch(`https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=250&published_status=any&query=pokemon`, {
+            headers: {
+              'X-Shopify-Access-Token': shopifyToken,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (pokemonResponse.ok) {
+            const pokemonData = await pokemonResponse.json();
+            const pokemonProducts = pokemonData.products || [];
+            console.log(`📦 Found ${pokemonProducts.length} general Pokemon products`);
+            
+            if (pokemonProducts.length > 0) {
+              products = pokemonProducts;
+              console.log(`🎯 Using ${pokemonProducts.length} general Pokemon products for matching`);
+              console.log(`📋 Sample Pokemon products:`, pokemonProducts.slice(0, 5).map(p => p.title));
+            }
+          }
         }
-      }
-      
-      // If no card number found or no results, search for Pokemon generally
-      if (products.length <= 50 || !cardNumberMatch) {
+      } else {
+        console.log('❌ No card number detected in Pokemon text, trying general Pokemon search...');
+        
+        // No card number found, search for Pokemon generally
         console.log('🔍 Searching for general Pokemon products...');
         const pokemonResponse = await fetch(`https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=250&published_status=any&query=pokemon`, {
           headers: {
@@ -213,12 +255,15 @@ export default async function handler(req, res) {
           const pokemonProducts = pokemonData.products || [];
           console.log(`📦 Found ${pokemonProducts.length} general Pokemon products`);
           
-          if (pokemonProducts.length > 0 && products.length <= 50) {
-            products = pokemonProducts; // Use Pokemon products for matching
+          if (pokemonProducts.length > 0) {
+            products = pokemonProducts;
             console.log(`🎯 Using ${pokemonProducts.length} general Pokemon products for matching`);
+            console.log(`📋 Sample Pokemon products:`, pokemonProducts.slice(0, 5).map(p => p.title));
           }
         }
       }
+    } else {
+      console.log('❌ No Pokemon detected in extracted text, using default products');
     }
 
     // Match products based on extracted text
