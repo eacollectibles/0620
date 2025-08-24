@@ -148,30 +148,31 @@ export default async function handler(req, res) {
         
         let cardNumberProducts = [];
         
-        // Try each tag format
+        // Try each tag format AND title searches
         for (const tagFormat of tagFormats) {
           console.log(`🏷️ Searching for tag: "${tagFormat}"`);
           
           try {
-            const searchUrl = `https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=50&published_status=any&query=tag:"${encodeURIComponent(tagFormat)}"`;
-            console.log(`🔗 Full search URL: ${searchUrl}`);
+            // Search by TAG first
+            let searchUrl = `https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=50&published_status=any&query=tag:"${encodeURIComponent(tagFormat)}"`;
+            console.log(`🔗 Tag search URL: ${searchUrl}`);
             
-            const cardNumberResponse = await fetch(searchUrl, {
+            let cardNumberResponse = await fetch(searchUrl, {
               headers: {
                 'X-Shopify-Access-Token': shopifyToken,
                 'Content-Type': 'application/json'
               }
             });
             
-            console.log(`📡 Response status for tag "${tagFormat}": ${cardNumberResponse.status}`);
+            console.log(`📡 Tag search response for "${tagFormat}": ${cardNumberResponse.status}`);
             
             if (cardNumberResponse.ok) {
               const cardNumberData = await cardNumberResponse.json();
               const foundProducts = cardNumberData.products || [];
-              console.log(`📦 Found ${foundProducts.length} products with tag "${tagFormat}"`);
+              console.log(`📦 Found ${foundProducts.length} products with TAG "${tagFormat}"`);
               
               if (foundProducts.length > 0) {
-                console.log(`🎯 Products found with tag "${tagFormat}":`, foundProducts.map(p => ({
+                console.log(`🎯 Products found with TAG "${tagFormat}":`, foundProducts.map(p => ({
                   title: p.title,
                   id: p.id,
                   tags: p.tags,
@@ -181,14 +182,75 @@ export default async function handler(req, res) {
                 cardNumberProducts = foundProducts;
                 console.log(`✅ SUCCESS with tag format: "${tagFormat}"`);
                 break;
-              } else {
-                console.log(`❌ No products found with tag "${tagFormat}"`);
               }
-            } else {
-              console.log(`❌ API error for tag "${tagFormat}": ${cardNumberResponse.status}`);
             }
+            
+            // If no products found with TAG, try searching by TITLE
+            console.log(`🔍 No tag results, trying TITLE search for: "${tagFormat}"`);
+            searchUrl = `https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=50&published_status=any&query=title:"${encodeURIComponent(tagFormat)}"`;
+            console.log(`🔗 Title search URL: ${searchUrl}`);
+            
+            cardNumberResponse = await fetch(searchUrl, {
+              headers: {
+                'X-Shopify-Access-Token': shopifyToken,
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            console.log(`📡 Title search response for "${tagFormat}": ${cardNumberResponse.status}`);
+            
+            if (cardNumberResponse.ok) {
+              const titleData = await cardNumberResponse.json();
+              const titleProducts = titleData.products || [];
+              console.log(`📦 Found ${titleProducts.length} products with TITLE containing "${tagFormat}"`);
+              
+              if (titleProducts.length > 0) {
+                console.log(`🎯 Products found with TITLE "${tagFormat}":`, titleProducts.map(p => ({
+                  title: p.title,
+                  id: p.id,
+                  tags: p.tags,
+                  status: p.status
+                })));
+                
+                cardNumberProducts = titleProducts;
+                console.log(`✅ SUCCESS with title search: "${tagFormat}"`);
+                break;
+              } else {
+                console.log(`❌ No products found with title containing "${tagFormat}"`);
+              }
+            }
+            
+            // Also try broader title search (without quotes for partial matching)
+            console.log(`🔍 Trying broader TITLE search for: "${tagFormat}"`);
+            searchUrl = `https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=50&published_status=any&query=${encodeURIComponent(tagFormat)}`;
+            console.log(`🔗 Broad search URL: ${searchUrl}`);
+            
+            cardNumberResponse = await fetch(searchUrl, {
+              headers: {
+                'X-Shopify-Access-Token': shopifyToken,
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            if (cardNumberResponse.ok) {
+              const broadData = await cardNumberResponse.json();
+              const broadProducts = broadData.products || [];
+              console.log(`📦 Found ${broadProducts.length} products with broad search "${tagFormat}"`);
+              
+              if (broadProducts.length > 0) {
+                console.log(`🎯 Products found with broad search "${tagFormat}":`, broadProducts.slice(0, 3).map(p => ({
+                  title: p.title,
+                  id: p.id
+                })));
+                
+                cardNumberProducts = broadProducts;
+                console.log(`✅ SUCCESS with broad search: "${tagFormat}"`);
+                break;
+              }
+            }
+            
           } catch (tagError) {
-            console.log(`❌ Exception searching for tag "${tagFormat}":`, tagError.message);
+            console.log(`❌ Exception searching for "${tagFormat}":`, tagError.message);
           }
         }
         
