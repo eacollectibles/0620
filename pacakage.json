@@ -10,8 +10,7 @@
   },
   "dependencies": {
     "shopify-api-node": "^3.12.6",
-    "multiparty": "^4.2.3",
-    "node-fetch": "^2.6.7"
+    "multiparty": "^4.2.3"
   },
   "devDependencies": {
     "vercel": "^32.0.0",
