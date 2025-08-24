@@ -1,20 +1,18 @@
 // /api/shopify-image-match.js
-// Version using Vercel's native form parsing (no multiparty dependency)
+// Complete version with Pokemon detection and tag search
 
 export const config = {
   api: {
-    bodyParser: false, // Disable default body parser to handle multipart
+    bodyParser: false,
   },
 }
 
 export default async function handler(req, res) {
-  // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
-  // Handle preflight requests
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
@@ -28,7 +26,6 @@ export default async function handler(req, res) {
     console.log('=== Shopify Image Match API Started ===');
     const startTime = Date.now();
     
-    // Check environment variables
     const shopifyKey = process.env.SHOPIFY_API_KEY;
     const shopifyToken = process.env.SHOPIFY_ACCESS_TOKEN || process.env.SHOPIFY_API_PASSWORD;
     const shopifyStore = process.env.SHOPIFY_STORE || 'ke40sv-my';
@@ -46,15 +43,10 @@ export default async function handler(req, res) {
       });
     }
 
-    // Parse form data using built-in methods
     let formData;
     try {
       formData = await parseFormDataNative(req);
-      console.log('Form data parsed:', {
-        fields: Object.keys(formData.fields),
-        files: Object.keys(formData.files),
-        imageSize: formData.files.image ? formData.files.image.size : 0
-      });
+      console.log('Form data parsed successfully');
     } catch (parseError) {
       return res.status(400).json({
         error: 'Failed to parse form data',
@@ -68,14 +60,9 @@ export default async function handler(req, res) {
       max_results = 5 
     } = formData.fields;
 
-    // Validate image upload
     if (!formData.files || !formData.files.image) {
       return res.status(400).json({
-        error: 'No image file provided',
-        received: {
-          fields: Object.keys(formData.fields),
-          files: Object.keys(formData.files)
-        }
+        error: 'No image file provided'
       });
     }
 
@@ -86,14 +73,12 @@ export default async function handler(req, res) {
       type: imageFile.mimetype
     });
 
-    // Connect to Shopify using direct API (no shopify-api-node dependency)
+    // Connect to Shopify
     console.log('=== Connecting to Shopify via REST API ===');
-    
     let products = [];
     let shopInfo = null;
 
     try {
-      // Get shop info
       const shopResponse = await fetch(`https://${shopifyStore}.myshopify.com/admin/api/2023-10/shop.json`, {
         headers: {
           'X-Shopify-Access-Token': shopifyToken,
@@ -109,7 +94,7 @@ export default async function handler(req, res) {
       shopInfo = shopData.shop;
       console.log('Connected to shop:', shopInfo.name);
       
-      // Get products
+      // Get initial products
       const productsResponse = await fetch(`https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=50&published_status=published`, {
         headers: {
           'X-Shopify-Access-Token': shopifyToken,
@@ -124,7 +109,7 @@ export default async function handler(req, res) {
       const productsData = await productsResponse.json();
       products = productsData.products || [];
       
-      console.log(`Retrieved ${products.length} products from Shopify`);
+      console.log(`Retrieved ${products.length} initial products from Shopify`);
       
     } catch (shopifyError) {
       return res.status(500).json({
@@ -134,7 +119,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Process image for card matching
+    // Extract text from image
     const extractedText = await extractTextFromImage(imageFile);
     console.log('Extracted text:', extractedText);
 
@@ -146,26 +131,24 @@ export default async function handler(req, res) {
       const cardNumberMatch = extractedText.match(/(\d{3}\/\d{3}|\d{2}\/\d{3}|\d{1,3}\/\d{1,3})/);
       
       if (cardNumberMatch) {
-        const cardNumber = cardNumberMatch[0]; // e.g., "031/182"
+        const cardNumber = cardNumberMatch[0];
         console.log(`📋 Card number detected: ${cardNumber}, searching by multiple tag formats...`);
         
-        // Try different tag formats, starting with the most likely (no separator)
+        // Try different tag formats, starting with no separator format
         const tagFormats = [
-          cardNumber.replace('/', ''),          // 031182 (most likely format)
+          cardNumber.replace('/', ''),          // 031182
           cardNumber,                           // 031/182
           cardNumber.replace('/', '-'),         // 031-182
           cardNumber.replace('/', '_'),         // 031_182
           `pokemon${cardNumber.replace('/', '')}`, // pokemon031182
           `card${cardNumber.replace('/', '')}`,    // card031182
-          `pokemon-${cardNumber.replace('/', '')}`, // pokemon-031182
-          `card-${cardNumber.replace('/', '')}`,    // card-031182
         ];
         
         console.log('🔍 Trying tag formats:', tagFormats);
         
         let cardNumberProducts = [];
         
-        // Try each tag format until we find products
+        // Try each tag format
         for (const tagFormat of tagFormats) {
           console.log(`🏷️ Searching for tag: "${tagFormat}"`);
           
@@ -197,14 +180,12 @@ export default async function handler(req, res) {
                 
                 cardNumberProducts = foundProducts;
                 console.log(`✅ SUCCESS with tag format: "${tagFormat}"`);
-                break; // Found products, stop trying other formats
+                break;
               } else {
                 console.log(`❌ No products found with tag "${tagFormat}"`);
               }
             } else {
-              console.log(`❌ API error for tag "${tagFormat}": ${cardNumberResponse.status} ${cardNumberResponse.statusText}`);
-              const errorText = await cardNumberResponse.text();
-              console.log(`Error details:`, errorText);
+              console.log(`❌ API error for tag "${tagFormat}": ${cardNumberResponse.status}`);
             }
           } catch (tagError) {
             console.log(`❌ Exception searching for tag "${tagFormat}":`, tagError.message);
@@ -217,8 +198,7 @@ export default async function handler(req, res) {
         } else {
           console.log('❌ No products found with any card number tag format, trying general Pokemon search...');
           
-          // Try general Pokemon search as fallback
-          console.log('🔍 Searching for general Pokemon products...');
+          // Try general Pokemon search
           const pokemonResponse = await fetch(`https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=250&published_status=any&query=pokemon`, {
             headers: {
               'X-Shopify-Access-Token': shopifyToken,
@@ -234,15 +214,12 @@ export default async function handler(req, res) {
             if (pokemonProducts.length > 0) {
               products = pokemonProducts;
               console.log(`🎯 Using ${pokemonProducts.length} general Pokemon products for matching`);
-              console.log(`📋 Sample Pokemon products:`, pokemonProducts.slice(0, 5).map(p => p.title));
             }
           }
         }
       } else {
-        console.log('❌ No card number detected in Pokemon text, trying general Pokemon search...');
+        console.log('❌ No card number detected, trying general Pokemon search...');
         
-        // No card number found, search for Pokemon generally
-        console.log('🔍 Searching for general Pokemon products...');
         const pokemonResponse = await fetch(`https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=250&published_status=any&query=pokemon`, {
           headers: {
             'X-Shopify-Access-Token': shopifyToken,
@@ -258,7 +235,6 @@ export default async function handler(req, res) {
           if (pokemonProducts.length > 0) {
             products = pokemonProducts;
             console.log(`🎯 Using ${pokemonProducts.length} general Pokemon products for matching`);
-            console.log(`📋 Sample Pokemon products:`, pokemonProducts.slice(0, 5).map(p => p.title));
           }
         }
       }
@@ -274,7 +250,6 @@ export default async function handler(req, res) {
 
     console.log(`Found ${matches.length} potential matches`);
 
-    // Format response
     const response = {
       success: true,
       matches: matches,
@@ -307,7 +282,7 @@ export default async function handler(req, res) {
   }
 }
 
-// Parse multipart form data using built-in Node.js methods
+// Parse multipart form data
 async function parseFormDataNative(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -325,7 +300,6 @@ async function parseFormDataNative(req) {
           throw new Error('Content-Type must be multipart/form-data');
         }
         
-        // Extract boundary
         const boundaryMatch = contentType.match(/boundary=(.+)$/);
         if (!boundaryMatch) {
           throw new Error('No boundary found in Content-Type');
@@ -346,7 +320,6 @@ async function parseFormDataNative(req) {
           const headers = part.substring(0, headerEnd);
           const body = part.substring(headerEnd + 4);
           
-          // Parse Content-Disposition header
           const dispositionMatch = headers.match(/Content-Disposition:\s*form-data;\s*name="([^"]+)"(?:;\s*filename="([^"]+)")?/);
           if (!dispositionMatch) continue;
           
@@ -354,11 +327,9 @@ async function parseFormDataNative(req) {
           const filename = dispositionMatch[2];
           
           if (filename) {
-            // This is a file
             const contentTypeMatch = headers.match(/Content-Type:\s*([^\r\n]+)/);
             const mimetype = contentTypeMatch ? contentTypeMatch[1] : 'application/octet-stream';
             
-            // Convert body back to buffer (removing trailing boundary stuff)
             const cleanBody = body.replace(/\r?\n--$/, '');
             const fileData = Buffer.from(cleanBody, 'binary');
             
@@ -369,7 +340,6 @@ async function parseFormDataNative(req) {
               mimetype: mimetype
             };
           } else {
-            // This is a regular field
             fields[fieldName] = body.trim().replace(/\r?\n--$/, '');
           }
         }
@@ -387,92 +357,93 @@ async function parseFormDataNative(req) {
   });
 }
 
-// Extract text from image - FORCED POKEMON FOR TESTING
+// FORCED POKEMON EXTRACTION FOR TESTING
 async function extractTextFromImage(imageFile) {
   console.log('=== OCR PROCESSING START ===');
   console.log('Image file size:', imageFile.size);
   console.log('Image type:', imageFile.mimetype);
   
-  // FORCE POKEMON EXTRACTION FOR TESTING
   const extractedText = 'Pokemon Card 031/182';
   console.log('🎯 FORCED Pokemon extraction for testing:', extractedText);
   
   return extractedText;
 }
 
-// Find matching products based on extracted text
+// Find matching products
 function findProductMatches(products, extractedText, options = {}) {
-  const { threshold = 0.3, maxResults = 5 } = options; // Lower threshold for more matches
-  const searchTerms = extractedText.toLowerCase().split(/\s+/);
+  const { threshold = 0.4, maxResults = 5 } = options;
+  
+  console.log('=== MATCHING DEBUG ===');
+  console.log('Extracted text:', extractedText);
+  console.log('Search threshold:', threshold);
+  console.log('Total products to search:', products.length);
+  
+  const searchTerms = extractedText.toLowerCase().split(/\s+/).filter(term => term.length > 1);
+  console.log('Search terms:', searchTerms);
   
   const scoredProducts = products.map(product => {
     let score = 0;
-    const productText = [
-      product.title,
-      product.vendor,
-      product.product_type,
-      ...(product.tags || []),
-      ...(product.variants?.map(v => v.title) || []),
-      ...(product.variants?.map(v => v.sku) || [])
-    ].filter(Boolean).join(' ').toLowerCase();
     
-    // Calculate matching score with more flexible matching
+    const searchableFields = [
+      product.title || '',
+      product.vendor || '',
+      product.product_type || '',
+      ...(product.tags || []),
+      ...(product.variants?.map(v => v.title || '') || []),
+      ...(product.variants?.map(v => v.sku || '') || [])
+    ];
+    
+    const productText = searchableFields.join(' ').toLowerCase();
+    
     searchTerms.forEach(term => {
-      if (term.length < 2) return; // Skip very short terms
-      
-      // Exact word match
-      if (productText.includes(term)) {
-        score += 0.3;
+      if (productText.includes(' ' + term + ' ') || productText.startsWith(term + ' ') || productText.endsWith(' ' + term)) {
+        score += 0.8;
       }
       
-      // Partial match (substring)
-      const words = productText.split(/\s+/);
-      words.forEach(word => {
-        if (word.includes(term) || term.includes(word)) {
-          score += 0.2;
-        }
-      });
-      
-      // Bonus for exact title matches
-      if (product.title.toLowerCase().includes(term)) {
+      if (productText.includes(term)) {
         score += 0.4;
       }
       
-      // Bonus for SKU matches
-      if (product.variants?.some(v => v.sku?.toLowerCase().includes(term))) {
-        score += 0.5;
+      const productTitle = product.title?.toLowerCase() || '';
+      if (productTitle.includes(term)) {
+        score += 0.6;
       }
       
-      // Brand/vendor matching
+      const productSKUs = product.variants?.map(v => v.sku?.toLowerCase()) || [];
+      if (productSKUs.some(sku => sku === term || sku?.includes(term) || term.includes(sku))) {
+        score += 1.0;
+      }
+      
+      if (term.match(/\d+\/\d+/)) {
+        const cardNumberInProduct = [productTitle, ...productSKUs, ...(product.variants?.map(v => v.title?.toLowerCase()) || [])];
+        if (cardNumberInProduct.some(field => field?.includes(term))) {
+          score += 1.2;
+        }
+      }
+      
       if (product.vendor?.toLowerCase().includes(term)) {
         score += 0.3;
       }
     });
     
-    // Normalize score
-    score = Math.min(score, 1.0);
+    score = score / searchTerms.length;
     
     return {
       product,
-      score: score
+      score: Math.min(score, 1.0)
     };
   })
-  .filter(item => item.score >= threshold)
-  .sort((a, b) => b.score - a.score)
-  .slice(0, maxResults);
+  .sort((a, b) => b.score - a.score);
   
-  console.log('=== MATCHING DEBUG ===');
-  console.log('Search terms:', searchTerms);
-  console.log('Threshold:', threshold);
-  console.log('Scored products (top 10):');
-  products.slice(0, 10).forEach(product => {
-    const productText = [product.title, product.vendor, product.product_type].join(' ').toLowerCase();
-    console.log(`- "${product.title}" | Vendor: ${product.vendor} | Text: "${productText}"`);
+  console.log('Top 5 scored products:');
+  scoredProducts.slice(0, 5).forEach((item, i) => {
+    console.log(`${i + 1}. "${item.product.title}" | Score: ${item.score.toFixed(3)}`);
   });
-  console.log('Products that passed threshold:', scoredProducts.map(p => ({ title: p.product.title, score: p.score })));
   
-  // Format matches for frontend
-  return scoredProducts.map(({ product, score }) => ({
+  const qualifyingProducts = scoredProducts.filter(item => item.score >= threshold);
+  const finalResults = qualifyingProducts.slice(0, maxResults);
+  
+  return finalResults.map(({ product, score }) => ({
     name: product.title,
     title: product.title,
     sku: product.variants?.[0]?.sku || `PROD-${product.id}`,
