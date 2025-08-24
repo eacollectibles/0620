@@ -1,9 +1,6 @@
 // /api/shopify-image-match.js
-// Fixed version with proper error handling and Vercel compatibility
+// MINIMAL DIAGNOSTIC VERSION - Test if basic API works
 
-const multiparty = require('multiparty');
-
-// Use proper export syntax for Vercel
 export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -17,289 +14,115 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Only allow POST requests
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
   try {
-    console.log('=== Shopify API Request Started ===');
-    const startTime = Date.now();
+    console.log('=== DIAGNOSTIC API STARTED ===');
+    console.log('Method:', req.method);
+    console.log('Headers:', JSON.stringify(req.headers, null, 2));
     
-    // Debug: Log all environment variables that contain 'SHOPIFY'
-    const shopifyEnvVars = Object.keys(process.env)
-      .filter(key => key.includes('SHOPIFY'))
-      .reduce((obj, key) => {
-        obj[key] = {
+    // Check if this is even running
+    const diagnosticData = {
+      status: 'API is running!',
+      method: req.method,
+      timestamp: new Date().toISOString(),
+      node_version: process.version,
+      environment: process.env.NODE_ENV || 'unknown'
+    };
+
+    // Check environment variables
+    const shopifyVars = {};
+    Object.keys(process.env).forEach(key => {
+      if (key.includes('SHOPIFY')) {
+        shopifyVars[key] = {
           exists: !!process.env[key],
           preview: process.env[key] ? process.env[key].substring(0, 10) + '...' : 'undefined'
         };
-        return obj;
-      }, {});
-    
-    console.log('Shopify environment variables:', shopifyEnvVars);
-    
-    // Check for multiple possible environment variable names
-    const shopifyKey = process.env.SHOPIFY_API_KEY || process.env.SHOPIFY_KEY;
-    const shopifyToken = process.env.SHOPIFY_ACCESS_TOKEN || process.env.SHOPIFY_API_PASSWORD || process.env.SHOPIFY_PASSWORD;
-    const shopifyStore = process.env.SHOPIFY_STORE_URL || process.env.SHOPIFY_STORE || 'ke40sv-my';
-    
-    console.log('Credentials check:', {
-      hasKey: !!shopifyKey,
-      hasToken: !!shopifyToken,
-      store: shopifyStore
+      }
     });
-
-    if (!shopifyKey || !shopifyToken) {
-      return res.status(500).json({
-        error: 'Missing Shopify credentials',
-        environment: shopifyEnvVars,
-        allEnvVars: Object.keys(process.env).filter(key => key.includes('SHOPIFY')),
-        details: 'Required: SHOPIFY_API_KEY and SHOPIFY_ACCESS_TOKEN (or similar)'
-      });
-    }
-
-    // Parse form data with better error handling
-    let formData;
-    try {
-      formData = await parseFormData(req);
-      console.log('Form data parsed successfully');
-    } catch (parseError) {
-      console.error('Form parsing failed:', parseError);
-      return res.status(400).json({
-        error: 'Failed to parse form data',
-        details: parseError.message
-      });
-    }
     
-    const { 
-      shopify_store = shopifyStore, 
-      match_threshold = 0.7, 
-      max_results = 5 
-    } = formData.fields;
-
-    // Check image
-    if (!formData.files || !formData.files.image) {
-      return res.status(400).json({
-        error: 'No image file provided',
-        receivedFields: Object.keys(formData.fields),
-        receivedFiles: Object.keys(formData.files)
-      });
+    diagnosticData.shopify_env_vars = shopifyVars;
+    diagnosticData.all_env_var_count = Object.keys(process.env).length;
+    
+    // Test if we can require basic modules
+    try {
+      require('multiparty');
+      diagnosticData.multiparty_available = true;
+    } catch (e) {
+      diagnosticData.multiparty_available = false;
+      diagnosticData.multiparty_error = e.message;
     }
 
-    const imageFile = formData.files.image;
-    console.log('Image received:', {
-      filename: imageFile.originalFilename,
-      size: imageFile.size,
-      type: imageFile.mimetype
-    });
-
-    // Try to connect to Shopify with better error handling
-    console.log('=== Attempting Shopify Connection ===');
-    
-    let shopify;
-    try {
-      // Try with shopify-api-node first
-      const Shopify = require('shopify-api-node');
-      shopify = new Shopify({
-        shopName: shopifyStore.replace('.myshopify.com', ''),
-        apiKey: shopifyKey,
-        password: shopifyToken,
-        apiVersion: '2023-10'
-      });
-      
-      console.log('Shopify client created, testing connection...');
-      
-      // Test connection with timeout
-      const connectionTest = await Promise.race([
-        shopify.shop.get(),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Connection timeout')), 10000)
-        )
-      ]);
-      
-      console.log('Shopify connection successful:', connectionTest.name);
-      
-    } catch (shopifyError) {
-      console.error('Shopify connection failed:', shopifyError);
-      
-      // Try alternative: direct REST API call
+    // Only try POST-specific logic if it's a POST request
+    if (req.method === 'POST') {
       try {
-        console.log('Trying direct Shopify REST API...');
-        const response = await fetch(`https://${shopifyStore}.myshopify.com/admin/api/2023-10/shop.json`, {
-          headers: {
-            'X-Shopify-Access-Token': shopifyToken,
-            'Content-Type': 'application/json'
-          }
+        // Try to parse form data
+        const multiparty = require('multiparty');
+        const form = new multiparty.Form();
+        
+        const formData = await new Promise((resolve, reject) => {
+          form.parse(req, (err, fields, files) => {
+            if (err) {
+              reject(err);
+              return;
+            }
+            resolve({ fields, files });
+          });
         });
         
-        if (!response.ok) {
-          throw new Error(`Shopify API returned ${response.status}: ${response.statusText}`);
-        }
+        diagnosticData.form_parsing = 'success';
+        diagnosticData.received_fields = Object.keys(formData.fields);
+        diagnosticData.received_files = Object.keys(formData.files);
         
-        const shopData = await response.json();
-        console.log('Direct API connection successful:', shopData.shop.name);
-        
-        // Get products via direct API
-        const productsResponse = await fetch(`https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=10`, {
-          headers: {
-            'X-Shopify-Access-Token': shopifyToken,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (!productsResponse.ok) {
-          throw new Error(`Products API returned ${productsResponse.status}`);
-        }
-        
-        const productsData = await productsResponse.json();
-        const products = productsData.products || [];
-        
-        console.log(`Found ${products.length} products via direct API`);
-        
-        // Create matches from products
-        const matches = products.slice(0, parseInt(max_results)).map((product, index) => ({
-          name: product.title,
-          title: product.title,
-          sku: product.variants?.[0]?.sku || `PROD-${product.id}`,
-          variant_sku: product.variants?.[0]?.sku || `PROD-${product.id}`,
-          variant_title: product.variants?.[0]?.title || 'Default',
-          price: product.variants?.[0]?.price || '0.00',
-          compare_at_price: product.variants?.[0]?.compare_at_price || null,
-          product_id: product.id,
-          variant_id: product.variants?.[0]?.id,
-          inventory_quantity: product.variants?.[0]?.inventory_quantity || 0,
-          image_url: product.images?.[0]?.src || null,
-          confidence: 0.90 - (index * 0.05),
-          vendor: product.vendor,
-          product_type: product.product_type
-        }));
-
-        return res.status(200).json({
-          matches: matches,
-          total_products_searched: products.length,
-          processing_time: Date.now() - startTime,
-          shopify_connection: 'success_direct_api',
-          shop_name: shopData.shop.name,
-          store_domain: shopData.shop.domain,
-          message: 'Connected via direct Shopify API!',
-          extracted_text: 'Image uploaded successfully - OCR processing available',
-          api_method: 'direct_rest_api'
-        });
-        
-      } catch (directApiError) {
-        console.error('Direct API also failed:', directApiError);
-        throw new Error(`Both shopify-api-node and direct API failed: ${directApiError.message}`);
+      } catch (formError) {
+        diagnosticData.form_parsing = 'failed';
+        diagnosticData.form_error = formError.message;
       }
     }
 
-    // If shopify-api-node worked, continue with that
-    const products = await shopify.product.list({ limit: parseInt(max_results) });
-    console.log(`Found ${products.length} products via shopify-api-node`);
+    // Test if we can make a simple fetch request
+    try {
+      // Don't actually call Shopify yet, just test fetch capability
+      diagnosticData.fetch_available = typeof fetch !== 'undefined';
+      if (typeof fetch === 'undefined') {
+        // Try to require node-fetch
+        const fetch = require('node-fetch');
+        diagnosticData.node_fetch_available = true;
+      }
+    } catch (fetchError) {
+      diagnosticData.fetch_error = fetchError.message;
+    }
 
-    const matches = products.map((product, index) => ({
-      name: product.title,
-      title: product.title,
-      sku: product.variants?.[0]?.sku || `PROD-${product.id}`,
-      variant_sku: product.variants?.[0]?.sku || `PROD-${product.id}`,
-      variant_title: product.variants?.[0]?.title || 'Default',
-      price: product.variants?.[0]?.price || '0.00',
-      compare_at_price: product.variants?.[0]?.compare_at_price || null,
-      product_id: product.id,
-      variant_id: product.variants?.[0]?.id,
-      inventory_quantity: product.variants?.[0]?.inventory_quantity || 0,
-      image_url: product.images?.[0]?.src || null,
-      confidence: 0.90 - (index * 0.05),
-      vendor: product.vendor,
-      product_type: product.product_type
-    }));
+    console.log('Diagnostic data:', JSON.stringify(diagnosticData, null, 2));
 
-    const shopInfo = await shopify.shop.get();
-
+    // ALWAYS return JSON response
     return res.status(200).json({
-      matches: matches,
-      total_products_searched: products.length,
-      processing_time: Date.now() - startTime,
-      shopify_connection: 'success_api_node',
-      shop_name: shopInfo.name,
-      store_domain: shopInfo.domain,
-      message: 'Connected via shopify-api-node!',
-      extracted_text: 'Image uploaded successfully - OCR processing available',
-      api_method: 'shopify_api_node'
+      success: true,
+      message: 'Diagnostic API is working!',
+      data: diagnosticData
     });
 
   } catch (error) {
-    console.error('=== API Error ===');
-    console.error('Error name:', error.name);
-    console.error('Error message:', error.message);
-    console.error('Stack trace:', error.stack);
+    console.error('=== DIAGNOSTIC ERROR ===');
+    console.error('Error:', error.message);
+    console.error('Stack:', error.stack);
     
-    // Always return JSON, never let it fall back to HTML error pages
-    return res.status(500).json({
-      error: 'API processing failed',
-      message: error.message,
-      type: error.name,
-      details: 'Check server logs for full error details',
-      timestamp: new Date().toISOString()
-    });
+    // FORCE JSON response even on error
+    try {
+      return res.status(500).json({
+        success: false,
+        error: 'Diagnostic API failed',
+        message: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString()
+      });
+    } catch (jsonError) {
+      // If even JSON response fails, try plain text
+      res.setHeader('Content-Type', 'application/json');
+      res.status(500).send(JSON.stringify({
+        success: false,
+        error: 'Critical API failure',
+        message: error.message,
+        json_error: jsonError.message
+      }));
+    }
   }
-}
-
-// Parse multipart form data with better error handling
-function parseFormData(req) {
-  return new Promise((resolve, reject) => {
-    const form = new multiparty.Form({
-      maxFilesSize: 10 * 1024 * 1024, // 10MB max
-      maxFields: 10,
-      maxFieldsSize: 1024 * 1024 // 1MB max for fields
-    });
-    
-    form.parse(req, (err, fields, files) => {
-      if (err) {
-        console.error('Form parsing error:', err);
-        reject(new Error(`Form parsing failed: ${err.message}`));
-        return;
-      }
-      
-      try {
-        // Process fields
-        const processedFields = {};
-        Object.keys(fields).forEach(key => {
-          processedFields[key] = fields[key][0];
-        });
-        
-        // Process files with safer file reading
-        const processedFiles = {};
-        Object.keys(files).forEach(key => {
-          const file = files[key][0];
-          
-          // Read file more safely
-          let fileBuffer;
-          try {
-            const fs = require('fs');
-            fileBuffer = fs.readFileSync(file.path);
-          } catch (readError) {
-            console.warn('Could not read file buffer, using file path instead');
-            fileBuffer = null;
-          }
-          
-          processedFiles[key] = {
-            buffer: fileBuffer,
-            path: file.path, // Keep path as fallback
-            originalFilename: file.originalFilename,
-            size: file.size,
-            mimetype: file.headers['content-type']
-          };
-        });
-        
-        resolve({
-          fields: processedFields,
-          files: processedFiles
-        });
-        
-      } catch (processingError) {
-        reject(new Error(`File processing failed: ${processingError.message}`));
-      }
-    });
-  });
 }
