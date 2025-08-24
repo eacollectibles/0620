@@ -1,5 +1,11 @@
 // /api/shopify-image-match.js
-// Production version with full Shopify integration
+// Version using Vercel's native form parsing (no multiparty dependency)
+
+export const config = {
+  api: {
+    bodyParser: false, // Disable default body parser to handle multipart
+  },
+}
 
 export default async function handler(req, res) {
   // Set CORS headers
@@ -14,7 +20,6 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Only allow POST requests for image processing
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -41,10 +46,10 @@ export default async function handler(req, res) {
       });
     }
 
-    // Parse form data
+    // Parse form data using built-in methods
     let formData;
     try {
-      formData = await parseFormData(req);
+      formData = await parseFormDataNative(req);
       console.log('Form data parsed:', {
         fields: Object.keys(formData.fields),
         files: Object.keys(formData.files),
@@ -66,96 +71,74 @@ export default async function handler(req, res) {
     // Validate image upload
     if (!formData.files || !formData.files.image) {
       return res.status(400).json({
-        error: 'No image file provided'
+        error: 'No image file provided',
+        received: {
+          fields: Object.keys(formData.fields),
+          files: Object.keys(formData.files)
+        }
       });
     }
 
     const imageFile = formData.files.image;
     console.log('Processing image:', {
-      filename: imageFile.originalFilename,
-      size: imageFile.size,
+      filename: imageFile.filename,
+      size: imageFile.data.length,
       type: imageFile.mimetype
     });
 
-    // Connect to Shopify and get products
-    console.log('=== Connecting to Shopify ===');
+    // Connect to Shopify using direct API (no shopify-api-node dependency)
+    console.log('=== Connecting to Shopify via REST API ===');
     
     let products = [];
     let shopInfo = null;
-    let connectionMethod = 'unknown';
 
     try {
-      // Try shopify-api-node first
-      const Shopify = require('shopify-api-node');
-      const shopify = new Shopify({
-        shopName: shopifyStore.replace('.myshopify.com', ''),
-        apiKey: shopifyKey,
-        password: shopifyToken,
-        apiVersion: '2023-10'
+      // Get shop info
+      const shopResponse = await fetch(`https://${shopifyStore}.myshopify.com/admin/api/2023-10/shop.json`, {
+        headers: {
+          'X-Shopify-Access-Token': shopifyToken,
+          'Content-Type': 'application/json'
+        }
       });
       
-      // Test connection and get shop info
-      shopInfo = await shopify.shop.get();
-      console.log('Shopify connection successful:', shopInfo.name);
+      if (!shopResponse.ok) {
+        throw new Error(`Shop API returned ${shopResponse.status}: ${shopResponse.statusText}`);
+      }
       
-      // Get products for matching
-      products = await shopify.product.list({ 
-        limit: 50, // Get more products for better matching
-        published_status: 'published'
+      const shopData = await shopResponse.json();
+      shopInfo = shopData.shop;
+      console.log('Connected to shop:', shopInfo.name);
+      
+      // Get products
+      const productsResponse = await fetch(`https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=50&published_status=published`, {
+        headers: {
+          'X-Shopify-Access-Token': shopifyToken,
+          'Content-Type': 'application/json'
+        }
       });
       
-      connectionMethod = 'shopify-api-node';
-      console.log(`Retrieved ${products.length} products via shopify-api-node`);
+      if (!productsResponse.ok) {
+        throw new Error(`Products API returned ${productsResponse.status}`);
+      }
+      
+      const productsData = await productsResponse.json();
+      products = productsData.products || [];
+      
+      console.log(`Retrieved ${products.length} products from Shopify`);
       
     } catch (shopifyError) {
-      console.log('shopify-api-node failed, trying direct API:', shopifyError.message);
-      
-      // Fallback to direct Shopify REST API
-      try {
-        const shopResponse = await fetch(`https://${shopifyStore}.myshopify.com/admin/api/2023-10/shop.json`, {
-          headers: {
-            'X-Shopify-Access-Token': shopifyToken,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (!shopResponse.ok) {
-          throw new Error(`Shop API returned ${shopResponse.status}: ${shopResponse.statusText}`);
-        }
-        
-        const shopData = await shopResponse.json();
-        shopInfo = shopData.shop;
-        
-        // Get products
-        const productsResponse = await fetch(`https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=50&published_status=published`, {
-          headers: {
-            'X-Shopify-Access-Token': shopifyToken,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (!productsResponse.ok) {
-          throw new Error(`Products API returned ${productsResponse.status}`);
-        }
-        
-        const productsData = await productsResponse.json();
-        products = productsData.products || [];
-        
-        connectionMethod = 'direct-rest-api';
-        console.log(`Retrieved ${products.length} products via direct API`);
-        
-      } catch (directError) {
-        throw new Error(`All Shopify connection methods failed: ${directError.message}`);
-      }
+      return res.status(500).json({
+        error: 'Shopify connection failed',
+        message: shopifyError.message,
+        store: shopifyStore
+      });
     }
 
     // Process image for card matching
-    // For now, we'll do simple text-based matching
-    // TODO: Add actual computer vision/OCR here
     const extractedText = await extractTextFromImage(imageFile);
     console.log('Extracted text (simulated):', extractedText);
 
-    // Match products based on extracted text and product data
+    // Match products based on extracted text
     const matches = findProductMatches(products, extractedText, {
       threshold: parseFloat(match_threshold),
       maxResults: parseInt(max_results)
@@ -169,18 +152,17 @@ export default async function handler(req, res) {
       matches: matches,
       total_products_searched: products.length,
       processing_time: Date.now() - startTime,
-      shopify_connection: connectionMethod,
+      shopify_connection: 'direct-rest-api',
       shop_name: shopInfo?.name || 'Unknown',
       store_domain: shopInfo?.domain || shopifyStore + '.myshopify.com',
       extracted_text: extractedText,
       image_info: {
-        filename: imageFile.originalFilename,
-        size: imageFile.size,
+        filename: imageFile.filename,
+        size: imageFile.data.length,
         type: imageFile.mimetype
       }
     };
 
-    console.log('Sending response with', matches.length, 'matches');
     return res.status(200).json(response);
 
   } catch (error) {
@@ -197,81 +179,98 @@ export default async function handler(req, res) {
   }
 }
 
-// Parse multipart form data
-function parseFormData(req) {
+// Parse multipart form data using built-in Node.js methods
+async function parseFormDataNative(req) {
   return new Promise((resolve, reject) => {
-    const multiparty = require('multiparty');
-    const form = new multiparty.Form({
-      maxFilesSize: 10 * 1024 * 1024, // 10MB max
-      maxFields: 10,
-      maxFieldsSize: 1024 * 1024 // 1MB max for fields
+    const chunks = [];
+    
+    req.on('data', (chunk) => {
+      chunks.push(chunk);
     });
     
-    form.parse(req, (err, fields, files) => {
-      if (err) {
-        console.error('Form parsing error:', err);
-        reject(new Error(`Form parsing failed: ${err.message}`));
-        return;
-      }
-      
+    req.on('end', () => {
       try {
-        // Process fields
-        const processedFields = {};
-        Object.keys(fields).forEach(key => {
-          processedFields[key] = fields[key][0];
-        });
+        const buffer = Buffer.concat(chunks);
+        const contentType = req.headers['content-type'];
         
-        // Process files
-        const processedFiles = {};
-        Object.keys(files).forEach(key => {
-          const file = files[key][0];
+        if (!contentType || !contentType.includes('multipart/form-data')) {
+          throw new Error('Content-Type must be multipart/form-data');
+        }
+        
+        // Extract boundary
+        const boundaryMatch = contentType.match(/boundary=(.+)$/);
+        if (!boundaryMatch) {
+          throw new Error('No boundary found in Content-Type');
+        }
+        
+        const boundary = '--' + boundaryMatch[1];
+        const parts = buffer.toString().split(boundary);
+        
+        const fields = {};
+        const files = {};
+        
+        for (let part of parts) {
+          if (part.trim() === '' || part.trim() === '--') continue;
           
-          // Read file buffer safely
-          let fileBuffer = null;
-          try {
-            const fs = require('fs');
-            fileBuffer = fs.readFileSync(file.path);
-          } catch (readError) {
-            console.warn('Could not read file buffer:', readError.message);
+          const headerEnd = part.indexOf('\r\n\r\n');
+          if (headerEnd === -1) continue;
+          
+          const headers = part.substring(0, headerEnd);
+          const body = part.substring(headerEnd + 4);
+          
+          // Parse Content-Disposition header
+          const dispositionMatch = headers.match(/Content-Disposition:\s*form-data;\s*name="([^"]+)"(?:;\s*filename="([^"]+)")?/);
+          if (!dispositionMatch) continue;
+          
+          const fieldName = dispositionMatch[1];
+          const filename = dispositionMatch[2];
+          
+          if (filename) {
+            // This is a file
+            const contentTypeMatch = headers.match(/Content-Type:\s*([^\r\n]+)/);
+            const mimetype = contentTypeMatch ? contentTypeMatch[1] : 'application/octet-stream';
+            
+            // Convert body back to buffer (removing trailing boundary stuff)
+            const cleanBody = body.replace(/\r?\n--$/, '');
+            const fileData = Buffer.from(cleanBody, 'binary');
+            
+            files[fieldName] = {
+              filename: filename,
+              data: fileData,
+              size: fileData.length,
+              mimetype: mimetype
+            };
+          } else {
+            // This is a regular field
+            fields[fieldName] = body.trim().replace(/\r?\n--$/, '');
           }
-          
-          processedFiles[key] = {
-            buffer: fileBuffer,
-            path: file.path,
-            originalFilename: file.originalFilename,
-            size: file.size,
-            mimetype: file.headers['content-type']
-          };
-        });
+        }
         
-        resolve({
-          fields: processedFields,
-          files: processedFiles
-        });
+        resolve({ fields, files });
         
-      } catch (processingError) {
-        reject(new Error(`File processing failed: ${processingError.message}`));
+      } catch (parseError) {
+        reject(new Error(`Form parsing failed: ${parseError.message}`));
       }
+    });
+    
+    req.on('error', (error) => {
+      reject(new Error(`Request error: ${error.message}`));
     });
   });
 }
 
-// Extract text from image (placeholder for now)
+// Extract text from image (placeholder)
 async function extractTextFromImage(imageFile) {
-  // TODO: Implement actual OCR using Google Vision API, Tesseract.js, or similar
-  // For now, return simulated extracted text
-  
   const possibleCardTexts = [
     'Pikachu Lightning Pokemon Card',
     'Black Lotus Magic The Gathering',
     'Blue-Eyes White Dragon Yu-Gi-Oh',
-    'Charizard Fire Pokemon Card',
+    'Charizard Fire Pokemon Card', 
     'Time Walk Magic Vintage',
     'Dark Magician Yu-Gi-Oh Card'
   ];
   
-  // Simulate text extraction based on image filename or random selection
-  const filename = imageFile.originalFilename?.toLowerCase() || '';
+  const filename = imageFile.filename?.toLowerCase() || '';
   
   if (filename.includes('pokemon') || filename.includes('pikachu')) {
     return 'Pikachu Lightning Pokemon Card';
@@ -281,11 +280,10 @@ async function extractTextFromImage(imageFile) {
     return 'Blue-Eyes White Dragon Yu-Gi-Oh';
   }
   
-  // Default random selection
   return possibleCardTexts[Math.floor(Math.random() * possibleCardTexts.length)];
 }
 
-// Find matching products based on extracted text
+// Find matching products
 function findProductMatches(products, extractedText, options = {}) {
   const { threshold = 0.7, maxResults = 5 } = options;
   const searchTerms = extractedText.toLowerCase().split(/\s+/);
@@ -301,20 +299,17 @@ function findProductMatches(products, extractedText, options = {}) {
       ...(product.variants?.map(v => v.sku) || [])
     ].filter(Boolean).join(' ').toLowerCase();
     
-    // Calculate matching score
     searchTerms.forEach(term => {
-      if (term.length < 2) return; // Skip very short terms
+      if (term.length < 2) return;
       
       if (productText.includes(term)) {
         score += term.length / extractedText.length;
       }
       
-      // Bonus for exact title matches
       if (product.title.toLowerCase().includes(term)) {
         score += 0.2;
       }
       
-      // Bonus for SKU matches
       if (product.variants?.some(v => v.sku?.toLowerCase().includes(term))) {
         score += 0.3;
       }
@@ -322,14 +317,13 @@ function findProductMatches(products, extractedText, options = {}) {
     
     return {
       product,
-      score: Math.min(score, 1.0) // Cap at 100%
+      score: Math.min(score, 1.0)
     };
   })
   .filter(item => item.score >= threshold)
   .sort((a, b) => b.score - a.score)
   .slice(0, maxResults);
   
-  // Format matches for frontend
   return scoredProducts.map(({ product, score }) => ({
     name: product.title,
     title: product.title,
