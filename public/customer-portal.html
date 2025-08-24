@@ -1772,13 +1772,31 @@
           console.log('Permissions API not supported, proceeding with camera request');
         }
 
-        // Get available cameras
+        // Get available cameras and prioritize rear cameras
         const devices = await navigator.mediaDevices.enumerateDevices();
         availableCameras = devices.filter(device => device.kind === 'videoinput');
+        
+        // Sort cameras to prioritize rear cameras
+        availableCameras.sort((a, b) => {
+          const aIsRear = a.label.toLowerCase().includes('back') || a.label.toLowerCase().includes('rear') || a.label.toLowerCase().includes('environment');
+          const bIsRear = b.label.toLowerCase().includes('back') || b.label.toLowerCase().includes('rear') || b.label.toLowerCase().includes('environment');
+          
+          if (aIsRear && !bIsRear) return -1; // a comes first
+          if (!aIsRear && bIsRear) return 1;  // b comes first
+          return 0; // keep original order
+        });
+        
+        console.log('Available cameras (sorted, rear first):', availableCameras.map(cam => ({ 
+          deviceId: cam.deviceId.substring(0, 20) + '...', 
+          label: cam.label || 'Unknown Camera'
+        })));
         
         if (availableCameras.length === 0) {
           throw new Error('No cameras found on this device');
         }
+
+        // Start with first camera (should be rear if available)
+        currentCameraIndex = 0;
 
         // Show switch camera button if multiple cameras
         const switchBtn = document.getElementById('switch-camera');
@@ -1826,26 +1844,43 @@ Then try scanning again.`;
           cameraStream.getTracks().forEach(track => track.stop());
         }
 
-        // Try multiple constraint configurations, starting with most preferred
+        // Try multiple constraint configurations, starting with rear camera
         const constraintOptions = [
-          // First try: Ideal high quality
+          // First try: Force rear camera (environment) with high quality
           {
             video: {
               width: { ideal: 1280 },
               height: { ideal: 720 },
-              facingMode: currentCameraIndex === 0 ? 'environment' : 'user'
+              facingMode: { exact: 'environment' } // Force rear camera
             },
             audio: false
           },
-          // Second try: Basic constraints
+          // Second try: Prefer rear camera
+          {
+            video: {
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+              facingMode: 'environment' // Prefer rear camera
+            },
+            audio: false
+          },
+          // Third try: Basic rear camera constraints
           {
             video: {
               width: { ideal: 640 },
-              height: { ideal: 480 }
+              height: { ideal: 480 },
+              facingMode: 'environment'
             },
             audio: false
           },
-          // Third try: Minimal constraints
+          // Fourth try: Any rear camera
+          {
+            video: {
+              facingMode: 'environment'
+            },
+            audio: false
+          },
+          // Last resort: Any camera (but this shouldn't be reached)
           {
             video: true,
             audio: false
