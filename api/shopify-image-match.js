@@ -136,7 +136,90 @@ export default async function handler(req, res) {
 
     // Process image for card matching
     const extractedText = await extractTextFromImage(imageFile);
-    console.log('Extracted text (simulated):', extractedText);
+    console.log('Extracted text:', extractedText);
+
+    // POKEMON DETECTION AND TAG SEARCH LOGIC
+    if (extractedText.toLowerCase().includes('pokemon')) {
+      console.log('🎯 Pokemon detected! Searching for Pokemon products...');
+      
+      // Look for card numbers in the extracted text
+      const cardNumberMatch = extractedText.match(/(\d{3}\/\d{3}|\d{2}\/\d{3}|\d{1,3}\/\d{1,3})/);
+      
+      if (cardNumberMatch) {
+        const cardNumber = cardNumberMatch[0]; // e.g., "031/182"
+        console.log(`📋 Card number detected: ${cardNumber}, searching by multiple tag formats...`);
+        
+        // Try different tag formats, starting with the most likely (no separator)
+        const tagFormats = [
+          cardNumber.replace('/', ''),          // 031182 (most likely format)
+          cardNumber,                           // 031/182
+          cardNumber.replace('/', '-'),         // 031-182
+          cardNumber.replace('/', '_'),         // 031_182
+          `pokemon${cardNumber.replace('/', '')}`, // pokemon031182
+          `card${cardNumber.replace('/', '')}`,    // card031182
+          `pokemon-${cardNumber.replace('/', '')}`, // pokemon-031182
+          `card-${cardNumber.replace('/', '')}`,    // card-031182
+        ];
+        
+        console.log('🔍 Trying tag formats:', tagFormats);
+        
+        let cardNumberProducts = [];
+        
+        // Try each tag format until we find products
+        for (const tagFormat of tagFormats) {
+          console.log(`🏷️ Searching for tag: "${tagFormat}"`);
+          
+          const cardNumberResponse = await fetch(`https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=50&published_status=any&query=tag:"${encodeURIComponent(tagFormat)}"`, {
+            headers: {
+              'X-Shopify-Access-Token': shopifyToken,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (cardNumberResponse.ok) {
+            const cardNumberData = await cardNumberResponse.json();
+            const foundProducts = cardNumberData.products || [];
+            console.log(`📦 Found ${foundProducts.length} products with tag "${tagFormat}"`);
+            
+            if (foundProducts.length > 0) {
+              cardNumberProducts = foundProducts;
+              console.log(`✅ SUCCESS with tag format: "${tagFormat}"`);
+              console.log(`📋 Found products:`, foundProducts.map(p => p.title));
+              break; // Found products, stop trying other formats
+            }
+          }
+        }
+        
+        if (cardNumberProducts.length > 0) {
+          products = cardNumberProducts;
+          console.log(`🎯 Using ${cardNumberProducts.length} card-number-specific products for matching`);
+        } else {
+          console.log('❌ No products found with any card number tag format');
+        }
+      }
+      
+      // If no card number found or no results, search for Pokemon generally
+      if (products.length <= 50 || !cardNumberMatch) {
+        console.log('🔍 Searching for general Pokemon products...');
+        const pokemonResponse = await fetch(`https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=250&published_status=any&query=pokemon`, {
+          headers: {
+            'X-Shopify-Access-Token': shopifyToken,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (pokemonResponse.ok) {
+          const pokemonData = await pokemonResponse.json();
+          const pokemonProducts = pokemonData.products || [];
+          console.log(`📦 Found ${pokemonProducts.length} general Pokemon products`);
+          
+          if (pokemonProducts.length > 0 && products.length <= 50) {
+            products = pokemonProducts; // Use Pokemon products for matching
+            console.log(`🎯 Using ${pokemonProducts.length} general Pokemon products for matching`);
+          }
+        }
+      }
+    }
 
     // Match products based on extracted text
     const matches = findProductMatches(products, extractedText, {
