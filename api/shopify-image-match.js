@@ -283,9 +283,9 @@ async function extractTextFromImage(imageFile) {
   return possibleCardTexts[Math.floor(Math.random() * possibleCardTexts.length)];
 }
 
-// Find matching products
+// Find matching products based on extracted text
 function findProductMatches(products, extractedText, options = {}) {
-  const { threshold = 0.7, maxResults = 5 } = options;
+  const { threshold = 0.3, maxResults = 5 } = options; // Lower threshold for more matches
   const searchTerms = extractedText.toLowerCase().split(/\s+/);
   
   const scoredProducts = products.map(product => {
@@ -299,31 +299,62 @@ function findProductMatches(products, extractedText, options = {}) {
       ...(product.variants?.map(v => v.sku) || [])
     ].filter(Boolean).join(' ').toLowerCase();
     
+    // Calculate matching score with more flexible matching
     searchTerms.forEach(term => {
-      if (term.length < 2) return;
+      if (term.length < 2) return; // Skip very short terms
       
+      // Exact word match
       if (productText.includes(term)) {
-        score += term.length / extractedText.length;
+        score += 0.3;
       }
       
+      // Partial match (substring)
+      const words = productText.split(/\s+/);
+      words.forEach(word => {
+        if (word.includes(term) || term.includes(word)) {
+          score += 0.2;
+        }
+      });
+      
+      // Bonus for exact title matches
       if (product.title.toLowerCase().includes(term)) {
-        score += 0.2;
+        score += 0.4;
       }
       
+      // Bonus for SKU matches
       if (product.variants?.some(v => v.sku?.toLowerCase().includes(term))) {
+        score += 0.5;
+      }
+      
+      // Brand/vendor matching
+      if (product.vendor?.toLowerCase().includes(term)) {
         score += 0.3;
       }
     });
     
+    // Normalize score
+    score = Math.min(score, 1.0);
+    
     return {
       product,
-      score: Math.min(score, 1.0)
+      score: score
     };
   })
   .filter(item => item.score >= threshold)
   .sort((a, b) => b.score - a.score)
   .slice(0, maxResults);
   
+  console.log('=== MATCHING DEBUG ===');
+  console.log('Search terms:', searchTerms);
+  console.log('Threshold:', threshold);
+  console.log('Scored products (top 10):');
+  products.slice(0, 10).forEach(product => {
+    const productText = [product.title, product.vendor, product.product_type].join(' ').toLowerCase();
+    console.log(`- "${product.title}" | Vendor: ${product.vendor} | Text: "${productText}"`);
+  });
+  console.log('Products that passed threshold:', scoredProducts.map(p => ({ title: p.product.title, score: p.score })));
+  
+  // Format matches for frontend
   return scoredProducts.map(({ product, score }) => ({
     name: product.title,
     title: product.title,
