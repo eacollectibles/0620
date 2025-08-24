@@ -261,26 +261,38 @@ async function parseFormDataNative(req) {
 
 // Extract text from image (placeholder)
 async function extractTextFromImage(imageFile) {
-  const possibleCardTexts = [
-    'Pikachu Lightning Pokemon Card',
-    'Black Lotus Magic The Gathering',
-    'Blue-Eyes White Dragon Yu-Gi-Oh',
-    'Charizard Fire Pokemon Card', 
-    'Time Walk Magic Vintage',
-    'Dark Magician Yu-Gi-Oh Card'
-  ];
+  // TODO: Implement actual OCR using Google Vision API or Tesseract.js
+  // For now, simulate realistic card text based on filename or return generic trading card terms
   
   const filename = imageFile.filename?.toLowerCase() || '';
   
-  if (filename.includes('pokemon') || filename.includes('pikachu')) {
-    return 'Pikachu Lightning Pokemon Card';
-  } else if (filename.includes('magic') || filename.includes('mtg')) {
-    return 'Black Lotus Magic The Gathering';
-  } else if (filename.includes('yugioh') || filename.includes('dragon')) {
-    return 'Blue-Eyes White Dragon Yu-Gi-Oh';
+  // More realistic card extraction - focus on common trading card terms
+  const realisticCardTexts = [
+    'Magic The Gathering Card',
+    'Pokemon Trading Card',
+    'Yu-Gi-Oh Monster Card',
+    'Baseball Trading Card',
+    'Basketball Card',
+    'Football Trading Card',
+    'Hockey Card',
+    'Collectible Card Game'
+  ];
+  
+  // If filename gives us a clue, use it
+  if (filename.includes('magic') || filename.includes('mtg')) {
+    return 'Magic The Gathering Card';
+  } else if (filename.includes('pokemon')) {
+    return 'Pokemon Trading Card';
+  } else if (filename.includes('yugioh') || filename.includes('yu-gi-oh')) {
+    return 'Yu-Gi-Oh Monster Card';
+  } else if (filename.includes('baseball')) {
+    return 'Baseball Trading Card';
+  } else if (filename.includes('basketball')) {
+    return 'Basketball Card';
   }
   
-  return possibleCardTexts[Math.floor(Math.random() * possibleCardTexts.length)];
+  // Instead of random selection, return a generic term that might match more products
+  return 'Trading Card';
 }
 
 // Find matching products based on extracted text
