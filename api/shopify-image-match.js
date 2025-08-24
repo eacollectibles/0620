@@ -259,40 +259,105 @@ async function parseFormDataNative(req) {
   });
 }
 
-// Extract text from image (placeholder)
+// Extract text from image using Tesseract.js OCR
 async function extractTextFromImage(imageFile) {
-  // TODO: Implement actual OCR using Google Vision API or Tesseract.js
-  // For now, simulate realistic card text based on filename or return generic trading card terms
+  console.log('=== OCR PROCESSING START ===');
+  console.log('Image file size:', imageFile.size);
+  console.log('Image type:', imageFile.mimetype);
   
-  const filename = imageFile.filename?.toLowerCase() || '';
+  try {
+    // Import Tesseract.js
+    const { createWorker } = require('tesseract.js');
+    
+    console.log('Creating Tesseract worker...');
+    const worker = await createWorker('eng');
+    
+    console.log('Processing image with OCR...');
+    const { data: { text } } = await worker.recognize(imageFile.data);
+    
+    console.log('Raw OCR text:', text);
+    
+    // Clean up the OCR text
+    const cleanText = text
+      .replace(/[^\w\s\-\/]/g, ' ') // Keep letters, numbers, spaces, hyphens, slashes
+      .replace(/\s+/g, ' ') // Multiple spaces to single space
+      .trim();
+    
+    console.log('Cleaned OCR text:', cleanText);
+    
+    await worker.terminate();
+    
+    // Extract key information from the text
+    const extractedInfo = extractCardInfo(cleanText);
+    console.log('Extracted card info:', extractedInfo);
+    
+    return extractedInfo;
+    
+  } catch (ocrError) {
+    console.error('OCR Error:', ocrError);
+    
+    // Fallback to generic text if OCR fails
+    return 'Trading Card';
+  }
+}
+
+// Extract specific card information from OCR text
+function extractCardInfo(text) {
+  const lowerText = text.toLowerCase();
   
-  // More realistic card extraction - focus on common trading card terms
-  const realisticCardTexts = [
-    'Magic The Gathering Card',
-    'Pokemon Trading Card',
-    'Yu-Gi-Oh Monster Card',
-    'Baseball Trading Card',
-    'Basketball Card',
-    'Football Trading Card',
-    'Hockey Card',
-    'Collectible Card Game'
-  ];
+  // Look for card numbers (like 031/182)
+  const cardNumberMatch = text.match(/(\d{3}\/\d{3}|\d{2}\/\d{3}|\d{1,3}\/\d{1,3})/);
   
-  // If filename gives us a clue, use it
-  if (filename.includes('magic') || filename.includes('mtg')) {
-    return 'Magic The Gathering Card';
-  } else if (filename.includes('pokemon')) {
-    return 'Pokemon Trading Card';
-  } else if (filename.includes('yugioh') || filename.includes('yu-gi-oh')) {
-    return 'Yu-Gi-Oh Monster Card';
-  } else if (filename.includes('baseball')) {
-    return 'Baseball Trading Card';
-  } else if (filename.includes('basketball')) {
-    return 'Basketball Card';
+  // Look for game types
+  let gameType = '';
+  if (lowerText.includes('pokemon') || lowerText.includes('pokémon')) {
+    gameType = 'Pokemon';
+  } else if (lowerText.includes('magic') || lowerText.includes('mtg')) {
+    gameType = 'Magic The Gathering';
+  } else if (lowerText.includes('yugioh') || lowerText.includes('yu-gi-oh')) {
+    gameType = 'Yu-Gi-Oh';
   }
   
-  // Instead of random selection, return a generic term that might match more products
-  return 'Trading Card';
+  // Look for rarity indicators
+  const rarityIndicators = ['rare', 'uncommon', 'common', 'mythic', 'legendary', 'holo', 'foil'];
+  const foundRarity = rarityIndicators.find(rarity => lowerText.includes(rarity));
+  
+  // Look for card names (usually the longest continuous text)
+  const words = text.split(/\s+/).filter(word => word.length > 2);
+  const possibleNames = [];
+  
+  // Find sequences of capitalized words (likely card names)
+  for (let i = 0; i < words.length - 1; i++) {
+    if (words[i][0] && words[i][0] === words[i][0].toUpperCase()) {
+      let nameSequence = [words[i]];
+      for (let j = i + 1; j < words.length && j < i + 4; j++) {
+        if (words[j][0] && words[j][0] === words[j][0].toUpperCase()) {
+          nameSequence.push(words[j]);
+        } else {
+          break;
+        }
+      }
+      if (nameSequence.length >= 2) {
+        possibleNames.push(nameSequence.join(' '));
+      }
+    }
+  }
+  
+  // Build the extracted information
+  let result = [];
+  
+  if (gameType) result.push(gameType);
+  if (possibleNames.length > 0) result.push(possibleNames[0]);
+  if (cardNumberMatch) result.push(cardNumberMatch[0]);
+  if (foundRarity) result.push(foundRarity);
+  
+  // If we found specific info, return it; otherwise return the cleaned text
+  if (result.length > 0) {
+    return result.join(' ');
+  }
+  
+  // Return first 50 characters of cleaned text as fallback
+  return text.substring(0, 50).trim() || 'Trading Card';
 }
 
 // Find matching products based on extracted text
