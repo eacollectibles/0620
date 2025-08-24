@@ -259,47 +259,17 @@ async function parseFormDataNative(req) {
   });
 }
 
-// Extract text from image - simplified OCR approach
+// Extract text from image - FORCED POKEMON FOR TESTING
 async function extractTextFromImage(imageFile) {
   console.log('=== OCR PROCESSING START ===');
   console.log('Image file size:', imageFile.size);
   console.log('Image type:', imageFile.mimetype);
   
-  try {
-    // For now, let's create a more intelligent placeholder based on image analysis
-    // This is a temporary solution until we get real OCR working
-    
-    // Simulate different card types based on image characteristics
-    const imageSize = imageFile.size;
-    const random = Math.random();
-    
-    console.log('Image analysis - size:', imageSize, 'random seed:', random);
-    
-    // Create more realistic test extractions to debug the matching system
-    let extractedText = '';
-    
-    if (random < 0.33) {
-      extractedText = 'Pokemon Card 031/182';
-    } else if (random < 0.66) {
-      extractedText = 'Magic The Gathering Instant Spell';
-    } else {
-      extractedText = 'Yu-Gi-Oh Monster Card Level 4';
-    }
-    
-    console.log('Simulated OCR extraction:', extractedText);
-    
-    // TODO: Replace with real OCR implementation
-    // const { createWorker } = require('tesseract.js');
-    // const worker = await createWorker('eng');
-    // const { data: { text } } = await worker.recognize(imageFile.data);
-    // await worker.terminate();
-    
-    return extractedText;
-    
-  } catch (error) {
-    console.error('OCR Error:', error);
-    return 'Trading Card Generic';
-  }
+  // FORCE POKEMON EXTRACTION FOR TESTING
+  const extractedText = 'Pokemon Card 031/182';
+  console.log('🎯 FORCED Pokemon extraction for testing:', extractedText);
+  
+  return extractedText;
 }
 
 // Find matching products based on extracted text
