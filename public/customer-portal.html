@@ -2027,34 +2027,8 @@ Then try scanning again.`;
         const result = await response.json();
         console.log('API Response data:', result);
         
-        // Log detailed diagnostic info if it's the diagnostic version
-        if (result.environment) {
-          console.log('=== ENVIRONMENT DIAGNOSTIC ===');
-          console.log('SHOPIFY_API_KEY exists:', result.environment.SHOPIFY_API_KEY?.exists);
-          console.log('SHOPIFY_API_KEY preview:', result.environment.SHOPIFY_API_KEY?.preview);
-          console.log('SHOPIFY_API_PASSWORD exists:', result.environment.SHOPIFY_API_PASSWORD?.exists);
-          console.log('SHOPIFY_API_PASSWORD preview:', result.environment.SHOPIFY_API_PASSWORD?.preview);
-          console.log('GOOGLE_CLOUD_CREDENTIALS exists:', result.environment.GOOGLE_CLOUD_CREDENTIALS?.exists);
-          console.log('GOOGLE_CLOUD_CREDENTIALS valid JSON:', result.environment.GOOGLE_CLOUD_CREDENTIALS?.isValidJSON);
-          console.log('All Environment Variables:', result.allEnvVars);
-          
-          // Show diagnostic in the scan results
-          scanStatus.innerHTML = '🔍 <span>Environment Variables Diagnostic</span>';
-          scanMatches.innerHTML = `
-            <div style="background: white; padding: 20px; border-radius: 8px; font-family: monospace; font-size: 12px;">
-              <h4>Environment Variables Status:</h4>
-              <p><strong>SHOPIFY_API_KEY:</strong> ${result.environment.SHOPIFY_API_KEY?.exists ? '✅ EXISTS' : '❌ MISSING'} ${result.environment.SHOPIFY_API_KEY?.preview || ''}</p>
-              <p><strong>SHOPIFY_API_PASSWORD:</strong> ${result.environment.SHOPIFY_API_PASSWORD?.exists ? '✅ EXISTS' : '❌ MISSING'} ${result.environment.SHOPIFY_API_PASSWORD?.preview || ''}</p>
-              <p><strong>GOOGLE_CLOUD_CREDENTIALS:</strong> ${result.environment.GOOGLE_CLOUD_CREDENTIALS?.exists ? '✅ EXISTS' : '❌ MISSING'} ${result.environment.GOOGLE_CLOUD_CREDENTIALS?.isValidJSON ? '(Valid JSON)' : '(Invalid JSON)'}</p>
-              <p><strong>Total Env Vars:</strong> ${result.allEnvVars?.length || 0}</p>
-              <p><strong>Relevant Vars:</strong> ${result.allEnvVars?.join(', ') || 'None'}</p>
-            </div>
-          `;
-          return;
-        }
-        
         if (!response.ok) {
-          throw new Error(result.error || 'Card recognition failed');
+          throw new Error(result.error || result.message || 'Card recognition failed');
         }
         
         displayScanResults(result);
@@ -2080,26 +2054,27 @@ Then try scanning again.`;
       const scanStatus = document.getElementById('scan-status');
       const scanMatches = document.getElementById('scan-matches');
       
-      if (results.matches && results.matches.length > 0) {
-        scanStatus.innerHTML = '✅ <span>Card identified! Select the best match:</span>';
+      console.log('Displaying scan results:', results); // Debug log
+      
+      if (results.success && results.matches && results.matches.length > 0) {
+        scanStatus.innerHTML = `✅ <span>Found ${results.matches.length} matches in ${results.shop_name}!</span>`;
         
         scanMatches.innerHTML = '';
         results.matches.forEach((match, index) => {
           const matchElement = document.createElement('div');
           matchElement.className = 'scan-match';
           
-          // Handle both API formats (name vs title)
           const cardName = match.name || match.title || 'Unknown Card';
-          const cardSku = match.sku || 'N/A';
-          const cardSet = match.set || match.variant_title || 'Unknown';
-          const cardPrice = match.retailPrice || match.price || '0.00';
+          const cardSku = match.sku || match.variant_sku || 'N/A';
+          const cardVariant = match.variant_title || 'Default';
+          const cardPrice = match.price || '0.00';
           const confidence = match.confidence || 0;
           
           matchElement.innerHTML = `
             <div class="scan-match-name">${cardName}</div>
             <div class="scan-match-details">
               <span>SKU: ${cardSku}</span>
-              <span>Variant: ${cardSet}</span>
+              <span>Variant: ${cardVariant}</span>
               <span>Price: ${cardPrice}</span>
               <span class="scan-match-confidence">${Math.round(confidence * 100)}% match</span>
             </div>
@@ -2117,25 +2092,27 @@ Then try scanning again.`;
             // Select this match
             matchElement.classList.add('selected');
             
-            // Store the result with normalized properties
+            // Store the result
             selectedScanResult = {
               name: cardName,
               sku: cardSku,
               retailPrice: parseFloat(cardPrice || 0),
               compareAtPrice: match.compare_at_price ? parseFloat(match.compare_at_price) : null,
               confidence: confidence,
-              scanMethod: 'shopify_image_scan',
+              scanMethod: 'shopify_scan',
               productId: match.product_id,
               variantId: match.variant_id,
               inventoryQuantity: match.inventory_quantity,
               imageUrl: match.image_url
             };
+            
+            console.log('Selected scan result:', selectedScanResult); // Debug log
           });
           
           scanMatches.appendChild(matchElement);
           
-          // Auto-select first match if high confidence
-          if (index === 0 && confidence > 0.8) {
+          // Auto-select first match if decent confidence
+          if (index === 0 && confidence > 0.3) {
             matchElement.classList.add('selected');
             selectedScanResult = {
               name: cardName,
@@ -2143,7 +2120,7 @@ Then try scanning again.`;
               retailPrice: parseFloat(cardPrice || 0),
               compareAtPrice: match.compare_at_price ? parseFloat(match.compare_at_price) : null,
               confidence: confidence,
-              scanMethod: 'shopify_image_scan',
+              scanMethod: 'shopify_scan',
               productId: match.product_id,
               variantId: match.variant_id,
               inventoryQuantity: match.inventory_quantity,
@@ -2153,23 +2130,25 @@ Then try scanning again.`;
         });
         
       } else {
-        scanStatus.innerHTML = '❓ <span>Card not found in our database</span>';
+        scanStatus.innerHTML = '❓ <span>No matches found - will be manually reviewed</span>';
         scanMatches.innerHTML = `
           <div class="scan-match selected" style="border-color: var(--warning); background: rgba(245, 158, 11, 0.05);">
-            <div class="scan-match-name">Unknown Card - Manual Review</div>
+            <div class="scan-match-name">Scanned Card - Manual Review</div>
             <div class="scan-match-details">
-              <span>This card will be manually reviewed by our team</span>
+              <span>Extracted text: "${results.extracted_text || 'Unknown'}"</span>
+              <span>From: ${results.shop_name || 'Shop'} (${results.total_products_searched || 0} products searched)</span>
               <span style="background: var(--warning); color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">Manual Review</span>
             </div>
           </div>
         `;
         
         selectedScanResult = {
-          name: 'Scanned Card - Manual Review',
+          name: `Scanned Card - ${results.extracted_text || 'Manual Review'}`,
           sku: null,
           retailPrice: 0,
           confidence: 0,
-          scanMethod: 'image_scan'
+          scanMethod: 'manual_review',
+          extractedText: results.extracted_text
         };
       }
     }
@@ -2190,7 +2169,7 @@ Then try scanning again.`;
           sku: selectedScanResult.sku,
           retailPrice: selectedScanResult.retailPrice,
           compareAtPrice: selectedScanResult.compareAtPrice,
-          searchMethod: 'shopify_image_scan',
+          searchMethod: 'shopify_scan',
           confidence: selectedScanResult.confidence,
           productId: selectedScanResult.productId,
           variantId: selectedScanResult.variantId,
