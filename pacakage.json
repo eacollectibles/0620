@@ -8,10 +8,7 @@
     "deploy": "vercel --prod",
     "start": "vercel dev"
   },
-  "dependencies": {
-    "shopify-api-node": "^3.12.6",
-    "multiparty": "^4.2.3"
-  },
+  "dependencies": {},
   "devDependencies": {
     "vercel": "^32.0.0",
     "@vercel/node": "^3.0.0"
