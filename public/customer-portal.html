@@ -1758,45 +1758,44 @@
           throw new Error('Camera not supported on this device');
         }
 
-        // Request permissions explicitly for desktop
-        try {
-          // First check what permissions we have
-          const permissionStatus = await navigator.permissions.query({ name: 'camera' });
-          console.log('Camera permission status:', permissionStatus.state);
-          
-          if (permissionStatus.state === 'denied') {
-            throw new Error('Camera permission denied. Please enable camera access in your browser settings.');
-          }
-        } catch (permError) {
-          // Permissions API might not be supported in all browsers - continue anyway
-          console.log('Permissions API not supported, proceeding with camera request');
-        }
-
-        // Get available cameras and prioritize rear cameras
+        console.log('=== CAMERA SETUP DEBUG ===');
+        
+        // Get available cameras and find rear camera specifically
         const devices = await navigator.mediaDevices.enumerateDevices();
         availableCameras = devices.filter(device => device.kind === 'videoinput');
         
-        // Sort cameras to prioritize rear cameras
-        availableCameras.sort((a, b) => {
-          const aIsRear = a.label.toLowerCase().includes('back') || a.label.toLowerCase().includes('rear') || a.label.toLowerCase().includes('environment');
-          const bIsRear = b.label.toLowerCase().includes('back') || b.label.toLowerCase().includes('rear') || b.label.toLowerCase().includes('environment');
-          
-          if (aIsRear && !bIsRear) return -1; // a comes first
-          if (!aIsRear && bIsRear) return 1;  // b comes first
-          return 0; // keep original order
-        });
-        
-        console.log('Available cameras (sorted, rear first):', availableCameras.map(cam => ({ 
-          deviceId: cam.deviceId.substring(0, 20) + '...', 
-          label: cam.label || 'Unknown Camera'
+        console.log('All video input devices:', availableCameras.map(cam => ({
+          deviceId: cam.deviceId.substring(0, 20) + '...',
+          label: cam.label || 'Unknown Camera',
+          groupId: cam.groupId
         })));
+        
+        // Find rear camera by label analysis
+        let rearCameraIndex = -1;
+        for (let i = 0; i < availableCameras.length; i++) {
+          const label = availableCameras[i].label.toLowerCase();
+          console.log(`Camera ${i}: "${availableCameras[i].label}"`);
+          
+          if (label.includes('back') || label.includes('rear') || label.includes('environment') || 
+              label.includes('camera 0') || label.includes('camera2') || !label.includes('front')) {
+            rearCameraIndex = i;
+            console.log(`🎯 Found rear camera at index ${i}: ${availableCameras[i].label}`);
+            break;
+          }
+        }
+        
+        // Set camera index to rear camera if found
+        if (rearCameraIndex !== -1) {
+          currentCameraIndex = rearCameraIndex;
+          console.log(`✅ Using rear camera: ${availableCameras[currentCameraIndex].label}`);
+        } else {
+          currentCameraIndex = 0;
+          console.log(`⚠️ No rear camera detected, using default: ${availableCameras[0]?.label || 'Unknown'}`);
+        }
         
         if (availableCameras.length === 0) {
           throw new Error('No cameras found on this device');
         }
-
-        // Start with first camera (should be rear if available)
-        currentCameraIndex = 0;
 
         // Show switch camera button if multiple cameras
         const switchBtn = document.getElementById('switch-camera');
@@ -1887,16 +1886,18 @@ Then try scanning again.`;
           }
         ];
 
-        // If we have specific camera, try with deviceId first
+        // Force specific camera by deviceId if we found rear camera
         if (availableCameras[currentCameraIndex]) {
           constraintOptions.unshift({
             video: {
               deviceId: { exact: availableCameras[currentCameraIndex].deviceId },
-              width: { ideal: 1280 },
-              height: { ideal: 720 }
+              width: { ideal: 1920 },
+              height: { ideal: 1080 },
+              facingMode: 'environment'
             },
             audio: false
           });
+          console.log(`🎯 Forcing specific rear camera: ${availableCameras[currentCameraIndex].label}`);
         }
 
         let lastError = null;
