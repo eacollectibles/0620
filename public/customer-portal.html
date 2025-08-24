@@ -2027,6 +2027,32 @@ Then try scanning again.`;
         const result = await response.json();
         console.log('API Response data:', result);
         
+        // Log detailed diagnostic info if it's the diagnostic version
+        if (result.environment) {
+          console.log('=== ENVIRONMENT DIAGNOSTIC ===');
+          console.log('SHOPIFY_API_KEY exists:', result.environment.SHOPIFY_API_KEY?.exists);
+          console.log('SHOPIFY_API_KEY preview:', result.environment.SHOPIFY_API_KEY?.preview);
+          console.log('SHOPIFY_API_PASSWORD exists:', result.environment.SHOPIFY_API_PASSWORD?.exists);
+          console.log('SHOPIFY_API_PASSWORD preview:', result.environment.SHOPIFY_API_PASSWORD?.preview);
+          console.log('GOOGLE_CLOUD_CREDENTIALS exists:', result.environment.GOOGLE_CLOUD_CREDENTIALS?.exists);
+          console.log('GOOGLE_CLOUD_CREDENTIALS valid JSON:', result.environment.GOOGLE_CLOUD_CREDENTIALS?.isValidJSON);
+          console.log('All Environment Variables:', result.allEnvVars);
+          
+          // Show diagnostic in the scan results
+          scanStatus.innerHTML = '🔍 <span>Environment Variables Diagnostic</span>';
+          scanMatches.innerHTML = `
+            <div style="background: white; padding: 20px; border-radius: 8px; font-family: monospace; font-size: 12px;">
+              <h4>Environment Variables Status:</h4>
+              <p><strong>SHOPIFY_API_KEY:</strong> ${result.environment.SHOPIFY_API_KEY?.exists ? '✅ EXISTS' : '❌ MISSING'} ${result.environment.SHOPIFY_API_KEY?.preview || ''}</p>
+              <p><strong>SHOPIFY_API_PASSWORD:</strong> ${result.environment.SHOPIFY_API_PASSWORD?.exists ? '✅ EXISTS' : '❌ MISSING'} ${result.environment.SHOPIFY_API_PASSWORD?.preview || ''}</p>
+              <p><strong>GOOGLE_CLOUD_CREDENTIALS:</strong> ${result.environment.GOOGLE_CLOUD_CREDENTIALS?.exists ? '✅ EXISTS' : '❌ MISSING'} ${result.environment.GOOGLE_CLOUD_CREDENTIALS?.isValidJSON ? '(Valid JSON)' : '(Invalid JSON)'}</p>
+              <p><strong>Total Env Vars:</strong> ${result.allEnvVars?.length || 0}</p>
+              <p><strong>Relevant Vars:</strong> ${result.allEnvVars?.join(', ') || 'None'}</p>
+            </div>
+          `;
+          return;
+        }
+        
         if (!response.ok) {
           throw new Error(result.error || 'Card recognition failed');
         }
