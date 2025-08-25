@@ -57,8 +57,17 @@ export default async function handler(req, res) {
     const { 
       shopify_store = shopifyStore, 
       match_threshold = 0.7, 
-      max_results = 5 
+      max_results = 5,
+      search_type = 'generic',
+      card_number = null
     } = formData.fields;
+
+    console.log('Search parameters:', {
+      search_type,
+      card_number,
+      threshold: match_threshold,
+      max_results
+    });
 
     if (!formData.files || !formData.files.image) {
       return res.status(400).json({
@@ -123,8 +132,46 @@ export default async function handler(req, res) {
     const extractedText = await extractTextFromImage(imageFile);
     console.log('Extracted text:', extractedText);
 
-    // POKEMON DETECTION AND TAG SEARCH LOGIC
-    if (extractedText.toLowerCase().includes('pokemon')) {
+    // ENHANCED SEARCH LOGIC - Use frontend parameters if available
+    if (search_type === 'pokemon_card' && card_number) {
+      console.log(`Direct Pokemon card search requested for: ${card_number}`);
+      
+      // Search directly for the specified card number
+      const searchFormats = [
+        card_number,                          // 031182
+        card_number.replace(/(\d{3})(\d{3})/, '$1/$2'), // 031/182
+        card_number.replace(/(\d{3})(\d{3})/, '$1-$2'),  // 031-182
+      ];
+      
+      for (const searchTerm of searchFormats) {
+        console.log(`Searching for Pokemon card: "${searchTerm}"`);
+        
+        const searchUrl = `https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=50&published_status=any&query=${encodeURIComponent(searchTerm)}`;
+        console.log(`Search URL: ${searchUrl}`);
+        
+        const searchResponse = await fetch(searchUrl, {
+          headers: {
+            'X-Shopify-Access-Token': shopifyToken,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (searchResponse.ok) {
+          const searchData = await searchResponse.json();
+          const foundProducts = searchData.products || [];
+          console.log(`Found ${foundProducts.length} products for "${searchTerm}"`);
+          
+          if (foundProducts.length > 0) {
+            products = foundProducts;
+            console.log(`Using ${foundProducts.length} products from direct card search`);
+            console.log('Found products:', foundProducts.map(p => p.title));
+            break;
+          }
+        }
+      }
+    }
+    // POKEMON DETECTION AND TAG SEARCH LOGIC (existing logic as fallback)
+    else if (extractedText.toLowerCase().includes('pokemon')) {
       console.log('🎯 Pokemon detected! Searching for Pokemon products...');
       
       // Look for card numbers in the extracted text
