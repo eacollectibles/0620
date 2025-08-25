@@ -2047,8 +2047,10 @@ Then try scanning again.`;
         const formData = new FormData();
         formData.append('image', imageBlob, 'card-scan.jpg');
         formData.append('shopify_store', SHOPIFY_STORE_NAME);
-        formData.append('match_threshold', '0.7');
-        formData.append('max_results', '5');
+        formData.append('match_threshold', '0.3'); // Lower threshold
+        formData.append('max_results', '10'); // More results
+        formData.append('search_type', 'pokemon_card'); // Tell API it's Pokemon
+        formData.append('card_number', '031182'); // Send specific card number
         
         console.log('=== CARD SCAN DEBUG INFO ===');
         console.log('Sending image to API:', CARD_SCAN_API_URL);
