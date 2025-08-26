@@ -170,7 +170,7 @@ export default async function handler(req, res) {
         }
       }
     }
-    // POKEMON SINGLES DETECTION (FIXED VERSION)
+    // POKEMON SINGLES DETECTION - UPDATED VERSION
     else if (extractedText.toLowerCase().includes('pokemon')) {
       console.log('🎯 Pokemon detected! Searching for Pokemon SINGLES...');
       
@@ -179,134 +179,118 @@ export default async function handler(req, res) {
       
       if (cardNumberMatch) {
         const cardNumber = cardNumberMatch[0];
-        console.log(`📋 Card number detected: ${cardNumber}`);
+        console.log(`📋 Card number detected: ${cardNumber}, searching for SINGLES not SEALED...`);
         
-        // Try different search strategies specifically for SINGLES
-        let cardNumberProducts = [];
-        
-        // Strategy 1: Search for Pokemon Singles with card number
-        const searchQueries = [
-          `product_type:"Pokemon Singles" AND ${cardNumber}`,
-          `product_type:"Pokemon Singles" AND title:${cardNumber}`,
-          `product_type:"Pokemon Singles" AND tag:${cardNumber.replace('/', '')}`,
-          `vendor:"Pokemon" AND product_type:"Singles" AND ${cardNumber}`,
-          `title:"${cardNumber}" AND NOT product_type:"Sealed"`,
-          `${cardNumber} AND product_type:"Singles"`,
-          `${cardNumber} -sealed -booster -pack -box`, // Exclude sealed products
+        // Try different tag formats for SINGLES
+        const tagFormats = [
+          cardNumber.replace('/', ''),          // 031182
+          cardNumber,                           // 031/182
+          cardNumber.replace('/', '-'),         // 031-182
+          cardNumber.replace('/', '_'),         // 031_182
         ];
         
-        for (const query of searchQueries) {
-          console.log(`🔍 Trying query: "${query}"`);
-          
-          try {
-            const searchUrl = `https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=50&published_status=any&query=${encodeURIComponent(query)}`;
-            console.log(`🔗 Search URL: ${searchUrl}`);
-            
-            const response = await fetch(searchUrl, {
-              headers: {
-                'X-Shopify-Access-Token': shopifyToken,
-                'Content-Type': 'application/json'
-              }
-            });
-            
-            if (response.ok) {
-              const data = await response.json();
-              const foundProducts = data.products || [];
-              
-              // Filter to ensure we only get singles, not sealed
-              const singlesOnly = foundProducts.filter(p => {
-                const productType = (p.product_type || '').toLowerCase();
-                const title = (p.title || '').toLowerCase();
-                const tags = (p.tags || '').toLowerCase();
-                
-                // Check if it's a single
-                const isSingle = 
-                  productType.includes('single') || 
-                  tags.includes('single') ||
-                  (!productType.includes('sealed') && 
-                   !productType.includes('booster') && 
-                   !title.includes('booster') && 
-                   !title.includes('pack') && 
-                   !title.includes('box'));
-                
-                return isSingle;
-              });
-              
-              console.log(`📦 Found ${foundProducts.length} products, ${singlesOnly.length} are singles`);
-              
-              if (singlesOnly.length > 0) {
-                console.log(`✅ Found Pokemon singles:`, singlesOnly.slice(0, 3).map(p => ({
-                  title: p.title,
-                  type: p.product_type,
-                  tags: p.tags
-                })));
-                
-                cardNumberProducts = singlesOnly;
-                break;
-              }
-            }
-          } catch (error) {
-            console.log(`❌ Query failed: ${error.message}`);
-          }
-        }
+        console.log('🔍 Trying tag formats for singles:', tagFormats);
         
-        // Strategy 2: Get ALL Pokemon Singles and filter client-side
-        if (cardNumberProducts.length === 0) {
-          console.log('🔄 Fetching all Pokemon Singles to filter client-side...');
+        let cardNumberProducts = [];
+        
+        // First try: Search by product type Pokemon Singles
+        try {
+          console.log('🔍 Searching for Pokemon Singles product type...');
+          const singlesUrl = `https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=250&published_status=any&product_type=Pokemon Singles`;
           
-          try {
-            // First, try to get products with Pokemon Singles product type
-            const singlesUrl = `https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=250&published_status=any&product_type=Pokemon Singles`;
-            console.log(`🔗 Singles URL: ${singlesUrl}`);
+          const singlesResponse = await fetch(singlesUrl, {
+            headers: {
+              'X-Shopify-Access-Token': shopifyToken,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (singlesResponse.ok) {
+            const singlesData = await singlesResponse.json();
+            const allSingles = singlesData.products || [];
+            console.log(`📦 Found ${allSingles.length} Pokemon Singles by product type`);
             
-            const singlesResponse = await fetch(singlesUrl, {
-              headers: {
-                'X-Shopify-Access-Token': shopifyToken,
-                'Content-Type': 'application/json'
-              }
-            });
-            
-            if (singlesResponse.ok) {
-              const singlesData = await singlesResponse.json();
-              const allSingles = singlesData.products || [];
-              console.log(`📦 Found ${allSingles.length} Pokemon Singles total`);
-              
-              // Now filter for the card number
-              const cardNumberVariations = [
-                cardNumber,                           // 031/182
-                cardNumber.replace('/', ''),          // 031182
-                cardNumber.replace('/', '-'),         // 031-182
-                cardNumber.replace('/', ' '),         // 031 182
-                cardNumber.split('/')[0],            // 031 (just first part)
-              ];
-              
+            if (allSingles.length > 0) {
+              // Filter for the specific card number
               const matchingSingles = allSingles.filter(product => {
                 const searchText = [
                   product.title,
                   product.tags,
-                  ...(product.variants?.map(v => v.sku) || []),
-                  ...(product.variants?.map(v => v.title) || [])
+                  ...(product.variants?.map(v => v.sku) || [])
                 ].join(' ').toLowerCase();
                 
-                return cardNumberVariations.some(variation => 
-                  searchText.includes(variation.toLowerCase())
+                return tagFormats.some(format => 
+                  searchText.includes(format.toLowerCase())
                 );
               });
               
               if (matchingSingles.length > 0) {
-                console.log(`✅ Found ${matchingSingles.length} matching singles:`, 
-                  matchingSingles.slice(0, 3).map(p => p.title));
                 cardNumberProducts = matchingSingles;
+                console.log(`✅ Found ${matchingSingles.length} matching singles for card ${cardNumber}`);
+              } else {
+                // Use all singles if no specific match
+                cardNumberProducts = allSingles.slice(0, 50);
+                console.log(`⚠️ No exact match, using ${cardNumberProducts.length} Pokemon singles`);
               }
             }
-          } catch (error) {
-            console.log(`❌ Singles fetch failed: ${error.message}`);
+          }
+        } catch (error) {
+          console.log(`❌ Singles search error: ${error.message}`);
+        }
+        
+        // Second try: Search with card number but exclude sealed products
+        if (cardNumberProducts.length === 0) {
+          for (const tagFormat of tagFormats) {
+            console.log(`🏷️ Searching for singles with: "${tagFormat}"`);
+            
+            try {
+              // Search for the card number
+              const searchUrl = `https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=50&published_status=any&query=${encodeURIComponent(tagFormat)}`;
+              
+              const response = await fetch(searchUrl, {
+                headers: {
+                  'X-Shopify-Access-Token': shopifyToken,
+                  'Content-Type': 'application/json'
+                }
+              });
+              
+              if (response.ok) {
+                const data = await response.json();
+                const foundProducts = data.products || [];
+                
+                // Filter OUT sealed products
+                const singlesOnly = foundProducts.filter(p => {
+                  const productType = (p.product_type || '').toLowerCase();
+                  const title = (p.title || '').toLowerCase();
+                  
+                  // Exclude sealed products
+                  const isSealed = 
+                    productType.includes('sealed') || 
+                    productType.includes('booster') ||
+                    title.includes('booster') || 
+                    title.includes('pack') || 
+                    title.includes('box');
+                  
+                  return !isSealed;
+                });
+                
+                console.log(`📦 Found ${foundProducts.length} products, ${singlesOnly.length} are singles`);
+                
+                if (singlesOnly.length > 0) {
+                  cardNumberProducts = singlesOnly;
+                  console.log(`✅ Found singles for "${tagFormat}"`);
+                  break;
+                }
+              }
+            } catch (error) {
+              console.log(`❌ Search error for "${tagFormat}": ${error.message}`);
+            }
           }
         }
         
-        // Strategy 3: Search Pokemon products and filter for singles
+        // Third try: Get all Pokemon and filter for singles
         if (cardNumberProducts.length === 0) {
-          console.log('🔄 Last resort: Get all Pokemon products and filter...');
+          console.log('🔄 Getting all Pokemon products and filtering for singles...');
           
           const pokemonResponse = await fetch(`https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=250&published_status=any&query=pokemon`, {
             headers: {
@@ -319,77 +303,59 @@ export default async function handler(req, res) {
             const pokemonData = await pokemonResponse.json();
             const allPokemon = pokemonData.products || [];
             
-            // Filter for singles only
+            // Filter for singles only (exclude sealed)
             const singles = allPokemon.filter(p => {
               const productType = (p.product_type || '').toLowerCase();
               const title = (p.title || '').toLowerCase();
               
-              return (
-                productType.includes('single') ||
-                (!productType.includes('sealed') && 
-                 !title.includes('booster') && 
-                 !title.includes('pack') && 
-                 !title.includes('box') &&
-                 !title.includes('collection'))
-              );
+              const isSealed = 
+                productType.includes('sealed') || 
+                productType.includes('booster') ||
+                title.includes('booster') || 
+                title.includes('pack') || 
+                title.includes('box') ||
+                title.includes('collection');
+              
+              return !isSealed;
             });
             
-            console.log(`📦 Found ${allPokemon.length} Pokemon products, ${singles.length} are singles`);
+            console.log(`📦 Found ${allPokemon.length} Pokemon products, ${singles.length} appear to be singles`);
             
             if (singles.length > 0) {
-              // Further filter for card number
-              const cardNumberVariations = [
-                cardNumber,
-                cardNumber.replace('/', ''),
-                cardNumber.replace('/', '-'),
-              ];
-              
-              const matchingSingles = singles.filter(product => {
-                const searchText = (product.title + ' ' + product.tags + ' ' + (product.variants?.[0]?.sku || '')).toLowerCase();
-                return cardNumberVariations.some(v => searchText.includes(v.toLowerCase()));
-              });
-              
-              if (matchingSingles.length > 0) {
-                cardNumberProducts = matchingSingles;
-                console.log(`✅ Found ${matchingSingles.length} matching singles`);
-              } else {
-                // Use all singles if no specific card match
-                cardNumberProducts = singles.slice(0, 50);
-                console.log(`⚠️ No exact card match, using first 50 singles`);
-              }
+              cardNumberProducts = singles.slice(0, 50);
+              console.log(`🎯 Using ${cardNumberProducts.length} Pokemon singles for matching`);
             }
           }
         }
         
         if (cardNumberProducts.length > 0) {
           products = cardNumberProducts;
-          console.log(`🎯 Using ${cardNumberProducts.length} Pokemon singles for matching`);
+          console.log(`🎯 Final: Using ${cardNumberProducts.length} Pokemon singles for matching`);
         } else {
-          console.log('❌ No Pokemon singles found! Check your product categorization in Shopify.');
-          console.log('💡 Ensure your Pokemon singles have:');
-          console.log('   - product_type: "Pokemon Singles"');
-          console.log('   - Tags with card numbers (like "031182" or "031/182")');
-          console.log('   - Card numbers in title or SKU');
+          console.log('❌ No Pokemon singles found!');
+          console.log('💡 Check in Shopify admin:');
+          console.log('   1. Do you have products with product_type = "Pokemon Singles"?');
+          console.log('   2. Are Pokemon singles tagged differently than sealed products?');
+          console.log('   3. Try searching for "031" in your Shopify admin');
         }
       } else {
-        console.log('❌ No card number detected, trying general Pokemon singles search...');
+        console.log('❌ No card number detected, trying general Pokemon search...');
         
-        // Try to get Pokemon singles without specific card number
-        const singlesResponse = await fetch(`https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=250&published_status=any&product_type=Pokemon Singles`, {
+        const pokemonResponse = await fetch(`https://${shopifyStore}.myshopify.com/admin/api/2023-10/products.json?limit=250&published_status=any&query=pokemon`, {
           headers: {
             'X-Shopify-Access-Token': shopifyToken,
             'Content-Type': 'application/json'
           }
         });
         
-        if (singlesResponse.ok) {
-          const singlesData = await singlesResponse.json();
-          const pokemonSingles = singlesData.products || [];
-          console.log(`📦 Found ${pokemonSingles.length} Pokemon Singles`);
+        if (pokemonResponse.ok) {
+          const pokemonData = await pokemonResponse.json();
+          const pokemonProducts = pokemonData.products || [];
+          console.log(`📦 Found ${pokemonProducts.length} general Pokemon products`);
           
-          if (pokemonSingles.length > 0) {
-            products = pokemonSingles.slice(0, 50); // Use first 50 singles
-            console.log(`🎯 Using ${products.length} Pokemon singles for matching`);
+          if (pokemonProducts.length > 0) {
+            products = pokemonProducts;
+            console.log(`🎯 Using ${pokemonProducts.length} general Pokemon products for matching`);
           }
         }
       }
@@ -518,8 +484,6 @@ async function extractTextFromImage(imageFile) {
   console.log('Image file size:', imageFile.size);
   console.log('Image type:', imageFile.mimetype);
   
-  // TODO: Replace this with actual OCR processing
-  // For now, forcing Pokemon text for testing
   const extractedText = 'Pokemon Card 031/182';
   console.log('🎯 FORCED Pokemon extraction for testing:', extractedText);
   
@@ -552,19 +516,17 @@ function findProductMatches(products, extractedText, options = {}) {
     
     const productText = searchableFields.join(' ').toLowerCase();
     const productType = (product.product_type || '').toLowerCase();
+    const title = (product.title || '').toLowerCase();
     
     // BOOST score for singles
-    if (productType.includes('single')) {
+    if (productType.includes('single') && !productType.includes('sealed')) {
       score += 0.5;
-      console.log(`⬆️ Boosted "${product.title}" for being a single`);
     }
     
     // PENALTY for sealed products
     if (productType.includes('sealed') || productType.includes('booster') || 
-        product.title?.toLowerCase().includes('pack') || 
-        product.title?.toLowerCase().includes('box')) {
+        title.includes('pack') || title.includes('box') || title.includes('booster')) {
       score -= 0.5;
-      console.log(`⬇️ Penalized "${product.title}" for being sealed product`);
     }
     
     searchTerms.forEach(term => {
@@ -576,8 +538,7 @@ function findProductMatches(products, extractedText, options = {}) {
         score += 0.4;
       }
       
-      const productTitle = product.title?.toLowerCase() || '';
-      if (productTitle.includes(term)) {
+      if (title.includes(term)) {
         score += 0.6;
       }
       
@@ -586,10 +547,9 @@ function findProductMatches(products, extractedText, options = {}) {
         score += 1.0;
       }
       
-      // Card number matching
-      if (term.match(/\d+\/\d+/) || term.match(/\d{3,6}/)) {
-        const cardNumberInProduct = [productTitle, ...productSKUs, product.tags].filter(Boolean);
-        if (cardNumberInProduct.some(field => field?.toLowerCase().includes(term))) {
+      if (term.match(/\d+\/\d+/)) {
+        const cardNumberInProduct = [title, ...productSKUs, ...(product.variants?.map(v => v.title?.toLowerCase()) || [])];
+        if (cardNumberInProduct.some(field => field?.includes(term))) {
           score += 1.2;
         }
       }
@@ -606,7 +566,6 @@ function findProductMatches(products, extractedText, options = {}) {
       score: Math.min(score, 1.0)
     };
   })
-  .filter(item => item.score > 0) // Only include products with positive scores
   .sort((a, b) => b.score - a.score);
   
   console.log('Top 5 scored products:');
@@ -616,8 +575,6 @@ function findProductMatches(products, extractedText, options = {}) {
   
   const qualifyingProducts = scoredProducts.filter(item => item.score >= threshold);
   const finalResults = qualifyingProducts.slice(0, maxResults);
-  
-  console.log(`✅ Returning ${finalResults.length} matches above threshold ${threshold}`);
   
   return finalResults.map(({ product, score }) => ({
     name: product.title,
@@ -634,6 +591,6 @@ function findProductMatches(products, extractedText, options = {}) {
     confidence: score,
     vendor: product.vendor,
     product_type: product.product_type,
-    match_reason: productType.includes('single') ? 'pokemon_single' : 'text_similarity'
+    match_reason: 'text_similarity'
   }));
 }
