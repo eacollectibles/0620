@@ -1363,16 +1363,22 @@
           });
 
           const data = await response.json();
+          console.log('Search API response:', data);
           
           if (!response.ok) {
             throw new Error(data.error || 'Search failed');
           }
 
           const result = data.results && data.results[0];
+          console.log('First result:', result);
+          console.log('Has allOptions?', result?.allOptions);
+          console.log('allOptions length:', result?.allOptions?.length);
           
           if (result && result.allOptions && result.allOptions.length > 1) {
+            console.log('Showing multiple options');
             showMultipleOptions(container, input, query, result);
           } else {
+            console.log('Showing single result');
             showSearchResult(container, input, query, result);
           }
 
@@ -1382,8 +1388,13 @@
       }
 
       function showMultipleOptions(container, input, query, result) {
+        console.log('showMultipleOptions called with:', { query, optionsCount: result.allOptions?.length });
+        
         const existing = container.querySelector('.search-suggestion');
-        if (existing) existing.remove();
+        if (existing) {
+          console.log('Removing existing suggestion');
+          existing.remove();
+        }
 
         const suggestion = document.createElement('div');
         suggestion.className = 'search-suggestion';
@@ -1418,6 +1429,7 @@
         suggestion.innerHTML = optionsHtml;
         container.appendChild(suggestion);
         currentSuggestion = suggestion;
+        console.log('Multiple options suggestion appended, element:', suggestion);
 
         suggestion.querySelectorAll('.option-item').forEach((item, index) => {
           item.addEventListener('click', function(e) {
@@ -1434,6 +1446,8 @@
 
         const confirmBtn = suggestion.querySelector('.confirm-btn');
         const rejectBtn = suggestion.querySelector('.reject-btn');
+        
+        console.log('Multiple options buttons found:', { confirmBtn: !!confirmBtn, rejectBtn: !!rejectBtn });
 
         confirmBtn.addEventListener('click', function(e) {
           e.preventDefault();
@@ -1521,6 +1535,8 @@
         const confirmBtn = suggestion.querySelector('.confirm-btn');
         const continueBtn = suggestion.querySelector('.continue-btn');
         const rejectBtn = suggestion.querySelector('.reject-btn');
+
+        console.log('Buttons found:', { confirmBtn: !!confirmBtn, continueBtn: !!continueBtn, rejectBtn: !!rejectBtn });
 
         if (confirmBtn) {
           confirmBtn.addEventListener('click', function(e) {
