@@ -1624,16 +1624,25 @@
 
           const result = data.results && data.results[0];
           console.log('First result:', result);
-          console.log('Has allOptions?', result?.allOptions);
-          console.log('allOptions length:', result?.allOptions?.length);
           
-          if (result && result.allOptions && result.allOptions.length > 1) {
-            console.log('Showing multiple options');
-            showMultipleOptions(container, input, query, result);
-          } else {
-            console.log('Showing single result');
-            showSearchResult(container, input, query, result);
+          // Check for allOptions in the result
+          if (result && result.allOptions) {
+            console.log('Has allOptions:', result.allOptions.length, 'options');
+            
+            if (result.allOptions.length > 1) {
+              console.log('Showing multiple options UI');
+              showMultipleOptions(container, input, query, result);
+              return;
+            } else if (result.allOptions.length === 1) {
+              console.log('Single option, showing as confirmed');
+              showSearchResult(container, input, query, result);
+              return;
+            }
           }
+          
+          // Fallback to regular single result
+          console.log('Showing single result');
+          showSearchResult(container, input, query, result);
 
         } catch (error) {
           console.error('Search error:', error);
