@@ -70,6 +70,7 @@ async function handleSubmission(req, res) {
   try {
     // ✨ NEW: Process cards through main trade-in system to get LIVE pricing
     console.log('🔄 Getting live pricing estimates from trade-in system...');
+    console.log('📋 Cards to estimate:', JSON.stringify(cards, null, 2));
     
     const estimateData = await getEstimateFromTradeInSystem({
       cards: cards,
@@ -77,11 +78,12 @@ async function handleSubmission(req, res) {
       payoutMethod: payoutMethod
     });
 
-    console.log('✅ Live estimate received:', {
+    console.log('✅ Live estimate received:', JSON.stringify({
       suggestedTotal: estimateData.suggestedTotal,
       cardsFound: estimateData.results.filter(r => r.match).length,
-      cardsNotFound: estimateData.results.filter(r => !r.match).length
-    });
+      cardsNotFound: estimateData.results.filter(r => !r.match).length,
+      fullResults: estimateData.results
+    }, null, 2));
 
     // Create submission object with LIVE data
     const submission = {
