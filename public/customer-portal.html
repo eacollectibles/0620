@@ -8,14 +8,10 @@
   <style>
     :root {
       --primary: #3b82f6;
-      --primary-light: #60a5fa;
       --primary-dark: #1d4ed8;
-      --accent: #10b981;
-      --accent-light: #34d399;
       --success: #059669;
       --warning: #f59e0b;
       --error: #ef4444;
-      
       --gray-50: #f9fafb;
       --gray-100: #f3f4f6;
       --gray-200: #e5e7eb;
@@ -26,33 +22,22 @@
       --gray-700: #374151;
       --gray-800: #1f2937;
       --gray-900: #111827;
-      
       --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-      
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-      
       --border-radius: 12px;
-      --border-radius-lg: 16px;
-      --border-radius-xl: 20px;
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       font-family: var(--font-family);
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 50%, var(--primary) 100%);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       min-height: 100vh;
       margin: 0;
       padding: 20px;
       color: var(--gray-800);
-      line-height: 1.6;
     }
 
     .container {
@@ -62,22 +47,9 @@
 
     .main-card {
       background: white;
-      border-radius: var(--border-radius-xl);
+      border-radius: 16px;
       box-shadow: var(--shadow-xl);
-      border: 1px solid var(--gray-200);
       overflow: hidden;
-      animation: slideUp 0.6s ease;
-    }
-
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
     }
 
     .card-header {
@@ -91,14 +63,12 @@
       font-size: 24px;
       font-weight: 700;
       margin: 0;
-      letter-spacing: -0.025em;
     }
 
     .card-subtitle {
       font-size: 16px;
       opacity: 0.9;
       margin: 8px 0 0 0;
-      font-weight: 400;
     }
 
     .card-content {
@@ -165,7 +135,6 @@
       font-size: 14px;
       font-weight: 500;
       color: var(--gray-600);
-      text-align: center;
     }
 
     .progress-step.active .progress-label {
@@ -174,22 +143,15 @@
 
     .step-section {
       display: none;
-      animation: fadeIn 0.4s ease;
     }
 
     .step-section.active {
       display: block;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateX(20px); }
-      to { opacity: 1; transform: translateX(0); }
-    }
-
     .step-title {
       font-size: 20px;
       font-weight: 600;
-      color: var(--gray-800);
       margin: 0 0 20px 0;
       display: flex;
       align-items: center;
@@ -216,7 +178,6 @@
       font-size: 16px;
       background: white;
       transition: all 0.2s ease;
-      font-family: var(--font-family);
     }
 
     .form-input:focus, .form-select:focus {
@@ -225,26 +186,19 @@
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
 
-    .form-input::placeholder {
-      color: var(--gray-400);
-    }
-
     .payout-options {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 16px;
-      margin-top: 12px;
     }
 
     .payout-option {
       position: relative;
-      cursor: pointer;
     }
 
     .payout-radio {
       position: absolute;
       opacity: 0;
-      pointer-events: none;
     }
 
     .payout-label {
@@ -257,30 +211,25 @@
       border: 2px solid var(--gray-200);
       border-radius: var(--border-radius);
       font-weight: 500;
-      font-size: 16px;
       transition: all 0.2s ease;
       cursor: pointer;
-      text-align: center;
     }
 
     .payout-option:hover .payout-label {
       border-color: var(--primary);
       transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
     }
 
     .payout-radio:checked + .payout-label {
       border-color: var(--primary);
       background: var(--primary);
       color: white;
-      box-shadow: var(--shadow-md);
     }
 
     .cards-section {
       background: var(--gray-50);
       border-radius: var(--border-radius);
       border: 1px solid var(--gray-200);
-      overflow: visible;
     }
 
     .cards-header {
@@ -290,26 +239,14 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
     }
 
     .cards-list {
       padding: 24px;
       max-height: 60vh;
       overflow-y: auto;
-    }
-
-    .cards-list::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    .cards-list::-webkit-scrollbar-track {
-      background: var(--gray-100);
-      border-radius: 4px;
-    }
-
-    .cards-list::-webkit-scrollbar-thumb {
-      background: var(--gray-400);
-      border-radius: 4px;
     }
 
     .card-row {
@@ -323,12 +260,10 @@
       border: 1px solid var(--gray-200);
       margin-bottom: 16px;
       transition: all 0.2s ease;
-      position: relative;
     }
 
     .card-row:hover {
       box-shadow: var(--shadow-md);
-      transform: translateY(-1px);
     }
 
     .card-input-container {
@@ -371,135 +306,19 @@
       border-radius: 0 0 var(--border-radius) var(--border-radius);
       box-shadow: var(--shadow-lg);
       z-index: 9999;
-      animation: slideDown 0.2s ease;
-      max-height: 400px;
-      overflow-y: auto;
-    }
-
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-8px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .suggestion-content {
-      padding: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .suggestion-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .suggestion-name {
-      font-weight: 600;
-      color: var(--gray-800);
-      margin-bottom: 4px;
-      word-wrap: break-word;
-    }
-
-    .suggestion-details {
-      font-size: 14px;
-      color: var(--gray-500);
-      display: flex;
-      gap: 16px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .search-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 4px 8px;
-      background: var(--primary);
-      color: white;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 500;
-      text-transform: uppercase;
-    }
-
-    .search-badge.found {
-      background: var(--success);
-    }
-
-    .search-badge.not-found {
-      background: var(--warning);
-    }
-
-    .suggestion-actions {
-      display: flex;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    .suggestion-btn {
-      padding: 8px 16px;
-      border: none;
-      border-radius: var(--border-radius);
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      white-space: nowrap;
-    }
-
-    .confirm-btn {
-      background: var(--success);
-      color: white;
-    }
-
-    .confirm-btn:hover {
-      background: #047857;
-      transform: translateY(-1px);
-    }
-
-    .reject-btn {
-      background: var(--gray-200);
-      color: var(--gray-700);
-    }
-
-    .reject-btn:hover {
-      background: var(--gray-300);
-    }
-
-    .continue-btn {
-      background: var(--warning);
-      color: white;
-    }
-
-    .continue-btn:hover {
-      background: #d97706;
+      max-height: 500px;
     }
 
     .option-item {
-      padding: 12px;
-      margin: 4px 0;
-      background: var(--gray-50);
-      border: 1px solid var(--gray-200);
-      border-radius: 8px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--gray-100);
+      background: white;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: background 0.2s;
     }
 
     .option-item:hover {
-      background: var(--gray-100);
-      border-color: var(--primary);
-    }
-
-    .option-item.selected {
-      background: rgba(59, 130, 246, 0.1);
-      border-color: var(--primary);
+      background: #f0f9ff;
     }
 
     .remove-btn {
@@ -509,13 +328,11 @@
       border-radius: var(--border-radius);
       padding: 8px 12px;
       cursor: pointer;
-      transition: all 0.2s ease;
       font-size: 16px;
     }
 
     .remove-btn:hover {
       background: #dc2626;
-      transform: scale(1.05);
     }
 
     .btn {
@@ -529,9 +346,6 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s ease;
-      text-decoration: none;
-      position: relative;
-      overflow: hidden;
     }
 
     .btn:hover {
@@ -539,17 +353,9 @@
       box-shadow: var(--shadow-lg);
     }
 
-    .btn:active {
-      transform: translateY(0);
-    }
-
     .btn-primary {
       background: var(--primary);
       color: white;
-    }
-
-    .btn-primary:hover {
-      background: var(--primary-dark);
     }
 
     .btn-secondary {
@@ -558,17 +364,9 @@
       border: 1px solid var(--gray-300);
     }
 
-    .btn-secondary:hover {
-      background: var(--gray-200);
-    }
-
     .btn-success {
       background: var(--success);
       color: white;
-    }
-
-    .btn-success:hover {
-      background: #047857;
     }
 
     .btn:disabled {
@@ -586,55 +384,16 @@
     }
 
     .estimate-results {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.02) 100%);
+      background: rgba(16, 185, 129, 0.05);
       border: 1px solid rgba(16, 185, 129, 0.2);
       border-radius: var(--border-radius);
       padding: 32px;
       margin: 32px 0;
-      opacity: 0;
-      max-height: 0;
-      overflow: hidden;
-      transition: all 0.3s ease;
+      display: none;
     }
 
     .estimate-results.visible {
-      opacity: 1;
-      max-height: none;
-      overflow: visible;
-    }
-
-    .estimate-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-
-    .estimate-title {
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--gray-800);
-    }
-
-    #estimate-cards {
-      max-height: 50vh;
-      overflow-y: auto;
-      margin-bottom: 24px;
-      padding-right: 8px;
-    }
-
-    #estimate-cards::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    #estimate-cards::-webkit-scrollbar-track {
-      background: var(--gray-100);
-      border-radius: 3px;
-    }
-
-    #estimate-cards::-webkit-scrollbar-thumb {
-      background: var(--primary);
-      border-radius: 3px;
+      display: block;
     }
 
     .estimate-card {
@@ -643,7 +402,6 @@
       padding: 20px;
       margin-bottom: 16px;
       border: 1px solid var(--gray-200);
-      box-shadow: var(--shadow-sm);
     }
 
     .estimate-totals {
@@ -657,18 +415,6 @@
       text-align: center;
     }
 
-    .total-item {
-      padding: 16px;
-      border-radius: var(--border-radius);
-      background: var(--gray-50);
-    }
-
-    .total-label {
-      font-size: 14px;
-      color: var(--gray-600);
-      margin-bottom: 4px;
-    }
-
     .total-value {
       font-size: 24px;
       font-weight: 700;
@@ -680,7 +426,7 @@
     }
 
     .success-section {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.02) 100%);
+      background: rgba(16, 185, 129, 0.05);
       border: 2px solid var(--success);
       border-radius: var(--border-radius);
       padding: 40px;
@@ -690,23 +436,6 @@
 
     .success-section.visible {
       display: block;
-      animation: successSlideIn 0.5s ease;
-    }
-
-    @keyframes successSlideIn {
-      from {
-        opacity: 0;
-        transform: scale(0.95);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-
-    .success-icon {
-      font-size: 4rem;
-      margin-bottom: 20px;
     }
 
     .success-title {
@@ -714,31 +443,6 @@
       font-weight: 700;
       color: var(--success);
       margin-bottom: 16px;
-    }
-
-    .success-message {
-      font-size: 18px;
-      color: var(--gray-600);
-      margin-bottom: 32px;
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .submission-id {
-      background: white;
-      border: 1px solid var(--gray-200);
-      border-radius: var(--border-radius);
-      padding: 20px;
-      margin: 24px 0;
-      font-family: var(--font-mono);
-      font-size: 16px;
-      color: var(--gray-700);
-    }
-
-    .loading {
-      opacity: 0.7;
-      pointer-events: none;
     }
 
     .spinner {
@@ -756,92 +460,6 @@
       100% { transform: rotate(360deg); }
     }
 
-    @keyframes slideIn {
-      from {
-        transform: translateX(400px);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-
-    @keyframes slideOut {
-      from {
-        transform: translateX(0);
-        opacity: 1;
-      }
-      to {
-        transform: translateX(400px);
-        opacity: 0;
-      }
-    }
-
-    @media (max-width: 768px) {
-      body {
-        padding: 12px;
-      }
-
-      .card-content {
-        padding: 24px;
-      }
-
-      .card-row {
-        grid-template-columns: 1fr;
-        gap: 12px;
-      }
-
-      .payout-options {
-        grid-template-columns: 1fr;
-      }
-
-      .step-navigation {
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .btn {
-        justify-content: center;
-        width: 100%;
-      }
-
-      .estimate-totals {
-        grid-template-columns: 1fr;
-      }
-
-      .progress-indicator {
-        flex-wrap: wrap;
-        gap: 12px;
-      }
-
-      .progress-step {
-        flex: 1;
-        min-width: 120px;
-      }
-
-      .progress-step:not(:last-child)::after {
-        display: none;
-      }
-
-      .cards-header {
-        flex-direction: column;
-        gap: 12px;
-        align-items: stretch;
-      }
-
-      .cards-header > div {
-        display: flex;
-        gap: 8px;
-      }
-
-      .cards-header .btn {
-        flex: 1;
-        padding: 12px 16px;
-        font-size: 14px;
-      }
-    }
-
     .info-box {
       background: rgba(59, 130, 246, 0.05);
       border: 1px solid rgba(59, 130, 246, 0.2);
@@ -849,7 +467,6 @@
       padding: 16px;
       margin: 16px 0;
       display: flex;
-      align-items: start;
       gap: 12px;
     }
 
@@ -863,15 +480,13 @@
       border-color: rgba(16, 185, 129, 0.2);
     }
 
-    .info-icon {
-      font-size: 20px;
-      margin-top: 2px;
-    }
-
-    .info-content {
-      flex: 1;
-      font-size: 14px;
-      line-height: 1.5;
+    @media (max-width: 768px) {
+      body { padding: 12px; }
+      .card-content { padding: 24px; }
+      .card-row { grid-template-columns: 1fr; gap: 12px; }
+      .payout-options { grid-template-columns: 1fr; }
+      .step-navigation { flex-direction: column; gap: 12px; }
+      .btn { width: 100%; justify-content: center; }
     }
   </style>
 </head>
@@ -904,63 +519,46 @@
         </div>
 
         <form id="customer-trade-form">
+          <!-- Step 1: Contact -->
           <div class="step-section active" data-step="1">
-            <h3 class="step-title">
-              <span>📧</span>
-              <span>Your Contact Information</span>
-            </h3>
-
+            <h3 class="step-title"><span>📧</span><span>Your Contact Information</span></h3>
             <div class="info-box">
-              <div class="info-icon">ℹ️</div>
-              <div class="info-content">
-                We'll use your email to send you updates about your trade-in request and for store credit if you choose that option.
-              </div>
+              <div>ℹ️</div>
+              <div>We'll use your email to send you updates about your trade-in request.</div>
             </div>
-
             <div class="form-group">
               <label class="form-label" for="customerName">Full Name</label>
-              <input type="text" class="form-input" id="customerName" name="customerName" placeholder="Enter your full name" required>
+              <input type="text" class="form-input" id="customerName" placeholder="Enter your full name" required>
             </div>
-
             <div class="form-group">
               <label class="form-label" for="customerEmail">Email Address</label>
-              <input type="email" class="form-input" id="customerEmail" name="customerEmail" placeholder="your@email.com" required>
+              <input type="email" class="form-input" id="customerEmail" placeholder="your@email.com" required>
             </div>
-
             <div class="form-group">
               <label class="form-label" for="customerPhone">Phone Number (Optional)</label>
-              <input type="tel" class="form-input" id="customerPhone" name="customerPhone" placeholder="(555) 123-4567">
+              <input type="tel" class="form-input" id="customerPhone" placeholder="(555) 123-4567">
             </div>
           </div>
 
+          <!-- Step 2: Add Cards -->
           <div class="step-section" data-step="2">
-            <h3 class="step-title">
-              <span>🃏</span>
-              <span>Cards to Trade</span>
-            </h3>
-
+            <h3 class="step-title"><span>🃏</span><span>Cards to Trade</span></h3>
             <div class="info-box">
-              <div class="info-icon">💡</div>
-              <div class="info-content">
-                <strong>Add your cards manually below.</strong> Our system will search our inventory and provide instant estimates for each card you enter.
-              </div>
+              <div>💡</div>
+              <div>Add your cards below. Our system will search and provide instant estimates.</div>
             </div>
-
             <div class="cards-section">
               <div class="cards-header">
                 <h4 style="margin: 0; font-size: 16px; font-weight: 600;">Your Cards</h4>
                 <div style="display: flex; gap: 12px;">
                   <button type="button" class="btn btn-secondary" id="scan-card">
-                    <span>📷</span>
-                    <span>Scan Card</span>
+                    <span>📷</span><span>Scan Card</span>
                   </button>
                   <button type="button" class="btn btn-secondary" id="add-card">
-                    <span>➕</span>
-                    <span>Add Card</span>
+                    <span>➕</span><span>Add Card</span>
                   </button>
                 </div>
               </div>
-              
               <div class="cards-list" id="card-list">
                 <div class="card-row">
                   <div class="card-input-container">
@@ -978,153 +576,99 @@
             </div>
           </div>
 
+          <!-- Step 3: Payout -->
           <div class="step-section" data-step="3">
-            <h3 class="step-title">
-              <span>💰</span>
-              <span>How would you like to be paid?</span>
-            </h3>
-
+            <h3 class="step-title"><span>💰</span><span>How would you like to be paid?</span></h3>
             <div class="info-box warning">
-              <div class="info-icon">⚠️</div>
-              <div class="info-content">
-                <strong>Important:</strong> Store credit typically offers the best value! Gift cards and cash may have different rates.
-              </div>
+              <div>⚠️</div>
+              <div><strong>Important:</strong> Store credit typically offers the best value!</div>
             </div>
-
             <div class="form-group">
               <label class="form-label">Payout Method</label>
               <div class="payout-options">
                 <div class="payout-option">
                   <input type="radio" class="payout-radio" name="payoutMethod" value="store-credit" id="store-credit">
                   <label class="payout-label" for="store-credit">
-                    <span>🏪</span>
-                    <span>Store Credit<br><small>Best Value!</small></span>
+                    <span>🏪</span><span>Store Credit</span>
                   </label>
                 </div>
                 <div class="payout-option">
                   <input type="radio" class="payout-radio" name="payoutMethod" value="gift-card" id="gift-card">
                   <label class="payout-label" for="gift-card">
-                    <span>🎁</span>
-                    <span>Gift Card<br><small>Great for Gifts</small></span>
+                    <span>🎁</span><span>Gift Card</span>
                   </label>
                 </div>
                 <div class="payout-option">
                   <input type="radio" class="payout-radio" name="payoutMethod" value="cash" id="cash">
                   <label class="payout-label" for="cash">
-                    <span>💵</span>
-                    <span>Cash<br><small>Instant Payout</small></span>
+                    <span>💵</span><span>Cash</span>
                   </label>
                 </div>
               </div>
             </div>
-
-            <div class="info-box success">
-              <div class="info-icon">📋</div>
-              <div class="info-content">
-                <strong>Next:</strong> Review your submission and get an instant estimate before finalizing your trade-in request.
-              </div>
-            </div>
           </div>
 
+          <!-- Step 4: Review -->
           <div class="step-section" data-step="4">
-            <h3 class="step-title">
-              <span>✅</span>
-              <span>Review Your Trade-In Request</span>
-            </h3>
-
+            <h3 class="step-title"><span>✅</span><span>Review Your Trade-In Request</span></h3>
             <div class="info-box">
-              <div class="info-icon">🔍</div>
-              <div class="info-content">
-                Please review all information below. Once submitted, our team will process your request and contact you within 24 hours.
-              </div>
+              <div>🔍</div>
+              <div>Please review all information below. Once submitted, our team will process your request.</div>
             </div>
-
             <div id="review-summary" style="background: var(--gray-50); border-radius: var(--border-radius); padding: 24px; margin: 24px 0;">
-              <h4 style="margin: 0 0 16px 0; color: var(--gray-800);">📋 Trade-In Summary</h4>
-              <div id="summary-content">
-              </div>
+              <h4 style="margin: 0 0 16px 0;">📋 Trade-In Summary</h4>
+              <div id="summary-content"></div>
             </div>
-
             <div style="text-align: center; margin: 32px 0;">
               <button type="button" class="btn btn-primary" id="get-estimate">
-                <span>📊</span>
-                <span>Get Instant Estimate</span>
+                <span>📊</span><span>Get Instant Estimate</span>
               </button>
             </div>
-
             <div id="estimate-results" class="estimate-results">
-              <div class="estimate-header">
-                <div class="estimate-title">📊 Your Trade-In Estimate</div>
+              <div style="margin-bottom: 24px;">
+                <h4 style="margin: 0 0 16px 0;">📊 Your Trade-In Estimate</h4>
+                <div id="estimate-cards"></div>
               </div>
-              
-              <div id="estimate-cards">
-              </div>
-
               <div class="estimate-totals">
-                <div class="total-item">
-                  <div class="total-label">Retail Value</div>
+                <div>
+                  <div style="font-size: 14px; color: var(--gray-600);">Retail Value</div>
                   <div class="total-value" id="total-retail">$0.00</div>
                 </div>
-                <div class="total-item">
-                  <div class="total-label">Your Payout</div>
+                <div>
+                  <div style="font-size: 14px; color: var(--gray-600);">Your Payout</div>
                   <div class="total-value primary" id="total-payout">$0.00</div>
                 </div>
               </div>
-
-              <div class="info-box success" style="margin-top: 24px;">
-                <div class="info-icon">✨</div>
-                <div class="info-content">
-                  <strong>Great!</strong> This is your estimated payout. Final amounts may vary slightly based on actual card condition when we receive them.
-                </div>
-              </div>
             </div>
-
             <div style="text-align: center; margin: 32px 0;">
               <button type="submit" class="btn btn-success" id="submit-request" style="display: none;">
-                <span>🚀</span>
-                <span>Submit Trade-In Request</span>
+                <span>🚀</span><span>Submit Trade-In Request</span>
               </button>
             </div>
           </div>
 
           <div class="step-navigation">
             <button type="button" class="btn btn-secondary" id="prev-step" style="display: none;">
-              <span>←</span>
-              <span>Previous</span>
+              <span>←</span><span>Previous</span>
             </button>
             <button type="button" class="btn btn-primary" id="next-step">
-              <span>Next</span>
-              <span>→</span>
+              <span>Next</span><span>→</span>
             </button>
           </div>
         </form>
 
         <div id="success-section" class="success-section">
-          <div class="success-icon">🎉</div>
+          <div style="font-size: 4rem; margin-bottom: 20px;">🎉</div>
           <h2 class="success-title">Trade-In Request Submitted!</h2>
-          <p class="success-message">
-            Thank you for your trade-in request! We've received your submission and will review it within 24 hours.
+          <p style="font-size: 18px; color: var(--gray-600); margin-bottom: 32px;">
+            Thank you! We've received your submission and will review it within 24 hours.
           </p>
-          
-          <div class="submission-id">
+          <div style="background: white; border: 1px solid var(--gray-200); border-radius: var(--border-radius); padding: 20px; margin: 24px 0; font-family: Monaco, monospace;">
             <strong>Submission ID:</strong> <span id="submission-id-display">TR-2025-XXXX</span>
           </div>
-
-          <div class="info-box success">
-            <div class="info-icon">📧</div>
-            <div class="info-content">
-              <strong>What's Next?</strong><br>
-              • You'll receive a confirmation email shortly<br>
-              • Our team will review your cards and confirm the final payout<br>
-              • We'll contact you within 24 hours with next steps<br>
-              • Keep your submission ID for reference
-            </div>
-          </div>
-
           <div style="margin-top: 32px;">
             <button type="button" class="btn btn-primary" id="new-request">
-              <span>🔄</span>
-              <span>Submit Another Request</span>
+              <span>🔄</span><span>Submit Another Request</span>
             </button>
           </div>
         </div>
@@ -1135,37 +679,25 @@
   <script>
     const API_URL = '/api/buybackstep4';
     const SUBMISSION_API_URL = '/api/customer-submissions';
-    
     let currentStep = 1;
     const totalSteps = 4;
     let lastApiResponse = null;
 
     document.addEventListener('DOMContentLoaded', function() {
-      initializeCustomerPortal();
-    });
-
-    function initializeCustomerPortal() {
-      setupStepNavigation();
+      setupNavigation();
       setupCardManagement();
       setupFormSubmission();
-    }
+    });
 
-    function setupStepNavigation() {
-      const nextBtn = document.getElementById('next-step');
-      const prevBtn = document.getElementById('prev-step');
-
-      nextBtn.addEventListener('click', function() {
+    function setupNavigation() {
+      document.getElementById('next-step').addEventListener('click', function() {
         if (validateCurrentStep()) {
-          if (currentStep < totalSteps) {
-            goToStep(currentStep + 1);
-          }
+          if (currentStep < totalSteps) goToStep(currentStep + 1);
         }
       });
 
-      prevBtn.addEventListener('click', function() {
-        if (currentStep > 1) {
-          goToStep(currentStep - 1);
-        }
+      document.getElementById('prev-step').addEventListener('click', function() {
+        if (currentStep > 1) goToStep(currentStep - 1);
       });
     }
 
@@ -1183,8 +715,6 @@
       if (currentStep === 4) {
         updateReviewSummary();
       }
-
-      document.querySelector('.main-card').scrollIntoView({ behavior: 'smooth' });
     }
 
     function updateNavigationButtons() {
@@ -1197,119 +727,311 @@
         nextBtn.style.display = 'none';
       } else {
         nextBtn.style.display = 'inline-flex';
-        nextBtn.innerHTML = currentStep === totalSteps - 1 ? 
-          '<span>Review</span><span>→</span>' : 
-          '<span>Next</span><span>→</span>';
       }
     }
 
     function validateCurrentStep() {
       switch (currentStep) {
         case 1:
-          return validateContactInfo();
+          const name = document.getElementById('customerName').value.trim();
+          const email = document.getElementById('customerEmail').value.trim();
+          if (!name) {
+            alert('Please enter your full name.');
+            return false;
+          }
+          if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            alert('Please enter a valid email address.');
+            return false;
+          }
+          return true;
         case 2:
-          return validateCards();
+          const cardRows = document.querySelectorAll('.card-row');
+          if (cardRows.length === 0) {
+            alert('Please add at least one card to trade.');
+            return false;
+          }
+          for (let row of cardRows) {
+            if (!row.querySelector('[name="cardName"]').value.trim()) {
+              alert('Please fill in all card names.');
+              return false;
+            }
+          }
+          return true;
         case 3:
-          return validatePayoutMethod();
-        case 4:
+          if (!document.querySelector('input[name="payoutMethod"]:checked')) {
+            alert('Please select a payout method.');
+            return false;
+          }
           return true;
         default:
           return true;
       }
     }
 
-    function validateContactInfo() {
-      const name = document.getElementById('customerName').value.trim();
-      const email = document.getElementById('customerEmail').value.trim();
-
-      if (!name) {
-        alert('Please enter your full name.');
-        document.getElementById('customerName').focus();
-        return false;
-      }
-
-      if (!email || !isValidEmail(email)) {
-        alert('Please enter a valid email address.');
-        document.getElementById('customerEmail').focus();
-        return false;
-      }
-
-      return true;
-    }
-
-    function validateCards() {
-      const cardRows = document.querySelectorAll('.card-row');
-      
-      if (cardRows.length === 0) {
-        alert('Please add at least one card to trade.');
-        return false;
-      }
-
-      for (let row of cardRows) {
-        const cardName = row.querySelector('[name="cardName"]').value.trim();
-        const quantity = row.querySelector('[name="cardQuantity"]').value;
-
-        if (!cardName) {
-          alert('Please fill in all card names.');
-          row.querySelector('[name="cardName"]').focus();
-          return false;
-        }
-
-        if (!quantity || quantity < 1) {
-          alert('Please enter a valid quantity for all cards.');
-          row.querySelector('[name="cardQuantity"]').focus();
-          return false;
-        }
-      }
-
-      return true;
-    }
-
-    function validatePayoutMethod() {
-      const selectedMethod = document.querySelector('input[name="payoutMethod"]:checked');
-      
-      if (!selectedMethod) {
-        alert('Please select a payout method.');
-        return false;
-      }
-
-      return true;
-    }
-
-    function isValidEmail(email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(email);
-    }
-
     function setupCardManagement() {
-      const addCardBtn = document.getElementById('add-card');
-      const scanCardBtn = document.getElementById('scan-card');
-
-      addCardBtn.addEventListener('click', function() {
-        addNewCardRow();
-      });
-
-      scanCardBtn.addEventListener('click', function() {
-        handleScanCard();
-      });
-
+      document.getElementById('add-card').addEventListener('click', addNewCardRow);
+      document.getElementById('scan-card').addEventListener('click', handleScanCard);
+      
       document.querySelectorAll('.remove-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-          handleRemoveCard(btn);
+          const cardList = document.getElementById('card-list');
+          if (cardList.children.length > 1) {
+            btn.closest('.card-row').remove();
+          } else {
+            alert('You must have at least one card.');
+          }
         });
       });
 
-      document.querySelectorAll('.card-input').forEach(input => {
-        setupCardSearch(input);
-      });
+      document.querySelectorAll('.card-input').forEach(setupCardSearch);
     }
 
-    function handleRemoveCard(btn) {
+    function addNewCardRow() {
       const cardList = document.getElementById('card-list');
-      if (cardList.children.length > 1) {
-        btn.closest('.card-row').remove();
-      } else {
-        alert('You must have at least one card in your trade-in request.');
+      const newRow = document.createElement('div');
+      newRow.className = 'card-row';
+      newRow.innerHTML = `
+        <div class="card-input-container">
+          <input type="text" class="card-input" name="cardName" placeholder="Enter card name or SKU" required>
+        </div>
+        <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
+        <select class="form-select" name="cardCondition" required style="width: 120px;">
+          <option value="NM">Near Mint</option>
+          <option value="LP">Lightly Played</option>
+          <option value="MP">Moderately Played</option>
+        </select>
+        <button type="button" class="remove-btn">✖</button>
+      `;
+      cardList.appendChild(newRow);
+
+      newRow.querySelector('.remove-btn').addEventListener('click', function() {
+        if (cardList.children.length > 1) {
+          newRow.remove();
+        }
+      });
+
+      setupCardSearch(newRow.querySelector('.card-input'));
+    }
+
+    function setupCardSearch(input) {
+      let searchTimeout;
+      let currentSuggestion = null;
+
+      input.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        if (currentSuggestion) {
+          currentSuggestion.remove();
+          currentSuggestion = null;
+        }
+
+        if (searchTimeout) clearTimeout(searchTimeout);
+
+        if (query.length < 2) {
+          input.classList.remove('confirmed', 'not-found');
+          return;
+        }
+
+        searchTimeout = setTimeout(() => performCardSearch(query, input), 500);
+      });
+
+      async function performCardSearch(query, input) {
+        const container = input.closest('.card-input-container');
+        
+        try {
+          const response = await fetch(`${API_URL}?estimate=true`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              cards: [{ cardName: query, quantity: 1, condition: 'NM' }],
+              employeeName: 'Customer Portal',
+              payoutMethod: 'cash'
+            })
+          });
+
+          const data = await response.json();
+          const result = data.results && data.results[0];
+          
+          if (result && result.allOptions && result.allOptions.length > 1) {
+            showMultipleOptions(container, input, query, result);
+          } else {
+            showSingleResult(container, input, query, result);
+          }
+        } catch (error) {
+          console.error('Search error:', error);
+        }
+      }
+
+      function showMultipleOptions(container, input, query, result) {
+        const existing = container.querySelector('.search-suggestion');
+        if (existing) existing.remove();
+
+        const suggestion = document.createElement('div');
+        suggestion.className = 'search-suggestion';
+        
+        const options = result.allOptions || [];
+        
+        let html = `
+          <div style="padding: 16px; border-bottom: 1px solid var(--gray-200); background: var(--gray-50); text-align: center;">
+            <div style="font-weight: 600; color: var(--gray-800); margin-bottom: 8px;">
+              🔍 Found ${options.length} matches
+            </div>
+            <div style="font-size: 14px; color: var(--gray-600);">Select the card you want:</div>
+          </div>
+          <div style="max-height: 300px; overflow-y: auto;">
+        `;
+        
+        options.forEach((option, index) => {
+          const isRecommended = index === 0;
+          const title = option.fullTitle || option.productTitle || 'Unknown';
+          const price = option.price || 0;
+          
+          html += `
+            <div class="option-item" style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="flex: 1;">
+                <div style="font-weight: 600; margin-bottom: 4px;">
+                  ${isRecommended ? '⭐ ' : ''}${title}
+                </div>
+                <div style="font-size: 13px; color: var(--gray-500);">
+                  SKU: ${option.sku} • $${price.toFixed(2)}
+                </div>
+              </div>
+              <button type="button" class="option-select-btn" data-option-index="${index}" style="
+                padding: 8px 16px;
+                background: ${isRecommended ? 'var(--success)' : 'var(--primary)'};
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-weight: 600;
+                cursor: pointer;
+              ">${isRecommended ? '⭐ Select' : '✅ Select'}</button>
+            </div>
+          `;
+        });
+        
+        html += `
+          </div>
+          <div style="padding: 16px; border-top: 1px solid var(--gray-200); background: var(--gray-50); text-align: center;">
+            <button type="button" class="reject-btn" style="
+              padding: 10px 20px;
+              background: var(--gray-200);
+              color: var(--gray-700);
+              border: none;
+              border-radius: 6px;
+              font-weight: 600;
+              cursor: pointer;
+            ">❌ Cancel</button>
+          </div>
+        `;
+
+        suggestion.innerHTML = html;
+        container.appendChild(suggestion);
+        currentSuggestion = suggestion;
+
+        suggestion.querySelectorAll('.option-select-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const optionIndex = parseInt(this.getAttribute('data-option-index'));
+            const selectedOption = options[optionIndex];
+            
+            input.classList.add('confirmed');
+            input.value = selectedOption.fullTitle || selectedOption.productTitle;
+            input.setAttribute('data-search-result', JSON.stringify({
+              match: selectedOption.fullTitle || selectedOption.productTitle,
+              sku: selectedOption.sku,
+              retailPrice: selectedOption.price,
+              searchMethod: 'confirmed_search'
+            }));
+            
+            this.innerHTML = '✅ Selected!';
+            this.style.background = '#059669';
+            
+            setTimeout(() => {
+              suggestion.remove();
+              currentSuggestion = null;
+            }, 300);
+          });
+        });
+
+        suggestion.querySelector('.reject-btn').addEventListener('click', function() {
+          input.value = '';
+          suggestion.remove();
+          currentSuggestion = null;
+        });
+      }
+
+      function showSingleResult(container, input, query, result) {
+        const existing = container.querySelector('.search-suggestion');
+        if (existing) existing.remove();
+
+        const suggestion = document.createElement('div');
+        suggestion.className = 'search-suggestion';
+        
+        if (result && result.match) {
+          suggestion.innerHTML = `
+            <div style="padding: 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+              <div style="flex: 1;">
+                <div style="font-weight: 600; margin-bottom: 4px;">✅ ${result.match}</div>
+                <div style="font-size: 14px; color: var(--gray-500);">
+                  SKU: ${result.sku || 'N/A'} • ${result.retailPrice ? '$' + result.retailPrice.toFixed(2) : '0.00'}
+                </div>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="confirm-btn" style="padding: 8px 16px; background: var(--success); color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer;">✅ Use This</button>
+                <button type="button" class="reject-btn" style="padding: 8px 16px; background: var(--gray-200); color: var(--gray-700); border: none; border-radius: 6px; font-weight: 500; cursor: pointer;">❌ Cancel</button>
+              </div>
+            </div>
+          `;
+        } else {
+          suggestion.innerHTML = `
+            <div style="padding: 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+              <div style="flex: 1;">
+                <div style="font-weight: 600; margin-bottom: 4px;">❌ "${query}" not found</div>
+                <div style="font-size: 14px; color: var(--gray-500);">This item will be manually reviewed</div>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="continue-btn" style="padding: 8px 16px; background: var(--warning); color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer;">⚠️ Continue</button>
+                <button type="button" class="reject-btn" style="padding: 8px 16px; background: var(--gray-200); color: var(--gray-700); border: none; border-radius: 6px; font-weight: 500; cursor: pointer;">❌ Cancel</button>
+              </div>
+            </div>
+          `;
+        }
+
+        container.appendChild(suggestion);
+        currentSuggestion = suggestion;
+
+        const confirmBtn = suggestion.querySelector('.confirm-btn');
+        const continueBtn = suggestion.querySelector('.continue-btn');
+        const rejectBtn = suggestion.querySelector('.reject-btn');
+
+        if (confirmBtn) {
+          confirmBtn.addEventListener('click', function() {
+            input.classList.add('confirmed');
+            input.value = result.match;
+            input.setAttribute('data-search-result', JSON.stringify({
+              match: result.match,
+              sku: result.sku,
+              retailPrice: result.retailPrice,
+              searchMethod: 'confirmed_search'
+            }));
+            suggestion.remove();
+            currentSuggestion = null;
+          });
+        }
+
+        if (continueBtn) {
+          continueBtn.addEventListener('click', function() {
+            input.classList.add('not-found');
+            suggestion.remove();
+            currentSuggestion = null;
+          });
+        }
+
+        if (rejectBtn) {
+          rejectBtn.addEventListener('click', function() {
+            suggestion.remove();
+            currentSuggestion = null;
+          });
+        }
       }
     }
 
@@ -1329,7 +1051,34 @@
         scanBtn.disabled = true;
         
         try {
-          await processScannedImage(file);
+          const formData = new FormData();
+          formData.append('image', file);
+          formData.append('search_type', 'pokemon_card');
+          
+          const response = await fetch('/api/shopify-image-match', {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (!response.ok) throw new Error('Scan failed');
+          
+          const data = await response.json();
+          
+          if (data.matches && data.matches.length > 0) {
+            const match = data.matches[0];
+            const newRow = addNewCardRow();
+            const input = newRow.querySelector('[name="cardName"]');
+            input.value = match.title;
+            input.classList.add('confirmed');
+            input.setAttribute('data-search-result', JSON.stringify({
+              match: match.title,
+              sku: match.sku,
+              retailPrice: parseFloat(match.price),
+              searchMethod: 'image_scan'
+            }));
+          } else {
+            alert('No matching cards found. Please try again or enter manually.');
+          }
         } catch (error) {
           console.error('Scan error:', error);
           alert('Failed to scan card: ' + error.message);
@@ -1342,766 +1091,203 @@
       input.click();
     }
 
-    async function processScannedImage(file) {
-      console.log('Processing scanned image:', file.name);
-      
-      const formData = new FormData();
-      formData.append('image', file);
-      formData.append('search_type', 'pokemon_card');
-      formData.append('match_threshold', '0.4');
-      formData.append('max_results', '10');
-      
-      const response = await fetch('/api/shopify-image-match', {
-        method: 'POST',
-        body: formData
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Scan failed');
-      }
-      
-      const data = await response.json();
-      console.log('Scan results:', data);
-      
-      if (!data.matches || data.matches.length === 0) {
-        alert('No matching cards found. Please try again or enter the card name manually.');
-        return;
-      }
-      
-      showScanResults(data.matches);
-    }
-
-    function showScanResults(matches) {
-      const modal = document.createElement('div');
-      modal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.7);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10000;
-        padding: 20px;
-      `;
-      
-      const content = document.createElement('div');
-      content.style.cssText = `
-        background: white;
-        border-radius: var(--border-radius-xl);
-        max-width: 600px;
-        width: 100%;
-        max-height: 80vh;
-        overflow-y: auto;
-        box-shadow: var(--shadow-xl);
-      `;
-      
-      let html = `
-        <div style="padding: 24px; border-bottom: 1px solid var(--gray-200);">
-          <h3 style="margin: 0; font-size: 20px; font-weight: 600;">📷 Scan Results</h3>
-          <p style="margin: 8px 0 0 0; color: var(--gray-600); font-size: 14px;">
-            Found ${matches.length} matching cards. Select one to add it.
-          </p>
-        </div>
-        <div style="padding: 16px;">
-      `;
-      
-      matches.forEach((match, index) => {
-        html += `
-          <div class="scan-result-item" data-index="${index}" style="
-            padding: 16px;
-            margin-bottom: 12px;
-            border: 2px solid var(--gray-200);
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            gap: 12px;
-            align-items: center;
-          ">
-            ${match.image_url ? `
-              <img src="${match.image_url}" alt="${match.title}" style="
-                width: 60px;
-                height: 84px;
-                object-fit: cover;
-                border-radius: 4px;
-                flex-shrink: 0;
-              ">
-            ` : ''}
-            <div style="flex: 1; min-width: 0;">
-              <div style="font-weight: 600; margin-bottom: 4px;">${match.title}</div>
-              <div style="font-size: 13px; color: var(--gray-500);">
-                SKU: ${match.sku} • Price: ${match.price}
-                <br>Confidence: ${(match.confidence * 100).toFixed(0)}%
-              </div>
-            </div>
-          </div>
-        `;
-      });
-      
-      html += `
-        </div>
-        <div style="padding: 16px; border-top: 1px solid var(--gray-200); display: flex; justify-content: flex-end;">
-          <button type="button" class="btn btn-secondary" id="close-scan-results">
-            Cancel
-          </button>
-        </div>
-      `;
-      
-      content.innerHTML = html;
-      modal.appendChild(content);
-      document.body.appendChild(modal);
-      
-      content.querySelectorAll('.scan-result-item').forEach((item, index) => {
-        item.addEventListener('mouseenter', function() {
-          this.style.borderColor = 'var(--primary)';
-          this.style.transform = 'translateY(-2px)';
-          this.style.boxShadow = 'var(--shadow-md)';
-        });
-        
-        item.addEventListener('mouseleave', function() {
-          this.style.borderColor = 'var(--gray-200)';
-          this.style.transform = 'translateY(0)';
-          this.style.boxShadow = 'none';
-        });
-        
-        item.addEventListener('click', function() {
-          const match = matches[index];
-          addCardFromScan(match);
-          document.body.removeChild(modal);
-        });
-      });
-      
-      content.querySelector('#close-scan-results').addEventListener('click', function() {
-        document.body.removeChild(modal);
-      });
-      
-      modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-          document.body.removeChild(modal);
-        }
-      });
-    }
-
-    function addCardFromScan(match) {
-      console.log('Adding card from scan:', match);
-      
-      const newRow = addNewCardRow({
-        name: match.title,
-        quantity: 1,
-        condition: 'NM',
-        scanResult: {
-          match: match.title,
-          sku: match.sku,
-          retailPrice: parseFloat(match.price),
-          searchMethod: 'image_scan',
-          confidence: match.confidence
-        }
-      });
-      
-      newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      
-      const notification = document.createElement('div');
-      notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: var(--success);
-        color: white;
-        padding: 16px 24px;
-        border-radius: var(--border-radius);
-        box-shadow: var(--shadow-xl);
-        z-index: 10001;
-        animation: slideIn 0.3s ease;
-      `;
-      notification.textContent = `✅ Added: ${match.title}`;
-      document.body.appendChild(notification);
-      
-      setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => document.body.removeChild(notification), 300);
-      }, 3000);
-    }
-
-    function handleRemoveCard(btn) {
-      const cardList = document.getElementById('card-list');
-      if (cardList.children.length > 1) {
-        btn.closest('.card-row').remove();
-      } else {
-        alert('You must have at least one card in your trade-in request.');
-      }
-    }
-
-    function addNewCardRow(cardData = null) {
-      const cardList = document.getElementById('card-list');
-      const newRow = document.createElement('div');
-      newRow.className = 'card-row';
-      
-      const cardName = cardData ? cardData.name : '';
-      const quantity = cardData ? cardData.quantity : 1;
-      const condition = cardData ? cardData.condition : 'NM';
-      
-      newRow.innerHTML = `
-        <div class="card-input-container">
-          <input type="text" class="card-input" name="cardName" placeholder="Enter card name or SKU" value="${cardName}" required>
-        </div>
-        <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="${quantity}" required style="width: 80px;">
-        <select class="form-select" name="cardCondition" required style="width: 120px;">
-          <option value="NM" ${condition === 'NM' ? 'selected' : ''}>Near Mint</option>
-          <option value="LP" ${condition === 'LP' ? 'selected' : ''}>Lightly Played</option>
-          <option value="MP" ${condition === 'MP' ? 'selected' : ''}>Moderately Played</option>
-        </select>
-        <button type="button" class="remove-btn">✖</button>
-      `;
-      cardList.appendChild(newRow);
-
-      newRow.querySelector('.remove-btn').addEventListener('click', function() {
-        handleRemoveCard(this);
-      });
-
-      setupCardSearch(newRow.querySelector('.card-input'));
-
-      if (cardData && cardData.scanResult) {
-        const input = newRow.querySelector('.card-input');
-        input.classList.add('confirmed');
-        input.setAttribute('data-search-result', JSON.stringify(cardData.scanResult));
-      }
-
-      return newRow;
-    }
-
-    function setupCardSearch(input) {
-      let searchTimeout;
-      let currentSuggestion = null;
-
-      input.addEventListener('input', function() {
-        const query = this.value.trim();
-        
-        if (currentSuggestion) {
-          currentSuggestion.remove();
-          currentSuggestion = null;
-        }
-
-        if (searchTimeout) {
-          clearTimeout(searchTimeout);
-        }
-
-        if (query.length < 2) {
-          input.classList.remove('confirmed', 'not-found');
-          return;
-        }
-
-        searchTimeout = setTimeout(async () => {
-          await performCardSearch(query, input);
-        }, 500);
-      });
-
-      async function performCardSearch(query, input) {
-        const container = input.closest('.card-input-container');
-        
-        try {
-          const response = await fetch(`${API_URL}?estimate=true`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              cards: [{ cardName: query, quantity: 1, condition: 'NM' }],
-              employeeName: 'Customer Portal',
-              payoutMethod: 'cash'
-            })
-          });
-
-          const data = await response.json();
-          console.log('Search API response:', data);
-          
-          if (!response.ok) {
-            throw new Error(data.error || 'Search failed');
-          }
-
-          const result = data.results && data.results[0];
-          console.log('First result:', result);
-          
-          // Check for allOptions in the result
-          if (result && result.allOptions) {
-            console.log('Has allOptions:', result.allOptions.length, 'options');
-            
-            if (result.allOptions.length > 1) {
-              console.log('Showing multiple options UI');
-              showMultipleOptions(container, input, query, result);
-              return;
-            } else if (result.allOptions.length === 1) {
-              console.log('Single option, showing as confirmed');
-              showSearchResult(container, input, query, result);
-              return;
-            }
-          }
-          
-          // Fallback to regular single result
-          console.log('Showing single result');
-          showSearchResult(container, input, query, result);
-
-        } catch (error) {
-          console.error('Search error:', error);
-        }
-      }
-
-      function showMultipleOptions(container, input, query, result) {
-        console.log('showMultipleOptions called with:', { query, optionsCount: result.allOptions?.length });
-        
-        const existing = container.querySelector('.search-suggestion');
-        if (existing) {
-          console.log('Removing existing suggestion');
-          existing.remove();
-        }
-
-        const suggestion = document.createElement('div');
-        suggestion.className = 'search-suggestion';
-        
-        let optionsHtml = '<div style="padding: 16px;">';
-        optionsHtml += `<div style="margin-bottom: 12px; font-weight: 600;">🔍 Multiple matches found for "${query}"</div>`;
-        optionsHtml += '<div style="font-size: 14px; color: var(--gray-600); margin-bottom: 12px;">Please select the correct card:</div>';
-        
-        let selectedOption = null;
-        
-        result.allOptions.forEach((option, index) => {
-          const isRecommended = index === 0;
-          optionsHtml += `
-            <div class="option-item ${isRecommended ? 'selected' : ''}" data-option-index="${index}">
-              <div style="font-weight: 600; margin-bottom: 4px;">
-                ${option.fullTitle} ${isRecommended ? '⭐ Recommended' : ''}
-              </div>
-              <div style="font-size: 13px; color: var(--gray-500);">
-                SKU: ${option.sku} • Price: ${option.price.toFixed(2)}
-              </div>
-            </div>
-          `;
-        });
-        
-        optionsHtml += `
-          <div style="margin-top: 16px; display: flex; gap: 8px; justify-content: flex-end;">
-            <button type="button" class="suggestion-btn confirm-btn">✅ Use Selected</button>
-            <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
-          </div>
-        </div>`;
-        
-        suggestion.innerHTML = optionsHtml;
-        container.appendChild(suggestion);
-        currentSuggestion = suggestion;
-        console.log('Multiple options suggestion appended, element:', suggestion);
-
-        suggestion.querySelectorAll('.option-item').forEach((item, index) => {
-          item.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            suggestion.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
-            item.classList.add('selected');
-            selectedOption = result.allOptions[index];
-            console.log('Option selected:', selectedOption);
-          }, true);
-        });
-
-        selectedOption = result.allOptions[0];
-
-        const confirmBtn = suggestion.querySelector('.confirm-btn');
-        const rejectBtn = suggestion.querySelector('.reject-btn');
-        
-        console.log('Multiple options buttons found:', { confirmBtn: !!confirmBtn, rejectBtn: !!rejectBtn });
-
-        confirmBtn.addEventListener('click', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          console.log('Confirm button clicked for multiple options!', selectedOption);
-          if (selectedOption) {
-            // Handle both fullTitle and productTitle properties
-            const cardTitle = selectedOption.fullTitle || selectedOption.productTitle || selectedOption.title;
-            const cardPrice = selectedOption.price || selectedOption.retailPrice || 0;
-            
-            input.classList.remove('not-found');
-            input.classList.add('confirmed');
-            input.value = cardTitle;
-            input.setAttribute('data-search-result', JSON.stringify({
-              match: cardTitle,
-              sku: selectedOption.sku,
-              retailPrice: cardPrice,
-              searchMethod: 'confirmed_search'
-            }));
-            if (suggestion.parentNode) {
-              suggestion.remove();
-            }
-            currentSuggestion = null;
-            console.log('Card selected and confirmed:', cardTitle);
-          }
-        }, true);
-
-        rejectBtn.addEventListener('click', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          console.log('Reject button clicked for multiple options!');
-          input.classList.remove('confirmed', 'not-found');
-          if (suggestion.parentNode) {
-            suggestion.remove();
-          }
-          currentSuggestion = null;
-        }, true);
-      }
-
-      function showSearchResult(container, input, query, result) {
-        const existing = container.querySelector('.search-suggestion');
-        if (existing) existing.remove();
-
-        const suggestion = document.createElement('div');
-        suggestion.className = 'search-suggestion';
-        
-        if (result && result.match) {
-          suggestion.innerHTML = `
-            <div class="suggestion-content">
-              <div class="suggestion-info">
-                <div class="suggestion-name">✅ ${result.match}</div>
-                <div class="suggestion-details">
-                  <span>SKU: ${result.sku || 'N/A'}</span>
-                  <span>Est. Value: ${result.retailPrice ? result.retailPrice.toFixed(2) : '0.00'}</span>
-                  <span class="search-badge found">Found</span>
-                </div>
-              </div>
-              <div class="suggestion-actions">
-                <button type="button" class="suggestion-btn confirm-btn">✅ Use This</button>
-                <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
-              </div>
-            </div>
-          `;
-        } else {
-          suggestion.innerHTML = `
-            <div class="suggestion-content">
-              <div class="suggestion-info">
-                <div class="suggestion-name">❓ "${query}" - Manual Review</div>
-                <div class="suggestion-details">
-                  <span>This item will be manually reviewed by our team</span>
-                  <span class="search-badge not-found">Manual Review</span>
-                </div>
-              </div>
-              <div class="suggestion-actions">
-                <button type="button" class="suggestion-btn continue-btn">✅ Continue</button>
-                <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
-              </div>
-            </div>
-          `;
-        }
-
-        container.appendChild(suggestion);
-        currentSuggestion = suggestion;
-
-        const confirmBtn = suggestion.querySelector('.confirm-btn');
-        const continueBtn = suggestion.querySelector('.continue-btn');
-        const rejectBtn = suggestion.querySelector('.reject-btn');
-
-        console.log('Buttons found:', { confirmBtn: !!confirmBtn, continueBtn: !!continueBtn, rejectBtn: !!rejectBtn });
-
-        if (confirmBtn) {
-          confirmBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Confirm button clicked!', result);
-            input.classList.remove('not-found');
-            input.classList.add('confirmed');
-            input.value = result.match;
-            input.setAttribute('data-search-result', JSON.stringify({
-              match: result.match,
-              sku: result.sku,
-              retailPrice: result.retailPrice,
-              searchMethod: 'confirmed_search'
-            }));
-            if (suggestion.parentNode) {
-              suggestion.remove();
-            }
-            currentSuggestion = null;
-          }, true);
-        }
-
-        if (continueBtn) {
-          continueBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Continue button clicked!');
-            input.classList.remove('confirmed');
-            input.classList.add('not-found');
-            if (suggestion.parentNode) {
-              suggestion.remove();
-            }
-            currentSuggestion = null;
-          }, true);
-        }
-
-        if (rejectBtn) {
-          rejectBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Reject button clicked!');
-            input.classList.remove('confirmed', 'not-found');
-            if (suggestion.parentNode) {
-              suggestion.remove();
-            }
-            currentSuggestion = null;
-          }, true);
-        }
-      }
-    }
-
     function updateReviewSummary() {
       const name = document.getElementById('customerName').value;
       const email = document.getElementById('customerEmail').value;
       const phone = document.getElementById('customerPhone').value;
       const payoutMethod = document.querySelector('input[name="payoutMethod"]:checked')?.value;
 
-      const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
-        return {
-          name: row.querySelector('[name="cardName"]').value,
-          quantity: row.querySelector('[name="cardQuantity"]').value,
-          condition: row.querySelector('[name="cardCondition"]').value
-        };
-      });
+      const cards = Array.from(document.querySelectorAll('.card-row')).map(row => ({
+        name: row.querySelector('[name="cardName"]').value,
+        quantity: row.querySelector('[name="cardQuantity"]').value,
+        condition: row.querySelector('[name="cardCondition"]').value
+      }));
 
-      const payoutMethodNames = {
+      const payoutNames = {
         'store-credit': '🏪 Store Credit',
         'gift-card': '🎁 Gift Card',
         'cash': '💵 Cash'
       };
 
-      let summaryHTML = `
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px;">
-          <div>
-            <strong>📧 Contact Information</strong><br>
-            <strong>Name:</strong> ${name}<br>
-            <strong>Email:</strong> ${email}<br>
-            ${phone ? `<strong>Phone:</strong> ${phone}<br>` : ''}
-          </div>
-          <div>
-            <strong>💰 Payout Method</strong><br>
-            ${payoutMethodNames[payoutMethod] || 'Not selected'}
-          </div>
+      let html = `
+        <div style="margin-bottom: 20px;">
+          <strong>📧 Contact:</strong> ${name} (${email})
+          ${phone ? `<br><strong>📱 Phone:</strong> ${phone}` : ''}
         </div>
-        
+        <div style="margin-bottom: 20px;">
+          <strong>💰 Payout Method:</strong> ${payoutNames[payoutMethod] || 'Not selected'}
+        </div>
         <div>
-          <strong>🃏 Cards (${cards.length} total)</strong><br>
-          <div style="margin-top: 8px;">
+          <strong>🃏 Cards (${cards.length} total):</strong>
       `;
 
       cards.forEach(card => {
-        summaryHTML += `
-          <div style="background: white; padding: 12px; margin: 4px 0; border-radius: 8px; border: 1px solid var(--gray-200);">
-            <strong>${card.name}</strong> - Qty: ${card.quantity} - Condition: ${card.condition}
+        html += `
+          <div style="background: white; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid var(--gray-200);">
+            ${card.name} - Qty: ${card.quantity} - ${card.condition}
           </div>
         `;
       });
 
-      summaryHTML += `
-          </div>
-        </div>
-      `;
-
-      document.getElementById('summary-content').innerHTML = summaryHTML;
+      html += '</div>';
+      document.getElementById('summary-content').innerHTML = html;
     }
 
     function setupFormSubmission() {
-      const form = document.getElementById('customer-trade-form');
-      const estimateBtn = document.getElementById('get-estimate');
-      const newRequestBtn = document.getElementById('new-request');
-      
-      estimateBtn.addEventListener('click', async function() {
-        await getTradeEstimate();
-      });
-      
-      form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        await submitTradeRequest();
+      document.getElementById('get-estimate').addEventListener('click', async function() {
+        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
+          const input = row.querySelector('[name="cardName"]');
+          const searchResult = input.getAttribute('data-search-result');
+          
+          if (searchResult) {
+            try {
+              const result = JSON.parse(searchResult);
+              return {
+                cardName: input.value,
+                quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+                condition: row.querySelector('[name="cardCondition"]').value,
+                sku: result.sku,
+                searchMethod: 'exact_sku'
+              };
+            } catch (e) {}
+          }
+          
+          return {
+            cardName: input.value,
+            quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+            condition: row.querySelector('[name="cardCondition"]').value
+          };
+        });
+
+        const btn = this;
+        btn.innerHTML = '<span class="spinner"></span><span>Calculating...</span>';
+        btn.disabled = true;
+
+        try {
+          const response = await fetch(`${API_URL}?estimate=true`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              cards: cards,
+              employeeName: 'Customer Portal',
+              payoutMethod: document.querySelector('input[name="payoutMethod"]:checked').value
+            })
+          });
+
+          const data = await response.json();
+          lastApiResponse = data;
+
+          if (!response.ok) throw new Error(data.error || 'Failed to get estimate');
+
+          const estimateCards = document.getElementById('estimate-cards');
+          estimateCards.innerHTML = '';
+
+          data.results.forEach(card => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'estimate-card';
+            cardEl.innerHTML = `
+              <div style="font-weight: 600; margin-bottom: 8px;">
+                ${card.match || card.cardName} ${!card.match ? '❓' : '✅'}
+              </div>
+              <div style="font-size: 14px; color: var(--gray-500); margin-bottom: 8px;">
+                Quantity: ${card.quantity} • Condition: ${card.condition}
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; text-align: center;">
+                <div>
+                  <div style="font-size: 12px; color: var(--gray-500);">Retail Value</div>
+                  <div style="font-weight: 600;">$${card.retailPrice ? card.retailPrice.toFixed(2) : '0.00'}</div>
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: var(--gray-500);">Your Payout</div>
+                  <div style="font-weight: 600; color: var(--primary);">$${card.suggestedTradeValue ? card.suggestedTradeValue.toFixed(2) : 'TBD'}</div>
+                </div>
+              </div>
+            `;
+            estimateCards.appendChild(cardEl);
+          });
+
+          document.getElementById('total-retail').textContent = `$${data.totalRetailValue || '0.00'}`;
+          document.getElementById('total-payout').textContent = `$${data.suggestedTotal || '0.00'}`;
+
+          document.getElementById('estimate-results').classList.add('visible');
+          document.getElementById('submit-request').style.display = 'inline-flex';
+
+        } catch (error) {
+          alert('Error: ' + error.message);
+        } finally {
+          btn.innerHTML = '<span>📊</span><span>Get Instant Estimate</span>';
+          btn.disabled = false;
+        }
       });
 
-      newRequestBtn.addEventListener('click', function() {
+      document.getElementById('customer-trade-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const payoutMethodElement = document.querySelector('input[name="payoutMethod"]:checked');
+        if (!payoutMethodElement) {
+          alert('Please select a payout method.');
+          goToStep(3);
+          return;
+        }
+        
+        const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
+          const input = row.querySelector('[name="cardName"]');
+          const searchResult = input.getAttribute('data-search-result');
+          
+          let cardData = {
+            cardName: input.value,
+            quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+            condition: row.querySelector('[name="cardCondition"]').value
+          };
+
+          if (searchResult) {
+            try {
+              const result = JSON.parse(searchResult);
+              cardData.sku = result.sku;
+              cardData.searchMethod = 'exact_sku';
+            } catch (e) {}
+          }
+
+          return cardData;
+        });
+
+        const submitBtn = document.getElementById('submit-request');
+        submitBtn.innerHTML = '<span class="spinner"></span><span>Submitting...</span>';
+        submitBtn.disabled = true;
+
+        try {
+          const response = await fetch(SUBMISSION_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              customerName: document.getElementById('customerName').value,
+              customerEmail: document.getElementById('customerEmail').value,
+              customerPhone: document.getElementById('customerPhone').value,
+              payoutMethod: payoutMethodElement.value,
+              cards: cards,
+              submissionType: 'customer_request',
+              estimateData: lastApiResponse
+            })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) throw new Error(data.error || 'Failed to submit');
+
+          document.getElementById('submission-id-display').textContent = data.submissionId;
+          document.getElementById('customer-trade-form').style.display = 'none';
+          document.getElementById('success-section').classList.add('visible');
+
+        } catch (error) {
+          alert('Error: ' + error.message);
+          submitBtn.innerHTML = '<span>🚀</span><span>Submit Trade-In Request</span>';
+          submitBtn.disabled = false;
+        }
+      });
+
+      document.getElementById('new-request').addEventListener('click', function() {
         location.reload();
       });
-    }
-
-    async function getTradeEstimate() {
-      const estimateBtn = document.getElementById('get-estimate');
-      const estimateResults = document.getElementById('estimate-results');
-      
-      const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
-        const input = row.querySelector('[name="cardName"]');
-        const searchResult = input.getAttribute('data-search-result');
-        
-        if (searchResult) {
-          try {
-            const result = JSON.parse(searchResult);
-            return {
-              cardName: input.value,
-              quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
-              condition: row.querySelector('[name="cardCondition"]').value,
-              sku: result.sku,
-              searchMethod: 'exact_sku'
-            };
-          } catch (e) {
-            console.warn('Failed to parse search result:', e);
-          }
-        }
-        
-        return {
-          cardName: input.value,
-          quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
-          condition: row.querySelector('[name="cardCondition"]').value
-        };
-      });
-
-      estimateBtn.innerHTML = '<span class="spinner"></span><span>Calculating...</span>';
-      estimateBtn.disabled = true;
-
-      try {
-        const response = await fetch(`${API_URL}?estimate=true`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            cards: cards,
-            employeeName: 'Customer Portal',
-            payoutMethod: document.querySelector('input[name="payoutMethod"]:checked').value
-          })
-        });
-
-        const data = await response.json();
-        lastApiResponse = data;
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to get estimate');
-        }
-
-        showEstimateResults(data);
-        document.getElementById('submit-request').style.display = 'inline-flex';
-
-      } catch (error) {
-        console.error('Estimate error:', error);
-        alert('Error getting estimate: ' + error.message);
-      } finally {
-        estimateBtn.innerHTML = '<span>📊</span><span>Get Instant Estimate</span>';
-        estimateBtn.disabled = false;
-      }
-    }
-
-    function showEstimateResults(data) {
-      const estimateCards = document.getElementById('estimate-cards');
-      estimateCards.innerHTML = '';
-
-      data.results.forEach(card => {
-        const cardElement = document.createElement('div');
-        cardElement.className = 'estimate-card';
-        cardElement.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <div>
-              <div style="font-weight: 600; color: var(--gray-800);">
-                ${card.match || card.cardName}
-                ${!card.match ? ' ❓ Manual Review' : ' ✅'}
-              </div>
-              <div style="font-size: 14px; color: var(--gray-500);">
-                Quantity: ${card.quantity} • Condition: ${card.condition}
-                ${card.sku ? ` • SKU: ${card.sku}` : ''}
-              </div>
-            </div>
-          </div>
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; text-align: center;">
-            <div>
-              <div style="font-size: 12px; color: var(--gray-500);">Retail Value</div>
-              <div style="font-weight: 600;">${card.retailPrice ? card.retailPrice.toFixed(2) : '0.00'}</div>
-            </div>
-            <div>
-              <div style="font-size: 12px; color: var(--gray-500);">Your Payout</div>
-              <div style="font-weight: 600; color: var(--primary);">${card.suggestedTradeValue ? card.suggestedTradeValue.toFixed(2) : 'TBD'}</div>
-            </div>
-          </div>
-        `;
-        estimateCards.appendChild(cardElement);
-      });
-
-      document.getElementById('total-retail').textContent = `$${data.totalRetailValue || '0.00'}`;
-      document.getElementById('total-payout').textContent = `$${data.suggestedTotal || '0.00'}`;
-
-      document.getElementById('estimate-results').classList.add('visible');
-    }
-
-    async function submitTradeRequest() {
-      const submitBtn = document.getElementById('submit-request');
-      
-      // Validate payout method is selected
-      const payoutMethodElement = document.querySelector('input[name="payoutMethod"]:checked');
-      if (!payoutMethodElement) {
-        alert('Please select a payout method before submitting.');
-        goToStep(3); // Go back to payout method step
-        return;
-      }
-      
-      const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
-        const input = row.querySelector('[name="cardName"]');
-        const searchResult = input.getAttribute('data-search-result');
-        
-        let cardData = {
-          cardName: input.value,
-          quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
-          condition: row.querySelector('[name="cardCondition"]').value
-        };
-
-        if (searchResult) {
-          try {
-            const result = JSON.parse(searchResult);
-            cardData.sku = result.sku;
-            cardData.searchMethod = 'exact_sku';
-          } catch (e) {
-            console.warn('Failed to parse search result:', e);
-          }
-        }
-
-        return cardData;
-      });
-
-      const formData = {
-        customerName: document.getElementById('customerName').value,
-        customerEmail: document.getElementById('customerEmail').value,
-        customerPhone: document.getElementById('customerPhone').value,
-        payoutMethod: payoutMethodElement.value,
-        cards: cards,
-        submissionType: 'customer_request',
-        estimateData: lastApiResponse
-      };
-
-      submitBtn.innerHTML = '<span class="spinner"></span><span>Submitting...</span>';
-      submitBtn.disabled = true;
-
-      try {
-        const response = await fetch(SUBMISSION_API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData)
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to submit request');
-        }
-
-        document.getElementById('submission-id-display').textContent = data.submissionId;
-        
-        document.getElementById('customer-trade-form').style.display = 'none';
-        document.getElementById('success-section').classList.add('visible');
-
-      } catch (error) {
-        console.error('Submission error:', error);
-        alert('Error submitting request: ' + error.message);
-        submitBtn.innerHTML = '<span>🚀</span><span>Submit Trade-In Request</span>';
-        submitBtn.disabled = false;
-      }
     }
   </script>
 </body>
