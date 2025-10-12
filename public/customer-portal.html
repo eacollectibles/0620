@@ -1455,11 +1455,14 @@
         currentSuggestion = suggestion;
 
         suggestion.querySelectorAll('.option-item').forEach((item, index) => {
-          item.addEventListener('click', function() {
+          item.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             suggestion.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
             item.classList.add('selected');
             selectedOption = result.allOptions[index];
-          });
+            console.log('Option selected:', selectedOption);
+          }, true);
         });
 
         selectedOption = result.allOptions[0];
@@ -1467,7 +1470,10 @@
         const confirmBtn = suggestion.querySelector('.confirm-btn');
         const rejectBtn = suggestion.querySelector('.reject-btn');
 
-        confirmBtn.addEventListener('click', function() {
+        confirmBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('Confirm button clicked for multiple options!', selectedOption);
           if (selectedOption) {
             input.classList.remove('not-found');
             input.classList.add('confirmed');
@@ -1478,15 +1484,23 @@
               retailPrice: selectedOption.price,
               searchMethod: 'confirmed_search'
             }));
-            suggestion.remove();
+            if (suggestion.parentNode) {
+              suggestion.remove();
+            }
             currentSuggestion = null;
           }
-        });
+        }, true);
 
-        rejectBtn.addEventListener('click', function() {
-          suggestion.remove();
+        rejectBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('Reject button clicked for multiple options!');
+          input.classList.remove('confirmed', 'not-found');
+          if (suggestion.parentNode) {
+            suggestion.remove();
+          }
           currentSuggestion = null;
-        });
+        }, true);
       }
 
       function showSearchResult(container, input, query, result) {
@@ -1539,7 +1553,10 @@
         const rejectBtn = suggestion.querySelector('.reject-btn');
 
         if (confirmBtn) {
-          confirmBtn.addEventListener('click', function() {
+          confirmBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Confirm button clicked!', result);
             input.classList.remove('not-found');
             input.classList.add('confirmed');
             input.value = result.match;
@@ -1549,25 +1566,38 @@
               retailPrice: result.retailPrice,
               searchMethod: 'confirmed_search'
             }));
-            suggestion.remove();
+            if (suggestion.parentNode) {
+              suggestion.remove();
+            }
             currentSuggestion = null;
-          });
+          }, true);
         }
 
         if (continueBtn) {
-          continueBtn.addEventListener('click', function() {
+          continueBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Continue button clicked!');
             input.classList.remove('confirmed');
             input.classList.add('not-found');
-            suggestion.remove();
+            if (suggestion.parentNode) {
+              suggestion.remove();
+            }
             currentSuggestion = null;
-          });
+          }, true);
         }
 
         if (rejectBtn) {
-          rejectBtn.addEventListener('click', function() {
-            suggestion.remove();
+          rejectBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Reject button clicked!');
+            input.classList.remove('confirmed', 'not-found');
+            if (suggestion.parentNode) {
+              suggestion.remove();
+            }
             currentSuggestion = null;
-          });
+          }, true);
         }
       }
     }
