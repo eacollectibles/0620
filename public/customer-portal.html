@@ -1440,19 +1440,24 @@
           e.stopPropagation();
           console.log('Confirm button clicked for multiple options!', selectedOption);
           if (selectedOption) {
+            // Handle both fullTitle and productTitle properties
+            const cardTitle = selectedOption.fullTitle || selectedOption.productTitle || selectedOption.title;
+            const cardPrice = selectedOption.price || selectedOption.retailPrice || 0;
+            
             input.classList.remove('not-found');
             input.classList.add('confirmed');
-            input.value = selectedOption.fullTitle;
+            input.value = cardTitle;
             input.setAttribute('data-search-result', JSON.stringify({
-              match: selectedOption.fullTitle,
+              match: cardTitle,
               sku: selectedOption.sku,
-              retailPrice: selectedOption.price,
+              retailPrice: cardPrice,
               searchMethod: 'confirmed_search'
             }));
             if (suggestion.parentNode) {
               suggestion.remove();
             }
             currentSuggestion = null;
+            console.log('Card selected and confirmed:', cardTitle);
           }
         }, true);
 
