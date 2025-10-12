@@ -172,10 +172,13 @@ async function handleSubmission(req, res) {
 
   } catch (error) {
     console.error('❌ Failed to process submission:', error);
+    console.error('❌ Error stack:', error.stack);
     return res.status(500).json({
       error: 'Failed to process submission',
       details: 'Please try again or contact support',
-      technicalDetails: process.env.NODE_ENV === 'development' ? error.message : undefined
+      technicalDetails: error.message,
+      errorStack: error.stack,
+      errorName: error.name
     });
   }
 }
@@ -183,6 +186,10 @@ async function handleSubmission(req, res) {
 // ✨ NEW: Function to get live estimates from your main trade-in system
 async function getEstimateFromTradeInSystem(data) {
   console.log('🔄 Calling main trade-in API for estimate...');
+  console.log('📊 Environment check:', {
+    SHOPIFY_DOMAIN: process.env.SHOPIFY_DOMAIN ? '✅' : '❌',
+    SHOPIFY_ACCESS_TOKEN: process.env.SHOPIFY_ACCESS_TOKEN ? '✅' : '❌'
+  });
   
   // Import or require your main trade-in logic
   // Option A: If they're in the same codebase, import the logic directly
@@ -195,8 +202,12 @@ async function getEstimateFromTradeInSystem(data) {
 
   // Validate required environment variables
   if (!SHOPIFY_DOMAIN || !SHOPIFY_ACCESS_TOKEN) {
+    console.error('❌ Missing Shopify credentials in getEstimateFromTradeInSystem');
     throw new Error('Missing required Shopify credentials');
   }
+
+  console.log('✅ Credentials validated, starting card processing...');
+  console.log('📦 Processing', data.cards.length, 'cards');
 
   // Use the SAME logic from your main trade-in API
   const makeShopifyRequest = async (endpoint, options = {}) => {
@@ -364,32 +375,46 @@ async function getEstimateFromTradeInSystem(data) {
   const searchCard = async (card) => {
     const { cardName, sku } = card;
     
+    console.log(`  🔍 searchCard called for: "${cardName}"`);
+    
     // Try tag search first
     const potentialTags = extractPotentialTags(cardName);
+    console.log(`  🏷️ Extracted tags:`, potentialTags);
     
     for (const tag of potentialTags) {
       if (!tag || tag.length < 2) continue;
       
+      console.log(`    🔎 Trying tag search with: "${tag}"`);
+      
       try {
         const result = await searchByTagWithAllOptions(tag, cardName);
         if (result.found) {
+          console.log(`    ✅ Found via tag "${tag}"`);
           return result;
+        } else {
+          console.log(`    ❌ Tag "${tag}" - no results`);
         }
       } catch (error) {
+        console.log(`    ❌ Tag search error for "${tag}":`, error.message);
         continue;
       }
     }
     
     // Fallback to title search
+    console.log(`  🔎 Trying title search for: "${cardName}"`);
     try {
       const result = await searchByTitle(cardName);
       if (result.found) {
+        console.log(`    ✅ Found via title search`);
         return result;
+      } else {
+        console.log(`    ❌ Title search - no results`);
       }
     } catch (error) {
-      console.log('Title search failed:', error.message);
+      console.log(`    ❌ Title search error:`, error.message);
     }
     
+    console.log(`  ❌ All search methods exhausted for: "${cardName}"`);
     return { found: false };
   };
 
@@ -399,12 +424,24 @@ async function getEstimateFromTradeInSystem(data) {
   let totalRetailValue = 0;
   const results = [];
 
+  console.log('🔍 Starting card search loop...');
+
   for (const card of data.cards) {
     const { cardName, quantity = 1, condition = 'NM' } = card;
     
+    console.log(`\n🃏 Processing card: "${cardName}" (qty: ${quantity})`);
+    
     const searchResult = await searchCard(card);
     
+    console.log(`🔍 Search result for "${cardName}":`, {
+      found: searchResult.found,
+      method: searchResult.searchMethod,
+      product: searchResult.product?.title,
+      price: searchResult.variant?.price
+    });
+    
     if (!searchResult.found) {
+      console.log(`❌ No match found for: ${cardName}`);
       results.push({
         cardName,
         match: null,
@@ -425,6 +462,8 @@ async function getEstimateFromTradeInSystem(data) {
     const suggestedTradeValue = calculateSuggestedTradeValue(variantPrice);
     const maximumTradeValue = calculateMaximumTradeValue(variantPrice);
     
+    console.log(`✅ Match found: ${product.title} - ${variantPrice} (Trade: ${suggestedTradeValue})`);
+    
     totalSuggestedValue += suggestedTradeValue * quantity;
     totalMaximumValue += maximumTradeValue * quantity;
     totalRetailValue += variantPrice * quantity;
@@ -441,6 +480,15 @@ async function getEstimateFromTradeInSystem(data) {
       searchMethod: searchResult.searchMethod
     });
   }
+
+  console.log('\n📊 Processing complete:', {
+    totalCards: data.cards.length,
+    cardsFound: results.filter(r => r.match).length,
+    cardsNotFound: results.filter(r => !r.match).length,
+    totalSuggestedValue,
+    totalMaximumValue,
+    totalRetailValue
+  });
 
   return {
     success: true,
