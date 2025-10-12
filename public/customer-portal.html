@@ -251,7 +251,7 @@
 
     .card-row {
       display: grid;
-      grid-template-columns: 2fr auto auto auto;
+      grid-template-columns: 2fr auto auto;
       gap: 16px;
       align-items: start;
       padding: 20px;
@@ -565,11 +565,6 @@
                     <input type="text" class="card-input" name="cardName" placeholder="Enter card name or SKU" required>
                   </div>
                   <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
-                  <select class="form-select" name="cardCondition" required style="width: 120px;">
-                    <option value="NM">Near Mint</option>
-                    <option value="LP">Lightly Played</option>
-                    <option value="MP">Moderately Played</option>
-                  </select>
                   <button type="button" class="remove-btn">✖</button>
                 </div>
               </div>
@@ -795,11 +790,6 @@
           <input type="text" class="card-input" name="cardName" placeholder="Enter card name or SKU" required>
         </div>
         <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
-        <select class="form-select" name="cardCondition" required style="width: 120px;">
-          <option value="NM">Near Mint</option>
-          <option value="LP">Lightly Played</option>
-          <option value="MP">Moderately Played</option>
-        </select>
         <button type="button" class="remove-btn">✖</button>
       `;
       cardList.appendChild(newRow);
@@ -1099,8 +1089,7 @@
 
       const cards = Array.from(document.querySelectorAll('.card-row')).map(row => ({
         name: row.querySelector('[name="cardName"]').value,
-        quantity: row.querySelector('[name="cardQuantity"]').value,
-        condition: row.querySelector('[name="cardCondition"]').value
+        quantity: row.querySelector('[name="cardQuantity"]').value
       }));
 
       const payoutNames = {
@@ -1124,7 +1113,7 @@
       cards.forEach(card => {
         html += `
           <div style="background: white; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid var(--gray-200);">
-            ${card.name} - Qty: ${card.quantity} - ${card.condition}
+            ${card.name} - Qty: ${card.quantity}
           </div>
         `;
       });
@@ -1145,7 +1134,7 @@
               return {
                 cardName: input.value,
                 quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
-                condition: row.querySelector('[name="cardCondition"]').value,
+                condition: 'NM',
                 sku: result.sku,
                 searchMethod: 'exact_sku'
               };
@@ -1155,7 +1144,7 @@
           return {
             cardName: input.value,
             quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
-            condition: row.querySelector('[name="cardCondition"]').value
+            condition: 'NM'
           };
         });
 
@@ -1190,16 +1179,16 @@
                 ${card.match || card.cardName} ${!card.match ? '❓' : '✅'}
               </div>
               <div style="font-size: 14px; color: var(--gray-500); margin-bottom: 8px;">
-                Quantity: ${card.quantity} • Condition: ${card.condition}
+                Quantity: ${card.quantity}
               </div>
               <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; text-align: center;">
                 <div>
                   <div style="font-size: 12px; color: var(--gray-500);">Retail Value</div>
-                  <div style="font-weight: 600;">$${card.retailPrice ? card.retailPrice.toFixed(2) : '0.00'}</div>
+                  <div style="font-weight: 600;">${card.retailPrice ? card.retailPrice.toFixed(2) : '0.00'}</div>
                 </div>
                 <div>
                   <div style="font-size: 12px; color: var(--gray-500);">Your Payout</div>
-                  <div style="font-weight: 600; color: var(--primary);">$${card.suggestedTradeValue ? card.suggestedTradeValue.toFixed(2) : 'TBD'}</div>
+                  <div style="font-weight: 600; color: var(--primary);">${card.suggestedTradeValue ? card.suggestedTradeValue.toFixed(2) : 'TBD'}</div>
                 </div>
               </div>
             `;
@@ -1237,7 +1226,7 @@
           let cardData = {
             cardName: input.value,
             quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
-            condition: row.querySelector('[name="cardCondition"]').value
+            condition: 'NM'
           };
 
           if (searchResult) {
