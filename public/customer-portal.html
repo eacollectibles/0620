@@ -370,7 +370,7 @@
       border-top: none;
       border-radius: 0 0 var(--border-radius) var(--border-radius);
       box-shadow: var(--shadow-lg);
-      z-index: 1000;
+      z-index: 9999;
       animation: slideDown 0.2s ease;
       max-height: 400px;
       overflow-y: auto;
@@ -756,6 +756,28 @@
       100% { transform: rotate(360deg); }
     }
 
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+    }
+
     @media (max-width: 768px) {
       body {
         padding: 12px;
@@ -928,6 +950,10 @@
               <div class="cards-header">
                 <h4 style="margin: 0; font-size: 16px; font-weight: 600;">Your Cards</h4>
                 <div style="display: flex; gap: 12px;">
+                  <button type="button" class="btn btn-secondary" id="scan-card">
+                    <span>📷</span>
+                    <span>Scan Card</span>
+                  </button>
                   <button type="button" class="btn btn-secondary" id="add-card">
                     <span>➕</span>
                     <span>Add Card</span>
@@ -1257,9 +1283,14 @@
 
     function setupCardManagement() {
       const addCardBtn = document.getElementById('add-card');
+      const scanCardBtn = document.getElementById('scan-card');
 
       addCardBtn.addEventListener('click', function() {
         addNewCardRow();
+      });
+
+      scanCardBtn.addEventListener('click', function() {
+        handleScanCard();
       });
 
       document.querySelectorAll('.remove-btn').forEach(btn => {
@@ -1271,6 +1302,228 @@
       document.querySelectorAll('.card-input').forEach(input => {
         setupCardSearch(input);
       });
+    }
+
+    function handleRemoveCard(btn) {
+      const cardList = document.getElementById('card-list');
+      if (cardList.children.length > 1) {
+        btn.closest('.card-row').remove();
+      } else {
+        alert('You must have at least one card in your trade-in request.');
+      }
+    }
+
+    function handleScanCard() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.capture = 'environment';
+      
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const scanBtn = document.getElementById('scan-card');
+        const originalHTML = scanBtn.innerHTML;
+        scanBtn.innerHTML = '<span class="spinner"></span><span>Scanning...</span>';
+        scanBtn.disabled = true;
+        
+        try {
+          await processScannedImage(file);
+        } catch (error) {
+          console.error('Scan error:', error);
+          alert('Failed to scan card: ' + error.message);
+        } finally {
+          scanBtn.innerHTML = originalHTML;
+          scanBtn.disabled = false;
+        }
+      };
+      
+      input.click();
+    }
+
+    async function processScannedImage(file) {
+      console.log('Processing scanned image:', file.name);
+      
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('search_type', 'pokemon_card');
+      formData.append('match_threshold', '0.4');
+      formData.append('max_results', '10');
+      
+      const response = await fetch('/api/shopify-image-match', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Scan failed');
+      }
+      
+      const data = await response.json();
+      console.log('Scan results:', data);
+      
+      if (!data.matches || data.matches.length === 0) {
+        alert('No matching cards found. Please try again or enter the card name manually.');
+        return;
+      }
+      
+      showScanResults(data.matches);
+    }
+
+    function showScanResults(matches) {
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        padding: 20px;
+      `;
+      
+      const content = document.createElement('div');
+      content.style.cssText = `
+        background: white;
+        border-radius: var(--border-radius-xl);
+        max-width: 600px;
+        width: 100%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: var(--shadow-xl);
+      `;
+      
+      let html = `
+        <div style="padding: 24px; border-bottom: 1px solid var(--gray-200);">
+          <h3 style="margin: 0; font-size: 20px; font-weight: 600;">📷 Scan Results</h3>
+          <p style="margin: 8px 0 0 0; color: var(--gray-600); font-size: 14px;">
+            Found ${matches.length} matching cards. Select one to add it.
+          </p>
+        </div>
+        <div style="padding: 16px;">
+      `;
+      
+      matches.forEach((match, index) => {
+        html += `
+          <div class="scan-result-item" data-index="${index}" style="
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+          ">
+            ${match.image_url ? `
+              <img src="${match.image_url}" alt="${match.title}" style="
+                width: 60px;
+                height: 84px;
+                object-fit: cover;
+                border-radius: 4px;
+                flex-shrink: 0;
+              ">
+            ` : ''}
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-weight: 600; margin-bottom: 4px;">${match.title}</div>
+              <div style="font-size: 13px; color: var(--gray-500);">
+                SKU: ${match.sku} • Price: ${match.price}
+                <br>Confidence: ${(match.confidence * 100).toFixed(0)}%
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      
+      html += `
+        </div>
+        <div style="padding: 16px; border-top: 1px solid var(--gray-200); display: flex; justify-content: flex-end;">
+          <button type="button" class="btn btn-secondary" id="close-scan-results">
+            Cancel
+          </button>
+        </div>
+      `;
+      
+      content.innerHTML = html;
+      modal.appendChild(content);
+      document.body.appendChild(modal);
+      
+      content.querySelectorAll('.scan-result-item').forEach((item, index) => {
+        item.addEventListener('mouseenter', function() {
+          this.style.borderColor = 'var(--primary)';
+          this.style.transform = 'translateY(-2px)';
+          this.style.boxShadow = 'var(--shadow-md)';
+        });
+        
+        item.addEventListener('mouseleave', function() {
+          this.style.borderColor = 'var(--gray-200)';
+          this.style.transform = 'translateY(0)';
+          this.style.boxShadow = 'none';
+        });
+        
+        item.addEventListener('click', function() {
+          const match = matches[index];
+          addCardFromScan(match);
+          document.body.removeChild(modal);
+        });
+      });
+      
+      content.querySelector('#close-scan-results').addEventListener('click', function() {
+        document.body.removeChild(modal);
+      });
+      
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          document.body.removeChild(modal);
+        }
+      });
+    }
+
+    function addCardFromScan(match) {
+      console.log('Adding card from scan:', match);
+      
+      const newRow = addNewCardRow({
+        name: match.title,
+        quantity: 1,
+        condition: 'NM',
+        scanResult: {
+          match: match.title,
+          sku: match.sku,
+          retailPrice: parseFloat(match.price),
+          searchMethod: 'image_scan',
+          confidence: match.confidence
+        }
+      });
+      
+      newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--success);
+        color: white;
+        padding: 16px 24px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-xl);
+        z-index: 10001;
+        animation: slideIn 0.3s ease;
+      `;
+      notification.textContent = `✅ Added: ${match.title}`;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => document.body.removeChild(notification), 300);
+      }, 3000);
     }
 
     function handleRemoveCard(btn) {
