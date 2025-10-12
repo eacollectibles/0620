@@ -1,5 +1,5 @@
 // api/customer-submissions.js
-// This handles customer trade-in submissions
+// This handles customer trade-in submissions with LIVE pricing data
 
 module.exports = async function handler(req, res) {
   // CORS headers
@@ -40,8 +40,7 @@ async function handleSubmission(req, res) {
     customerEmail, 
     customerPhone, 
     payoutMethod, 
-    cards,
-    estimateData 
+    cards
   } = req.body;
 
   // Validation
@@ -65,34 +64,70 @@ async function handleSubmission(req, res) {
   // Generate unique submission ID
   const submissionId = generateSubmissionId();
   
-  // Create submission object
-  const submission = {
-    id: submissionId,
-    status: 'pending',
-    submittedAt: new Date().toISOString(),
-    customer: {
-      name: customerName,
-      email: customerEmail,
-      phone: customerPhone || null
-    },
-    payoutMethod,
-    cards: cards.map(card => ({
-      cardName: card.cardName,
-      quantity: parseInt(card.quantity) || 1,
-      condition: card.condition || 'NM',
-      sku: card.sku || null,
-      searchMethod: card.searchMethod || 'manual'
-    })),
-    estimateData: estimateData || null,
-    estimatedValue: estimateData?.suggestedTotal || null,
-    notes: [],
-    processedBy: null,
-    processedAt: null
-  };
-
-  console.log('📝 Creating submission:', submissionId);
+  console.log('📝 Processing customer submission:', submissionId);
+  console.log('🃏 Cards to process:', cards.length);
 
   try {
+    // ✨ NEW: Process cards through main trade-in system to get LIVE pricing
+    console.log('🔄 Getting live pricing estimates from trade-in system...');
+    
+    const estimateData = await getEstimateFromTradeInSystem({
+      cards: cards,
+      customerEmail: customerEmail,
+      payoutMethod: payoutMethod
+    });
+
+    console.log('✅ Live estimate received:', {
+      suggestedTotal: estimateData.suggestedTotal,
+      cardsFound: estimateData.results.filter(r => r.match).length,
+      cardsNotFound: estimateData.results.filter(r => !r.match).length
+    });
+
+    // Create submission object with LIVE data
+    const submission = {
+      id: submissionId,
+      status: 'pending',
+      submittedAt: new Date().toISOString(),
+      customer: {
+        name: customerName,
+        email: customerEmail,
+        phone: customerPhone || null
+      },
+      payoutMethod,
+      cards: cards.map((card, index) => {
+        // Enhance card data with actual search results
+        const result = estimateData.results[index];
+        return {
+          cardName: card.cardName,
+          quantity: parseInt(card.quantity) || 1,
+          condition: card.condition || 'NM',
+          sku: result?.sku || card.sku || null,
+          searchMethod: card.searchMethod || 'manual',
+          // Add live pricing data
+          matchFound: !!result?.match,
+          matchedProduct: result?.match || null,
+          retailPrice: result?.retailPrice || 0,
+          suggestedTradeValue: result?.suggestedTradeValue || 0,
+          maximumTradeValue: result?.maximumTradeValue || 0,
+          confidence: result?.confidence || null
+        };
+      }),
+      estimateData: {
+        suggestedTotal: parseFloat(estimateData.suggestedTotal),
+        maximumTotal: parseFloat(estimateData.maximumTotal),
+        totalRetailValue: parseFloat(estimateData.totalRetailValue),
+        cardsFound: estimateData.processingStats.cardsFound,
+        cardsNotFound: estimateData.processingStats.cardsNotFound,
+        timestamp: estimateData.timestamp
+      },
+      estimatedValue: parseFloat(estimateData.suggestedTotal),
+      notes: [],
+      processedBy: null,
+      processedAt: null
+    };
+
+    console.log('📦 Storing submission with live pricing data...');
+
     // Store in Shopify
     await storeSubmission(submission);
     
@@ -109,21 +144,316 @@ async function handleSubmission(req, res) {
       submissionId: submissionId,
       status: 'pending',
       message: 'Your trade-in request has been submitted successfully!',
+      estimate: {
+        suggestedTotal: submission.estimatedValue.toFixed(2),
+        maximumTotal: parseFloat(estimateData.maximumTotal).toFixed(2),
+        totalRetailValue: parseFloat(estimateData.totalRetailValue).toFixed(2),
+        cardsProcessed: cards.length,
+        cardsFound: estimateData.processingStats.cardsFound,
+        cardsNotFound: estimateData.processingStats.cardsNotFound
+      },
       estimatedProcessingTime: '24 hours',
       nextSteps: [
         'You will receive a confirmation email shortly',
         'Our team will review your cards and confirm the final payout',
         'We will contact you within 24 hours with next steps'
-      ]
+      ],
+      // Include detailed card results for transparency
+      cardResults: submission.cards.map(card => ({
+        cardName: card.cardName,
+        quantity: card.quantity,
+        matchFound: card.matchFound,
+        matchedProduct: card.matchedProduct,
+        estimatedValue: (card.suggestedTradeValue * card.quantity).toFixed(2)
+      }))
     });
 
   } catch (error) {
     console.error('❌ Failed to process submission:', error);
     return res.status(500).json({
       error: 'Failed to process submission',
-      details: 'Please try again or contact support'
+      details: 'Please try again or contact support',
+      technicalDetails: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
+}
+
+// ✨ NEW: Function to get live estimates from your main trade-in system
+async function getEstimateFromTradeInSystem(data) {
+  console.log('🔄 Calling main trade-in API for estimate...');
+  
+  // Import or require your main trade-in logic
+  // Option A: If they're in the same codebase, import the logic directly
+  // Option B: Make an internal API call
+  
+  const SHOPIFY_DOMAIN = process.env.SHOPIFY_DOMAIN;
+  const SHOPIFY_API_KEY = process.env.SHOPIFY_API_KEY;
+  const SHOPIFY_API_SECRET = process.env.SHOPIFY_API_SECRET;
+  const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
+
+  // Validate required environment variables
+  if (!SHOPIFY_DOMAIN || !SHOPIFY_ACCESS_TOKEN) {
+    throw new Error('Missing required Shopify credentials');
+  }
+
+  // Use the SAME logic from your main trade-in API
+  const makeShopifyRequest = async (endpoint, options = {}) => {
+    const defaultHeaders = {
+      'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
+      'Content-Type': 'application/json',
+    };
+
+    return fetch(`https://${SHOPIFY_DOMAIN}${endpoint}`, {
+      ...options,
+      headers: {
+        ...defaultHeaders,
+        ...options.headers
+      }
+    });
+  };
+
+  const makeShopifyGraphQLRequest = async (query, variables = {}) => {
+    return makeShopifyRequest('/admin/api/2023-10/graphql.json', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        query,
+        variables
+      })
+    });
+  };
+
+  // Trade rate calculation functions (same as main API)
+  function calculateMaximumTradeValue(marketValue) {
+    const price = parseFloat(marketValue);
+    
+    if (price >= 50.00) return parseFloat((price * 0.75).toFixed(2));
+    if (price >= 25.00) return parseFloat((price * 0.70).toFixed(2));
+    if (price >= 15.01) return parseFloat((price * 0.65).toFixed(2));
+    if (price >= 8.00) return parseFloat((price * 0.50).toFixed(2));
+    if (price >= 5.00) return parseFloat((price * 0.35).toFixed(2));
+    if (price >= 3.01) return parseFloat((price * 0.25).toFixed(2));
+    if (price >= 2.00) return 0.50;
+    if (price >= 0.01) return 0.01;
+    return 0;
+  }
+
+  function calculateSuggestedTradeValue(marketValue) {
+    const price = parseFloat(marketValue);
+    
+    if (price >= 50.00) return parseFloat((price * 0.75).toFixed(2));
+    if (price >= 25.00) return parseFloat((price * 0.50).toFixed(2));
+    if (price >= 15.01) return parseFloat((price * 0.35).toFixed(2));
+    if (price >= 8.00) return parseFloat((price * 0.40).toFixed(2));
+    if (price >= 5.00) return parseFloat((price * 0.35).toFixed(2));
+    if (price >= 3.01) return parseFloat((price * 0.25).toFixed(2));
+    if (price >= 2.00) return 0.10;
+    if (price >= 0.01) return 0.01;
+    return 0;
+  }
+
+  // Search functions (same as main API)
+  function normalizeSearchTerm(term) {
+    if (!term) return '';
+    const normalized = term.replace(/[\/\-\s]/g, '');
+    return normalized;
+  }
+
+  function extractPotentialTags(cardName) {
+    if (!cardName) return [];
+    
+    const tags = [];
+    const numberPattern = /(\d+)[\/\-](\d+)/g;
+    let match;
+    
+    while ((match = numberPattern.exec(cardName)) !== null) {
+      tags.push(match[0]);
+      tags.push(match[1] + match[2]);
+    }
+    
+    const standaloneNumbers = cardName.match(/\b\d{3,6}\b/g);
+    if (standaloneNumbers) {
+      tags.push(...standaloneNumbers);
+    }
+    
+    tags.push(normalizeSearchTerm(cardName));
+    
+    return [...new Set(tags)];
+  }
+
+  const searchByTagWithAllOptions = async (tag, originalCardName) => {
+    const normalizedTag = normalizeSearchTerm(tag);
+    
+    const query = `{
+      products(first: 20, query: "tag:${normalizedTag}") {
+        edges {
+          node {
+            id
+            title
+            tags
+            variants(first: 5) {
+              edges {
+                node {
+                  id
+                  title
+                  sku
+                  price
+                  inventoryQuantity
+                }
+              }
+            }
+          }
+        }
+      }
+    }`;
+
+    const graphqlRes = await makeShopifyGraphQLRequest(query);
+    const json = await graphqlRes.json();
+    
+    const products = json?.data?.products?.edges || [];
+    
+    if (products.length === 0) {
+      return { found: false };
+    }
+
+    // Get first variant from first product (simplified for estimate)
+    const product = products[0].node;
+    const variant = product.variants.edges[0]?.node;
+    
+    if (variant) {
+      return {
+        found: true,
+        product: { title: product.title },
+        variant: {
+          sku: variant.sku,
+          price: variant.price
+        },
+        searchMethod: 'tag'
+      };
+    }
+    
+    return { found: false };
+  };
+
+  const searchByTitle = async (query) => {
+    const productRes = await makeShopifyRequest(
+      `/admin/api/2023-10/products.json?title=${encodeURIComponent(query)}`
+    );
+
+    const productData = await productRes.json();
+    
+    if (productData?.products?.length > 0) {
+      const product = productData.products[0];
+      const variant = product.variants[0];
+      
+      return {
+        found: true,
+        product: product,
+        variant: {
+          sku: variant.sku,
+          price: variant.price
+        },
+        searchMethod: 'title'
+      };
+    }
+    
+    return { found: false };
+  };
+
+  const searchCard = async (card) => {
+    const { cardName, sku } = card;
+    
+    // Try tag search first
+    const potentialTags = extractPotentialTags(cardName);
+    
+    for (const tag of potentialTags) {
+      if (!tag || tag.length < 2) continue;
+      
+      try {
+        const result = await searchByTagWithAllOptions(tag, cardName);
+        if (result.found) {
+          return result;
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+    
+    // Fallback to title search
+    try {
+      const result = await searchByTitle(cardName);
+      if (result.found) {
+        return result;
+      }
+    } catch (error) {
+      console.log('Title search failed:', error.message);
+    }
+    
+    return { found: false };
+  };
+
+  // Process all cards
+  let totalSuggestedValue = 0;
+  let totalMaximumValue = 0;
+  let totalRetailValue = 0;
+  const results = [];
+
+  for (const card of data.cards) {
+    const { cardName, quantity = 1, condition = 'NM' } = card;
+    
+    const searchResult = await searchCard(card);
+    
+    if (!searchResult.found) {
+      results.push({
+        cardName,
+        match: null,
+        retailPrice: 0,
+        suggestedTradeValue: 0,
+        maximumTradeValue: 0,
+        quantity,
+        condition,
+        sku: null,
+        searchMethod: 'none'
+      });
+      continue;
+    }
+
+    const product = searchResult.product;
+    const variant = searchResult.variant;
+    const variantPrice = parseFloat(variant.price || 0);
+    const suggestedTradeValue = calculateSuggestedTradeValue(variantPrice);
+    const maximumTradeValue = calculateMaximumTradeValue(variantPrice);
+    
+    totalSuggestedValue += suggestedTradeValue * quantity;
+    totalMaximumValue += maximumTradeValue * quantity;
+    totalRetailValue += variantPrice * quantity;
+
+    results.push({
+      cardName,
+      match: product.title,
+      retailPrice: variantPrice,
+      suggestedTradeValue,
+      maximumTradeValue,
+      quantity,
+      condition,
+      sku: variant.sku,
+      searchMethod: searchResult.searchMethod
+    });
+  }
+
+  return {
+    success: true,
+    estimate: true,
+    results,
+    suggestedTotal: totalSuggestedValue.toFixed(2),
+    maximumTotal: totalMaximumValue.toFixed(2),
+    totalRetailValue: totalRetailValue.toFixed(2),
+    timestamp: new Date().toISOString(),
+    processingStats: {
+      totalCards: data.cards.length,
+      cardsFound: results.filter(r => r.match).length,
+      cardsNotFound: results.filter(r => !r.match).length
+    }
+  };
 }
 
 async function handleGetSubmissions(req, res) {
@@ -133,13 +463,10 @@ async function handleGetSubmissions(req, res) {
     let submissions;
     
     if (submissionId) {
-      // Get specific submission
       submissions = await getSubmissionById(submissionId);
     } else if (email) {
-      // Get submissions by customer email
       submissions = await getSubmissionsByEmail(email);
     } else {
-      // Get all submissions (admin only - you might want to add auth here)
       submissions = await getAllSubmissions({ status });
     }
     
@@ -165,7 +492,6 @@ function generateSubmissionId() {
   return `${prefix}-${year}-${random}`;
 }
 
-// Helper function for authenticated Shopify API requests
 const makeShopifyRequest = async (endpoint, options = {}) => {
   const SHOPIFY_DOMAIN = process.env.SHOPIFY_DOMAIN;
   const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
@@ -184,35 +510,13 @@ const makeShopifyRequest = async (endpoint, options = {}) => {
   });
 };
 
-// Helper function for GraphQL requests
-const makeShopifyGraphQLRequest = async (query, variables = {}) => {
-  const SHOPIFY_DOMAIN = process.env.SHOPIFY_DOMAIN;
-  const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
-  
-  return fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2023-10/graphql.json`, {
-    method: 'POST',
-    headers: {
-      'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ 
-      query,
-      variables
-    })
-  });
-};
-
 async function storeSubmission(submission) {
   console.log('📦 Storing submission in Shopify metafields:', submission.id);
   
   try {
-    // First, create or find the customer in Shopify
     let shopifyCustomer = await findOrCreateShopifyCustomer(submission.customer);
-    
-    // Add the Shopify customer ID to the submission
     submission.customer.shopifyId = shopifyCustomer.id;
     
-    // Store the submission as a metafield on the customer
     const metafieldData = {
       metafield: {
         namespace: 'trade_in_submissions',
@@ -238,7 +542,6 @@ async function storeSubmission(submission) {
     const result = await response.json();
     console.log('✅ Submission stored in Shopify metafield:', result.metafield.id);
     
-    // Also store an index metafield for easier querying
     await storeSubmissionIndex(submission);
     
     return true;
@@ -253,7 +556,6 @@ async function findOrCreateShopifyCustomer(customerData) {
   console.log('👤 Finding or creating Shopify customer:', customerData.email);
   
   try {
-    // Search for existing customer by email
     const searchResponse = await makeShopifyRequest(
       `/admin/api/2023-10/customers/search.json?query=email:${encodeURIComponent(customerData.email)}`
     );
@@ -265,7 +567,6 @@ async function findOrCreateShopifyCustomer(customerData) {
       return searchData.customers[0];
     }
     
-    // Create new customer if not found
     const customerPayload = {
       customer: {
         email: customerData.email,
@@ -300,9 +601,7 @@ async function findOrCreateShopifyCustomer(customerData) {
 }
 
 async function storeSubmissionIndex(submission) {
-  // Store a summary index for easier admin querying
   try {
-    // Get current submission index
     const indexResponse = await makeShopifyRequest('/admin/api/2023-10/metafields.json?namespace=trade_in_system&key=submission_index');
     const indexData = await indexResponse.json();
     
@@ -317,7 +616,6 @@ async function storeSubmissionIndex(submission) {
       }
     }
     
-    // Add new submission to index
     const indexEntry = {
       id: submission.id,
       customerId: submission.customer.shopifyId,
@@ -327,17 +625,17 @@ async function storeSubmissionIndex(submission) {
       status: submission.status,
       payoutMethod: submission.payoutMethod,
       estimatedValue: submission.estimatedValue,
-      cardCount: submission.cards.length
+      cardCount: submission.cards.length,
+      cardsFound: submission.estimateData?.cardsFound || 0,
+      cardsNotFound: submission.estimateData?.cardsNotFound || 0
     };
     
-    submissionIndex.unshift(indexEntry); // Add to beginning
+    submissionIndex.unshift(indexEntry);
     
-    // Keep only last 1000 submissions in index
     if (submissionIndex.length > 1000) {
       submissionIndex = submissionIndex.slice(0, 1000);
     }
     
-    // Store updated index
     const indexMetafield = {
       metafield: {
         namespace: 'trade_in_system',
@@ -348,13 +646,11 @@ async function storeSubmissionIndex(submission) {
     };
     
     if (indexData.metafields && indexData.metafields.length > 0) {
-      // Update existing metafield
       await makeShopifyRequest(`/admin/api/2023-10/metafields/${indexData.metafields[0].id}.json`, {
         method: 'PUT',
         body: JSON.stringify(indexMetafield)
       });
     } else {
-      // Create new metafield
       await makeShopifyRequest('/admin/api/2023-10/metafields.json', {
         method: 'POST',
         body: JSON.stringify(indexMetafield)
@@ -365,7 +661,6 @@ async function storeSubmissionIndex(submission) {
     
   } catch (error) {
     console.error('⚠️ Failed to update submission index (non-critical):', error);
-    // This is non-critical, so we don't throw
   }
 }
 
@@ -373,7 +668,6 @@ async function getSubmissionById(submissionId) {
   console.log('🔍 Getting submission by ID from Shopify:', submissionId);
   
   try {
-    // Get the submission index first to find which customer it belongs to
     const indexResponse = await makeShopifyRequest('/admin/api/2023-10/metafields.json?namespace=trade_in_system&key=submission_index');
     const indexData = await indexResponse.json();
     
@@ -382,7 +676,6 @@ async function getSubmissionById(submissionId) {
       const indexEntry = submissionIndex.find(entry => entry.id === submissionId);
       
       if (indexEntry && indexEntry.customerId) {
-        // Get the full submission from the customer's metafields
         const metafieldResponse = await makeShopifyRequest(
           `/admin/api/2023-10/customers/${indexEntry.customerId}/metafields.json?namespace=trade_in_submissions&key=${submissionId}`
         );
@@ -408,7 +701,6 @@ async function getSubmissionsByEmail(email) {
   console.log('🔍 Getting submissions by email from Shopify:', email);
   
   try {
-    // Find the customer first
     const searchResponse = await makeShopifyRequest(
       `/admin/api/2023-10/customers/search.json?query=email:${encodeURIComponent(email)}`
     );
@@ -421,7 +713,6 @@ async function getSubmissionsByEmail(email) {
     
     const customer = searchData.customers[0];
     
-    // Get all trade-in submission metafields for this customer
     const metafieldsResponse = await makeShopifyRequest(
       `/admin/api/2023-10/customers/${customer.id}/metafields.json?namespace=trade_in_submissions`
     );
@@ -432,7 +723,6 @@ async function getSubmissionsByEmail(email) {
       return [];
     }
     
-    // Parse all submissions
     const submissions = metafieldsData.metafields.map(metafield => {
       try {
         return JSON.parse(metafield.value);
@@ -442,7 +732,6 @@ async function getSubmissionsByEmail(email) {
       }
     }).filter(Boolean);
     
-    // Sort by submission date (newest first)
     submissions.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
     
     return submissions;
@@ -457,7 +746,6 @@ async function getAllSubmissions(filters = {}) {
   console.log('🔍 Getting all submissions from Shopify with filters:', filters);
   
   try {
-    // Get the submission index which contains summary info
     const indexResponse = await makeShopifyRequest('/admin/api/2023-10/metafields.json?namespace=trade_in_system&key=submission_index');
     const indexData = await indexResponse.json();
     
@@ -467,13 +755,10 @@ async function getAllSubmissions(filters = {}) {
     
     let submissions = JSON.parse(indexData.metafields[0].value);
     
-    // Apply filters
     if (filters.status) {
       submissions = submissions.filter(sub => sub.status === filters.status);
     }
     
-    // For admin purposes, we return the summary data
-    // If full details are needed, you'd need to fetch each individual submission
     return submissions;
     
   } catch (error) {
@@ -483,13 +768,10 @@ async function getAllSubmissions(filters = {}) {
 }
 
 async function sendCustomerConfirmationEmail(submission) {
-  // IMPLEMENT YOUR EMAIL SERVICE HERE
-  // For now, we'll just log what would be sent
   console.log('📧 Would send confirmation email to customer');
   console.log('Email to:', submission.customer.email);
   console.log('Submission ID:', submission.id);
   
-  // Example email content that would be sent:
   const emailContent = {
     to: submission.customer.email,
     subject: `Trade-in Request Confirmation - ${submission.id}`,
@@ -499,13 +781,130 @@ async function sendCustomerConfirmationEmail(submission) {
       <p>Thank you for your trade-in request. We've received your submission and will review it within 24 hours.</p>
       
       <div style="background: #f5f5f5; padding: 15px; margin: 20px 0; border-radius: 5px;">
+        <strong>Submission ID:</strong> ${submission.id}<br>
+        <strong>Customer:</strong> ${submission.customer.name} (${submission.customer.email})<br>
+        <strong>Phone:</strong> ${submission.customer.phone || 'Not provided'}<br>
+        <strong>Payout Method:</strong> ${submission.payoutMethod}<br>
+        <strong>Cards:</strong> ${submission.cards.length} items<br>
+        <strong>Estimated Value:</strong> ${submission.estimatedValue.toFixed(2)} CAD<br>
+        <strong>Cards Found:</strong> ${submission.estimateData?.cardsFound || 0} / ${submission.cards.length}<br>
+        <strong>Cards Needing Review:</strong> ${submission.estimateData?.cardsNotFound || 0}
+      </div>
+      
+      <p><strong>Cards with Live Pricing:</strong></p>
+      <ul>
+        ${submission.cards.map(card => 
+          `<li>${card.cardName} (Qty: ${card.quantity}, Condition: ${card.condition})
+          ${card.matchFound ? `<br>✅ Matched: ${card.matchedProduct} - Retail: ${card.retailPrice}, Trade: ${card.suggestedTradeValue}` : '<br>⚠️ No match found - needs manual review'}</li>`
+        ).join('')}
+      </ul>
+      
+      <p><strong>Summary:</strong></p>
+      <ul>
+        <li>Total Retail Value: ${submission.estimateData?.totalRetailValue || 0}</li>
+        <li>Suggested Trade-in: ${submission.estimatedValue.toFixed(2)}</li>
+        <li>Maximum Possible: ${submission.estimateData?.maximumTotal || 0}</li>
+      </ul>
+      
+      <p>Please review and process this submission within 24 hours.</p>
+    `
+  };
+  
+  // TODO: Implement actual email sending here
+  
+  return true;
+}
+
+// Update submission status (for admin use)
+async function updateSubmissionStatus(submissionId, status, notes, processedBy) {
+  console.log('🔄 Updating submission status:', submissionId, status);
+  
+  try {
+    const submission = await getSubmissionById(submissionId);
+    
+    if (!submission) {
+      throw new Error('Submission not found');
+    }
+    
+    submission.status = status;
+    submission.notes = [...(submission.notes || []), ...notes];
+    submission.processedBy = processedBy;
+    submission.processedAt = new Date().toISOString();
+    
+    const metafieldResponse = await makeShopifyRequest(
+      `/admin/api/2023-10/customers/${submission.customer.shopifyId}/metafields.json?namespace=trade_in_submissions&key=${submissionId}`
+    );
+    
+    const metafieldData = await metafieldResponse.json();
+    
+    if (metafieldData.metafields && metafieldData.metafields.length > 0) {
+      const metafieldId = metafieldData.metafields[0].id;
+      
+      await makeShopifyRequest(`/admin/api/2023-10/metafields/${metafieldId}.json`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          metafield: {
+            value: JSON.stringify(submission),
+            type: 'json'
+          }
+        })
+      });
+    }
+    
+    await updateSubmissionInIndex(submissionId, { status, processedBy, processedAt: submission.processedAt });
+    
+    console.log('✅ Submission status updated');
+    return submission;
+    
+  } catch (error) {
+    console.error('❌ Error updating submission status:', error);
+    throw error;
+  }
+}
+
+async function updateSubmissionInIndex(submissionId, updates) {
+  try {
+    const indexResponse = await makeShopifyRequest('/admin/api/2023-10/metafields.json?namespace=trade_in_system&key=submission_index');
+    const indexData = await indexResponse.json();
+    
+    if (indexData.metafields && indexData.metafields.length > 0) {
+      let submissionIndex = JSON.parse(indexData.metafields[0].value);
+      
+      const submissionIdx = submissionIndex.findIndex(sub => sub.id === submissionId);
+      if (submissionIdx !== -1) {
+        submissionIndex[submissionIdx] = { ...submissionIndex[submissionIdx], ...updates };
+        
+        await makeShopifyRequest(`/admin/api/2023-10/metafields/${indexData.metafields[0].id}.json`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            metafield: {
+              value: JSON.stringify(submissionIndex),
+              type: 'json'
+            }
+          })
+        });
+        
+        console.log('✅ Submission index updated');
+      }
+    }
+  } catch (error) {
+    console.error('⚠️ Failed to update submission in index (non-critical):', error);
+  }
+}px;">
         <strong>Submission Details:</strong><br>
         <strong>ID:</strong> ${submission.id}<br>
         <strong>Submitted:</strong> ${new Date(submission.submittedAt).toLocaleString()}<br>
         <strong>Cards:</strong> ${submission.cards.length} items<br>
         <strong>Payout Method:</strong> ${submission.payoutMethod}<br>
-        ${submission.estimatedValue ? `<strong>Estimated Value:</strong> $${submission.estimatedValue}` : ''}
+        <strong>Estimated Value:</strong> $${submission.estimatedValue.toFixed(2)} CAD
       </div>
+      
+      <p><strong>Your Cards:</strong></p>
+      <ul>
+        ${submission.cards.map(card => 
+          `<li>${card.cardName} (Qty: ${card.quantity}) - ${card.matchFound ? `✅ Match found: $${(card.suggestedTradeValue * card.quantity).toFixed(2)}` : '⚠️ Needs manual review'}</li>`
+        ).join('')}
+      </ul>
       
       <p><strong>Next Steps:</strong></p>
       <ul>
@@ -527,11 +926,9 @@ async function sendCustomerConfirmationEmail(submission) {
 }
 
 async function sendAdminNotificationEmail(submission) {
-  // IMPLEMENT: Send notification to admin/staff
   console.log('📧 Would send admin notification email');
   console.log('New submission:', submission.id);
   
-  // You might want to send this to your team's email or Slack
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@yourstore.com';
   
   const emailContent = {
@@ -539,112 +936,6 @@ async function sendAdminNotificationEmail(submission) {
     subject: `New Trade-in Submission - ${submission.id}`,
     html: `
       <h2>New Trade-in Submission</h2>
-      <p>A new customer trade-in request has been submitted.</p>
+      <p>A new customer trade-in request has been submitted with LIVE pricing estimates.</p>
       
-      <div style="background: #f5f5f5; padding: 15px; margin: 20px 0; border-radius: 5px;">
-        <strong>Submission ID:</strong> ${submission.id}<br>
-        <strong>Customer:</strong> ${submission.customer.name} (${submission.customer.email})<br>
-        <strong>Phone:</strong> ${submission.customer.phone || 'Not provided'}<br>
-        <strong>Payout Method:</strong> ${submission.payoutMethod}<br>
-        <strong>Cards:</strong> ${submission.cards.length} items<br>
-        <strong>Estimated Value:</strong> ${submission.estimatedValue ? `$${submission.estimatedValue}` : 'Not estimated'}
-      </div>
-      
-      <p><strong>Cards:</strong></p>
-      <ul>
-        ${submission.cards.map(card => 
-          `<li>${card.cardName} (Qty: ${card.quantity}, Condition: ${card.condition})</li>`
-        ).join('')}
-      </ul>
-      
-      <p>Please review and process this submission within 24 hours.</p>
-    `
-  };
-  
-  // TODO: Implement actual email sending here
-  
-  return true;
-}
-
-// Update submission status (for admin use)
-async function updateSubmissionStatus(submissionId, status, notes, processedBy) {
-  console.log('🔄 Updating submission status:', submissionId, status);
-  
-  try {
-    // Get the current submission
-    const submission = await getSubmissionById(submissionId);
-    
-    if (!submission) {
-      throw new Error('Submission not found');
-    }
-    
-    // Update the submission
-    submission.status = status;
-    submission.notes = [...(submission.notes || []), ...notes];
-    submission.processedBy = processedBy;
-    submission.processedAt = new Date().toISOString();
-    
-    // Update the metafield
-    const metafieldResponse = await makeShopifyRequest(
-      `/admin/api/2023-10/customers/${submission.customer.shopifyId}/metafields.json?namespace=trade_in_submissions&key=${submissionId}`
-    );
-    
-    const metafieldData = await metafieldResponse.json();
-    
-    if (metafieldData.metafields && metafieldData.metafields.length > 0) {
-      const metafieldId = metafieldData.metafields[0].id;
-      
-      await makeShopifyRequest(`/admin/api/2023-10/metafields/${metafieldId}.json`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          metafield: {
-            value: JSON.stringify(submission),
-            type: 'json'
-          }
-        })
-      });
-    }
-    
-    // Update the index as well
-    await updateSubmissionInIndex(submissionId, { status, processedBy, processedAt: submission.processedAt });
-    
-    console.log('✅ Submission status updated');
-    return submission;
-    
-  } catch (error) {
-    console.error('❌ Error updating submission status:', error);
-    throw error;
-  }
-}
-
-async function updateSubmissionInIndex(submissionId, updates) {
-  try {
-    const indexResponse = await makeShopifyRequest('/admin/api/2023-10/metafields.json?namespace=trade_in_system&key=submission_index');
-    const indexData = await indexResponse.json();
-    
-    if (indexData.metafields && indexData.metafields.length > 0) {
-      let submissionIndex = JSON.parse(indexData.metafields[0].value);
-      
-      // Find and update the submission in the index
-      const submissionIdx = submissionIndex.findIndex(sub => sub.id === submissionId);
-      if (submissionIdx !== -1) {
-        submissionIndex[submissionIdx] = { ...submissionIndex[submissionIdx], ...updates };
-        
-        // Update the metafield
-        await makeShopifyRequest(`/admin/api/2023-10/metafields/${indexData.metafields[0].id}.json`, {
-          method: 'PUT',
-          body: JSON.stringify({
-            metafield: {
-              value: JSON.stringify(submissionIndex),
-              type: 'json'
-            }
-          })
-        });
-        
-        console.log('✅ Submission index updated');
-      }
-    }
-  } catch (error) {
-    console.error('⚠️ Failed to update submission in index (non-critical):', error);
-  }
-}
+      <div style="background: #f5f5f5; padding: 15px; margin: 20px 0; border-radius: 5
