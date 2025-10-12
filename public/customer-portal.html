@@ -1754,6 +1754,14 @@
     async function submitTradeRequest() {
       const submitBtn = document.getElementById('submit-request');
       
+      // Validate payout method is selected
+      const payoutMethodElement = document.querySelector('input[name="payoutMethod"]:checked');
+      if (!payoutMethodElement) {
+        alert('Please select a payout method before submitting.');
+        goToStep(3); // Go back to payout method step
+        return;
+      }
+      
       const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
         const input = row.querySelector('[name="cardName"]');
         const searchResult = input.getAttribute('data-search-result');
@@ -1781,7 +1789,7 @@
         customerName: document.getElementById('customerName').value,
         customerEmail: document.getElementById('customerEmail').value,
         customerPhone: document.getElementById('customerPhone').value,
-        payoutMethod: document.querySelector('input[name="payoutMethod"]:checked').value,
+        payoutMethod: payoutMethodElement.value,
         cards: cards,
         submissionType: 'customer_request',
         estimateData: lastApiResponse
