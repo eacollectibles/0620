@@ -7,7 +7,6 @@
   
   <style>
     :root {
-      /* Modern color palette */
       --primary: #3b82f6;
       --primary-light: #60a5fa;
       --primary-dark: #1d4ed8;
@@ -17,7 +16,6 @@
       --warning: #f59e0b;
       --error: #ef4444;
       
-      /* Neutral grays */
       --gray-50: #f9fafb;
       --gray-100: #f3f4f6;
       --gray-200: #e5e7eb;
@@ -29,18 +27,15 @@
       --gray-800: #1f2937;
       --gray-900: #111827;
       
-      /* Typography */
       --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
       
-      /* Shadows */
       --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
       --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
       --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
       --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
       
-      /* Borders */
       --border-radius: 12px;
       --border-radius-lg: 16px;
       --border-radius-xl: 20px;
@@ -65,7 +60,6 @@
       margin: 0 auto;
     }
 
-    /* Hero section */
     .hero {
       text-align: center;
       color: white;
@@ -88,7 +82,6 @@
       margin: 0 auto;
     }
 
-    /* Main card */
     .main-card {
       background: white;
       border-radius: var(--border-radius-xl);
@@ -134,7 +127,6 @@
       padding: 40px;
     }
 
-    /* Progress indicator */
     .progress-indicator {
       display: flex;
       justify-content: space-between;
@@ -202,7 +194,6 @@
       color: var(--primary);
     }
 
-    /* Step sections */
     .step-section {
       display: none;
       animation: fadeIn 0.4s ease;
@@ -227,7 +218,6 @@
       gap: 12px;
     }
 
-    /* Form controls */
     .form-group {
       margin-bottom: 24px;
     }
@@ -261,7 +251,6 @@
       color: var(--gray-400);
     }
 
-    /* Payout method radio buttons */
     .payout-options {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -309,7 +298,6 @@
       box-shadow: var(--shadow-md);
     }
 
-    /* Cards section */
     .cards-section {
       background: var(--gray-50);
       border-radius: var(--border-radius);
@@ -394,7 +382,6 @@
       background: rgba(245, 158, 11, 0.05);
     }
 
-    /* Search suggestions */
     .search-suggestion {
       position: absolute;
       top: 100%;
@@ -517,7 +504,26 @@
       background: #d97706;
     }
 
-    /* Remove button */
+    .option-item {
+      padding: 12px;
+      margin: 4px 0;
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .option-item:hover {
+      background: var(--gray-100);
+      border-color: var(--primary);
+    }
+
+    .option-item.selected {
+      background: rgba(59, 130, 246, 0.1);
+      border-color: var(--primary);
+    }
+
     .remove-btn {
       background: var(--error);
       color: white;
@@ -534,241 +540,6 @@
       transform: scale(1.05);
     }
 
-    /* Camera Modal */
-    .camera-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.9);
-      z-index: 10000;
-      animation: fadeIn 0.3s ease;
-    }
-
-    .camera-modal.active {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .camera-modal-content {
-      background: white;
-      border-radius: var(--border-radius-xl);
-      width: 100%;
-      max-width: 600px;
-      max-height: 90vh;
-      overflow-y: auto;
-      position: relative;
-    }
-
-    .camera-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 24px;
-      border-bottom: 1px solid var(--gray-200);
-      background: var(--gray-800);
-      color: white;
-      border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
-    }
-
-    .camera-header h3 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 600;
-    }
-
-    .close-camera {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 24px;
-      cursor: pointer;
-      padding: 4px;
-      border-radius: 4px;
-      transition: background 0.2s ease;
-    }
-
-    .close-camera:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    .camera-container {
-      padding: 24px;
-      text-align: center;
-      position: relative;
-    }
-
-    #camera-video {
-      width: 100%;
-      max-width: 500px;
-      border-radius: var(--border-radius);
-      background: var(--gray-900);
-    }
-
-    .camera-overlay {
-      position: absolute;
-      top: 24px;
-      left: 24px;
-      right: 24px;
-      bottom: 100px;
-      pointer-events: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .scan-frame {
-      position: relative;
-      width: 80%;
-      max-width: 400px;
-      aspect-ratio: 3/4;
-      border: 3px solid var(--primary);
-      border-radius: var(--border-radius);
-      background: rgba(59, 130, 246, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .scan-corners {
-      position: absolute;
-      top: -3px;
-      left: -3px;
-      right: -3px;
-      bottom: -3px;
-      border-radius: var(--border-radius);
-    }
-
-    .scan-corners::before,
-    .scan-corners::after {
-      content: '';
-      position: absolute;
-      width: 30px;
-      height: 30px;
-      border: 4px solid var(--primary);
-    }
-
-    .scan-corners::before {
-      top: 0;
-      left: 0;
-      border-right: none;
-      border-bottom: none;
-      border-radius: var(--border-radius) 0 0 0;
-    }
-
-    .scan-corners::after {
-      bottom: 0;
-      right: 0;
-      border-left: none;
-      border-top: none;
-      border-radius: 0 0 var(--border-radius) 0;
-    }
-
-    .scan-guide {
-      text-align: center;
-      color: white;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-      font-size: 14px;
-      line-height: 1.4;
-    }
-
-    .scan-guide p {
-      margin: 4px 0;
-    }
-
-    .camera-controls {
-      margin-top: 24px;
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .scan-results {
-      padding: 24px;
-      border-top: 1px solid var(--gray-200);
-    }
-
-    .scan-results h4 {
-      margin: 0 0 16px 0;
-      font-size: 18px;
-      color: var(--gray-800);
-    }
-
-    .scan-status {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      padding: 20px;
-      background: var(--gray-50);
-      border-radius: var(--border-radius);
-      margin-bottom: 16px;
-      font-weight: 500;
-    }
-
-    .scan-matches {
-      max-height: 300px;
-      overflow-y: auto;
-      margin-bottom: 20px;
-    }
-
-    .scan-match {
-      background: white;
-      border: 2px solid var(--gray-200);
-      border-radius: var(--border-radius);
-      padding: 16px;
-      margin-bottom: 12px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .scan-match:hover {
-      border-color: var(--primary);
-      box-shadow: var(--shadow-md);
-    }
-
-    .scan-match.selected {
-      border-color: var(--primary);
-      background: rgba(59, 130, 246, 0.05);
-    }
-
-    .scan-match-name {
-      font-weight: 600;
-      color: var(--gray-800);
-      margin-bottom: 4px;
-    }
-
-    .scan-match-details {
-      font-size: 14px;
-      color: var(--gray-500);
-      display: flex;
-      gap: 16px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .scan-match-confidence {
-      background: var(--primary);
-      color: white;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 500;
-    }
-
-    .scan-actions {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    /* Buttons */
     .btn {
       display: inline-flex;
       align-items: center;
@@ -828,7 +599,6 @@
       transform: none !important;
     }
 
-    /* Navigation buttons */
     .step-navigation {
       display: flex;
       justify-content: space-between;
@@ -837,7 +607,6 @@
       border-top: 1px solid var(--gray-200);
     }
 
-    /* Estimate results */
     .estimate-results {
       background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.02) 100%);
       border: 1px solid rgba(16, 185, 129, 0.2);
@@ -932,7 +701,6 @@
       color: var(--primary);
     }
 
-    /* Success section */
     .success-section {
       background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.02) 100%);
       border: 2px solid var(--success);
@@ -990,7 +758,6 @@
       color: var(--gray-700);
     }
 
-    /* Loading states */
     .loading {
       opacity: 0.7;
       pointer-events: none;
@@ -1011,38 +778,6 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Camera-specific mobile styles */
-    @media (max-width: 768px) {
-      .camera-modal-content {
-        margin: 0;
-        border-radius: 0;
-        height: 100vh;
-        max-height: none;
-      }
-
-      .camera-header {
-        border-radius: 0;
-      }
-
-      .camera-container {
-        padding: 16px;
-      }
-
-      .camera-controls {
-        position: sticky;
-        bottom: 0;
-        background: white;
-        padding: 16px;
-        margin: 0 -16px;
-        border-top: 1px solid var(--gray-200);
-      }
-
-      .scan-frame {
-        width: 90%;
-      }
-    }
-
-    /* Mobile responsiveness */
     @media (max-width: 768px) {
       body {
         padding: 12px;
@@ -1115,7 +850,6 @@
       }
     }
 
-    /* Info boxes */
     .info-box {
       background: rgba(59, 130, 246, 0.05);
       border: 1px solid rgba(59, 130, 246, 0.2);
@@ -1151,23 +885,18 @@
 </head>
 <body>
   <div class="container">
-    <!-- Hero Section -->
     <div class="hero">
       <h1>🃏 Trade-In Your Cards</h1>
       <p>Get instant estimates and trade your cards for store credit, gift cards, or cash!</p>
     </div>
 
-    <!-- Main Card -->
     <div class="main-card">
-      <!-- Card Header -->
       <div class="card-header">
         <h1 class="card-title">Customer Trade-In Portal</h1>
         <p class="card-subtitle">Complete your trade-in request in just a few easy steps</p>
       </div>
 
-      <!-- Card Content -->
       <div class="card-content">
-        <!-- Progress Indicator -->
         <div class="progress-indicator">
           <div class="progress-step active" data-step="1">
             <div class="progress-circle">1</div>
@@ -1188,7 +917,6 @@
         </div>
 
         <form id="customer-trade-form">
-          <!-- Step 1: Contact Information -->
           <div class="step-section active" data-step="1">
             <h3 class="step-title">
               <span>📧</span>
@@ -1218,7 +946,6 @@
             </div>
           </div>
 
-          <!-- Step 2: Add Cards -->
           <div class="step-section" data-step="2">
             <h3 class="step-title">
               <span>🃏</span>
@@ -1226,9 +953,9 @@
             </h3>
 
             <div class="info-box">
-              <div class="info-icon">📷</div>
+              <div class="info-icon">💡</div>
               <div class="info-content">
-                <strong>Scan your cards!</strong> Use the camera button to scan cards and match them against our Shopify inventory automatically, or add them manually. Our system will compare your card images with our product database.
+                <strong>Add your cards manually below.</strong> Our system will search our inventory and provide instant estimates for each card you enter.
               </div>
             </div>
 
@@ -1236,13 +963,9 @@
               <div class="cards-header">
                 <h4 style="margin: 0; font-size: 16px; font-weight: 600;">Your Cards</h4>
                 <div style="display: flex; gap: 12px;">
-                  <button type="button" class="btn btn-secondary" id="scan-card">
-                    <span>📷</span>
-                    <span>Scan Card</span>
-                  </button>
                   <button type="button" class="btn btn-secondary" id="add-card">
                     <span>➕</span>
-                    <span>Add Manually</span>
+                    <span>Add Card</span>
                   </button>
                 </div>
               </div>
@@ -1264,7 +987,6 @@
             </div>
           </div>
 
-          <!-- Step 3: Choose Payout Method -->
           <div class="step-section" data-step="3">
             <h3 class="step-title">
               <span>💰</span>
@@ -1282,21 +1004,21 @@
               <label class="form-label">Payout Method</label>
               <div class="payout-options">
                 <div class="payout-option">
-                  <input type="radio" class="payout-radio" name="payoutMethod" value="store-credit" id="store-credit" required>
+                  <input type="radio" class="payout-radio" name="payoutMethod" value="store-credit" id="store-credit">
                   <label class="payout-label" for="store-credit">
                     <span>🏪</span>
                     <span>Store Credit<br><small>Best Value!</small></span>
                   </label>
                 </div>
                 <div class="payout-option">
-                  <input type="radio" class="payout-radio" name="payoutMethod" value="gift-card" id="gift-card" required>
+                  <input type="radio" class="payout-radio" name="payoutMethod" value="gift-card" id="gift-card">
                   <label class="payout-label" for="gift-card">
                     <span>🎁</span>
                     <span>Gift Card<br><small>Great for Gifts</small></span>
                   </label>
                 </div>
                 <div class="payout-option">
-                  <input type="radio" class="payout-radio" name="payoutMethod" value="cash" id="cash" required>
+                  <input type="radio" class="payout-radio" name="payoutMethod" value="cash" id="cash">
                   <label class="payout-label" for="cash">
                     <span>💵</span>
                     <span>Cash<br><small>Instant Payout</small></span>
@@ -1313,7 +1035,6 @@
             </div>
           </div>
 
-          <!-- Step 4: Review & Submit -->
           <div class="step-section" data-step="4">
             <h3 class="step-title">
               <span>✅</span>
@@ -1327,15 +1048,12 @@
               </div>
             </div>
 
-            <!-- Review Summary -->
             <div id="review-summary" style="background: var(--gray-50); border-radius: var(--border-radius); padding: 24px; margin: 24px 0;">
               <h4 style="margin: 0 0 16px 0; color: var(--gray-800);">📋 Trade-In Summary</h4>
               <div id="summary-content">
-                <!-- Summary will be populated by JavaScript -->
               </div>
             </div>
 
-            <!-- Get Estimate Button -->
             <div style="text-align: center; margin: 32px 0;">
               <button type="button" class="btn btn-primary" id="get-estimate">
                 <span>📊</span>
@@ -1343,14 +1061,12 @@
               </button>
             </div>
 
-            <!-- Estimate Results -->
             <div id="estimate-results" class="estimate-results">
               <div class="estimate-header">
                 <div class="estimate-title">📊 Your Trade-In Estimate</div>
               </div>
               
               <div id="estimate-cards">
-                <!-- Estimate cards will be inserted here -->
               </div>
 
               <div class="estimate-totals">
@@ -1372,7 +1088,6 @@
               </div>
             </div>
 
-            <!-- Final Submit Button -->
             <div style="text-align: center; margin: 32px 0;">
               <button type="submit" class="btn btn-success" id="submit-request" style="display: none;">
                 <span>🚀</span>
@@ -1381,7 +1096,6 @@
             </div>
           </div>
 
-          <!-- Navigation Buttons -->
           <div class="step-navigation">
             <button type="button" class="btn btn-secondary" id="prev-step" style="display: none;">
               <span>←</span>
@@ -1394,7 +1108,6 @@
           </div>
         </form>
 
-        <!-- Success Section -->
         <div id="success-section" class="success-section">
           <div class="success-icon">🎉</div>
           <h2 class="success-title">Trade-In Request Submitted!</h2>
@@ -1426,75 +1139,15 @@
         </div>
       </div>
     </div>
-
-    <!-- Camera Modal -->
-    <div id="camera-modal" class="camera-modal">
-      <div class="camera-modal-content">
-        <div class="camera-header">
-          <h3>📷 Scan Your Card</h3>
-          <button type="button" class="close-camera" id="close-camera">✖</button>
-        </div>
-        
-        <div class="camera-container">
-          <video id="camera-video" autoplay playsinline></video>
-          <canvas id="camera-canvas" style="display: none;"></canvas>
-          
-          <div class="camera-overlay">
-            <div class="scan-frame">
-              <div class="scan-corners"></div>
-              <div class="scan-guide">
-                <p>📱 Position card within the frame</p>
-                <p>📍 Ensure good lighting and focus</p>
-              </div>
-            </div>
-          </div>
-          
-          <div class="camera-controls">
-            <button type="button" class="btn btn-primary" id="capture-btn">
-              <span>📸</span>
-              <span>Capture Card</span>
-            </button>
-            <button type="button" class="btn btn-secondary" id="switch-camera" style="display: none;">
-              <span>🔄</span>
-              <span>Switch Camera</span>
-            </button>
-          </div>
-        </div>
-        
-        <div class="scan-results" id="scan-results" style="display: none;">
-          <h4>🔍 Scanning Results</h4>
-          <div id="scan-status" class="scan-status">
-            <div class="spinner"></div>
-            <span>Analyzing card image...</span>
-          </div>
-          <div id="scan-matches" class="scan-matches"></div>
-          <div class="scan-actions">
-            <button type="button" class="btn btn-primary" id="accept-scan">Accept</button>
-            <button type="button" class="btn btn-secondary" id="retry-scan">Scan Again</button>
-            <button type="button" class="btn btn-secondary" id="manual-entry">Enter Manually</button>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 
   <script>
-    // API configuration - adjust this to match your actual API endpoints
-    const API_URL = '/api/buybackstep4'; // For estimates and card search
-    const SUBMISSION_API_URL = '/api/customer-submissions'; // For submitting requests
-    const CARD_SCAN_API_URL = 'https://0620-psi.vercel.app/api/shopify-image-match'; // For Shopify image database scanning
+    const API_URL = '/api/buybackstep4';
+    const SUBMISSION_API_URL = '/api/customer-submissions';
     
-    // Shopify store configuration
-    const SHOPIFY_STORE_NAME = 'ke40sv-my'; // Your Shopify store identifier
-
-    // Global variables
     let currentStep = 1;
     const totalSteps = 4;
     let lastApiResponse = null;
-    let cameraStream = null;
-    let currentCameraIndex = 0;
-    let availableCameras = [];
-    let selectedScanResult = null;
 
     document.addEventListener('DOMContentLoaded', function() {
       initializeCustomerPortal();
@@ -1503,13 +1156,9 @@
     function initializeCustomerPortal() {
       setupStepNavigation();
       setupCardManagement();
-      setupCameraFunctionality();
-      setupPayoutMethodHandling();
       setupFormSubmission();
-      setupSearchFunctionality();
     }
 
-    // Step Navigation
     function setupStepNavigation() {
       const nextBtn = document.getElementById('next-step');
       const prevBtn = document.getElementById('prev-step');
@@ -1530,25 +1179,20 @@
     }
 
     function goToStep(step) {
-      // Hide current step
       document.querySelector(`.step-section[data-step="${currentStep}"]`).classList.remove('active');
       document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.remove('active');
       document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.add('completed');
 
-      // Show new step
       currentStep = step;
       document.querySelector(`.step-section[data-step="${currentStep}"]`).classList.add('active');
       document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.add('active');
 
-      // Update navigation buttons
       updateNavigationButtons();
 
-      // Special handling for review step
       if (currentStep === 4) {
         updateReviewSummary();
       }
 
-      // Scroll to top
       document.querySelector('.main-card').scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -1646,34 +1290,31 @@
       return emailRegex.test(email);
     }
 
-    // Card Management
     function setupCardManagement() {
       const addCardBtn = document.getElementById('add-card');
-      const scanCardBtn = document.getElementById('scan-card');
-      const cardList = document.getElementById('card-list');
 
       addCardBtn.addEventListener('click', function() {
         addNewCardRow();
       });
 
-      scanCardBtn.addEventListener('click', function() {
-        openCameraModal();
-      });
-
-      // Setup remove functionality for existing cards
       document.querySelectorAll('.remove-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-          const cardList = document.getElementById('card-list');
-          if (cardList.children.length > 1) {
-            btn.closest('.card-row').remove();
-          } else {
-            alert('You must have at least one card in your trade-in request.');
-          }
+          handleRemoveCard(btn);
         });
       });
 
-      // Setup search for existing inputs
-      document.querySelectorAll('.card-input').forEach(setupCardSearch);
+      document.querySelectorAll('.card-input').forEach(input => {
+        setupCardSearch(input);
+      });
+    }
+
+    function handleRemoveCard(btn) {
+      const cardList = document.getElementById('card-list');
+      if (cardList.children.length > 1) {
+        btn.closest('.card-row').remove();
+      } else {
+        alert('You must have at least one card in your trade-in request.');
+      }
     }
 
     function addNewCardRow(cardData = null) {
@@ -1699,19 +1340,12 @@
       `;
       cardList.appendChild(newRow);
 
-      // Setup remove functionality
       newRow.querySelector('.remove-btn').addEventListener('click', function() {
-        if (cardList.children.length > 1) {
-          newRow.remove();
-        } else {
-          alert('You must have at least one card in your trade-in request.');
-        }
+        handleRemoveCard(this);
       });
 
-      // Setup search for new input
       setupCardSearch(newRow.querySelector('.card-input'));
 
-      // If this was from a scan, mark it as confirmed
       if (cardData && cardData.scanResult) {
         const input = newRow.querySelector('.card-input');
         input.classList.add('confirmed');
@@ -1719,555 +1353,6 @@
       }
 
       return newRow;
-    }
-
-    // Camera Functionality
-    function setupCameraFunctionality() {
-      const cameraModal = document.getElementById('camera-modal');
-      const closeCameraBtn = document.getElementById('close-camera');
-      const captureBtn = document.getElementById('capture-btn');
-      const switchCameraBtn = document.getElementById('switch-camera');
-      const acceptScanBtn = document.getElementById('accept-scan');
-      const retryScanBtn = document.getElementById('retry-scan');
-      const manualEntryBtn = document.getElementById('manual-entry');
-
-      closeCameraBtn.addEventListener('click', closeCameraModal);
-      captureBtn.addEventListener('click', captureCardImage);
-      switchCameraBtn.addEventListener('click', switchCamera);
-      acceptScanBtn.addEventListener('click', acceptScanResult);
-      retryScanBtn.addEventListener('click', resetScanInterface);
-      manualEntryBtn.addEventListener('click', () => {
-        closeCameraModal();
-        addNewCardRow();
-      });
-
-      // Close modal when clicking outside
-      cameraModal.addEventListener('click', function(e) {
-        if (e.target === cameraModal) {
-          closeCameraModal();
-        }
-      });
-    }
-
-    async function openCameraModal() {
-      const cameraModal = document.getElementById('camera-modal');
-      
-      try {
-        // Check if camera is available
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          throw new Error('Camera not supported on this device');
-        }
-
-        console.log('=== CAMERA SETUP DEBUG ===');
-        
-        // Get available cameras and find rear camera specifically
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        availableCameras = devices.filter(device => device.kind === 'videoinput');
-        
-        console.log('All video input devices:', availableCameras.map(cam => ({
-          deviceId: cam.deviceId.substring(0, 20) + '...',
-          label: cam.label || 'Unknown Camera',
-          groupId: cam.groupId
-        })));
-        
-        // Find rear camera by label analysis
-        let rearCameraIndex = -1;
-        for (let i = 0; i < availableCameras.length; i++) {
-          const label = availableCameras[i].label.toLowerCase();
-          console.log(`Camera ${i}: "${availableCameras[i].label}"`);
-          
-          if (label.includes('back') || label.includes('rear') || label.includes('environment') || 
-              label.includes('camera 0') || label.includes('camera2') || !label.includes('front')) {
-            rearCameraIndex = i;
-            console.log(`🎯 Found rear camera at index ${i}: ${availableCameras[i].label}`);
-            break;
-          }
-        }
-        
-        // Set camera index to rear camera if found
-        if (rearCameraIndex !== -1) {
-          currentCameraIndex = rearCameraIndex;
-          console.log(`✅ Using rear camera: ${availableCameras[currentCameraIndex].label}`);
-        } else {
-          currentCameraIndex = 0;
-          console.log(`⚠️ No rear camera detected, using default: ${availableCameras[0]?.label || 'Unknown'}`);
-        }
-        
-        if (availableCameras.length === 0) {
-          throw new Error('No cameras found on this device');
-        }
-
-        // Show switch camera button if multiple cameras
-        const switchBtn = document.getElementById('switch-camera');
-        switchBtn.style.display = availableCameras.length > 1 ? 'inline-flex' : 'none';
-
-        // Start camera with enhanced error handling
-        await startCamera();
-        
-        // Show modal
-        cameraModal.classList.add('active');
-        
-        // Reset scan interface
-        resetScanInterface();
-
-      } catch (error) {
-        console.error('Camera error:', error);
-        
-        // Enhanced error messages for different scenarios
-        let errorMessage = 'Could not access camera: ' + error.message;
-        
-        if (error.name === 'NotAllowedError' || error.message.includes('permission')) {
-          errorMessage = `Camera permission denied. To enable:
-          
-Chrome/Edge: Click the camera icon in the address bar
-Firefox: Click the camera icon next to the URL
-Safari: Go to Safari > Settings for This Website > Camera > Allow
-
-Then try scanning again.`;
-        } else if (error.name === 'NotFoundError') {
-          errorMessage = 'No camera found on this device. Please connect a camera and try again.';
-        } else if (error.name === 'NotSupportedError') {
-          errorMessage = 'Camera not supported on this device or browser. Try using a modern browser like Chrome, Firefox, or Edge.';
-        }
-        
-        alert(errorMessage);
-      }
-    }
-
-    async function startCamera() {
-      const video = document.getElementById('camera-video');
-      
-      try {
-        // Stop existing stream
-        if (cameraStream) {
-          cameraStream.getTracks().forEach(track => track.stop());
-        }
-
-        // Try multiple constraint configurations, starting with rear camera
-        const constraintOptions = [
-          // First try: Force rear camera (environment) with high quality
-          {
-            video: {
-              width: { ideal: 1280 },
-              height: { ideal: 720 },
-              facingMode: { exact: 'environment' } // Force rear camera
-            },
-            audio: false
-          },
-          // Second try: Prefer rear camera
-          {
-            video: {
-              width: { ideal: 1280 },
-              height: { ideal: 720 },
-              facingMode: 'environment' // Prefer rear camera
-            },
-            audio: false
-          },
-          // Third try: Basic rear camera constraints
-          {
-            video: {
-              width: { ideal: 640 },
-              height: { ideal: 480 },
-              facingMode: 'environment'
-            },
-            audio: false
-          },
-          // Fourth try: Any rear camera
-          {
-            video: {
-              facingMode: 'environment'
-            },
-            audio: false
-          },
-          // Last resort: Any camera (but this shouldn't be reached)
-          {
-            video: true,
-            audio: false
-          }
-        ];
-
-        // Force specific camera by deviceId if we found rear camera
-        if (availableCameras[currentCameraIndex]) {
-          constraintOptions.unshift({
-            video: {
-              deviceId: { exact: availableCameras[currentCameraIndex].deviceId },
-              width: { ideal: 1920 },
-              height: { ideal: 1080 },
-              facingMode: 'environment'
-            },
-            audio: false
-          });
-          console.log(`🎯 Forcing specific rear camera: ${availableCameras[currentCameraIndex].label}`);
-        }
-
-        let lastError = null;
-
-        for (let i = 0; i < constraintOptions.length; i++) {
-          try {
-            const constraints = constraintOptions[i];
-            console.log(`Trying camera constraints (attempt ${i + 1}):`, constraints);
-
-            cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
-            
-            if (cameraStream) {
-              console.log('Camera started successfully with constraints:', constraints);
-              break;
-            }
-          } catch (error) {
-            console.log(`Constraint attempt ${i + 1} failed:`, error.name, error.message);
-            lastError = error;
-            
-            // If this was a permission error, don't try more constraints
-            if (error.name === 'NotAllowedError') {
-              throw error;
-            }
-            
-            // Continue to next constraint option
-            continue;
-          }
-        }
-
-        if (!cameraStream) {
-          throw lastError || new Error('Failed to get camera stream with any constraints');
-        }
-
-        video.srcObject = cameraStream;
-        
-        return new Promise((resolve, reject) => {
-          video.onloadedmetadata = () => {
-            video.play().then(() => {
-              console.log('Video playback started successfully');
-              resolve();
-            }).catch((playError) => {
-              console.error('Video play error:', playError);
-              reject(new Error('Failed to start video playback'));
-            });
-          };
-          
-          video.onerror = (error) => {
-            console.error('Video element error:', error);
-            reject(new Error('Video element failed to load'));
-          };
-          
-          // Timeout fallback
-          setTimeout(() => {
-            if (video.readyState === 0) {
-              reject(new Error('Video failed to load within timeout'));
-            }
-          }, 10000);
-        });
-
-      } catch (error) {
-        console.error('Camera access failed:', error);
-        
-        // More specific error handling
-        if (error.name === 'NotAllowedError') {
-          throw new Error('Camera permission denied. Please allow camera access and try again.');
-        } else if (error.name === 'NotFoundError') {
-          throw new Error('No camera found. Please connect a camera and try again.');
-        } else if (error.name === 'OverconstrainedError') {
-          throw new Error('Camera not compatible. Please try a different camera or browser.');
-        } else if (error.name === 'NotReadableError') {
-          throw new Error('Camera is being used by another application. Please close other camera apps and try again.');
-        } else {
-          throw new Error(`Camera error: ${error.message}`);
-        }
-      }
-    }
-
-    async function switchCamera() {
-      if (availableCameras.length > 1) {
-        currentCameraIndex = (currentCameraIndex + 1) % availableCameras.length;
-        await startCamera();
-      }
-    }
-
-    function closeCameraModal() {
-      const cameraModal = document.getElementById('camera-modal');
-      
-      // Stop camera stream
-      if (cameraStream) {
-        cameraStream.getTracks().forEach(track => track.stop());
-        cameraStream = null;
-      }
-      
-      // Hide modal
-      cameraModal.classList.remove('active');
-      
-      // Reset variables
-      currentCameraIndex = 0;
-      selectedScanResult = null;
-    }
-
-    async function captureCardImage() {
-      const video = document.getElementById('camera-video');
-      const canvas = document.getElementById('camera-canvas');
-      const captureBtn = document.getElementById('capture-btn');
-      
-      // Set canvas size to match video
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      
-      // Draw video frame to canvas
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
-      // Convert to blob
-      canvas.toBlob(async (blob) => {
-        if (blob) {
-          // Disable capture button while processing
-          captureBtn.disabled = true;
-          captureBtn.innerHTML = '<span class="spinner"></span><span>Processing...</span>';
-          
-          try {
-            await processCardImage(blob);
-          } catch (error) {
-            console.error('Failed to process card image:', error);
-            alert('Failed to scan card. Please try again.');
-          } finally {
-            captureBtn.disabled = false;
-            captureBtn.innerHTML = '<span>📸</span><span>Capture Card</span>';
-          }
-        }
-      }, 'image/jpeg', 0.8);
-    }
-
-    async function processCardImage(imageBlob) {
-      const scanResults = document.getElementById('scan-results');
-      const scanStatus = document.getElementById('scan-status');
-      const scanMatches = document.getElementById('scan-matches');
-      
-      // Show scanning interface
-      scanResults.style.display = 'block';
-      scanStatus.innerHTML = '<div class="spinner"></div><span>Analyzing card image...</span>';
-      scanMatches.innerHTML = '';
-      
-      try {
-        // Create FormData for image upload
-        const formData = new FormData();
-        formData.append('image', imageBlob, 'card-scan.jpg');
-        formData.append('shopify_store', SHOPIFY_STORE_NAME);
-        formData.append('match_threshold', '0.3'); // Lower threshold
-        formData.append('max_results', '10'); // More results
-        formData.append('search_type', 'pokemon_card'); // Tell API it's Pokemon
-        formData.append('card_number', '031182'); // Send specific card number
-        
-        console.log('=== CARD SCAN DEBUG INFO ===');
-        console.log('Sending image to API:', CARD_SCAN_API_URL);
-        console.log('Image blob size:', imageBlob.size, 'bytes');
-        console.log('Image blob type:', imageBlob.type);
-        console.log('FormData contents:', {
-          shopify_store: SHOPIFY_STORE_NAME,
-          match_threshold: '0.7',
-          max_results: '5',
-          image_size: imageBlob.size
-        });
-        
-        // Send to card recognition API
-        const response = await fetch(CARD_SCAN_API_URL, {
-          method: 'POST',
-          body: formData
-        });
-        
-        console.log('=== API RESPONSE DEBUG ===');
-        console.log('API Response status:', response.status);
-        console.log('API Response headers:', Object.fromEntries(response.headers.entries()));
-        
-        const result = await response.json();
-        console.log('=== FULL API RESPONSE DATA ===');
-        console.log('Raw response:', result);
-        console.log('Response type:', typeof result);
-        console.log('Has success property:', 'success' in result);
-        console.log('Has matches property:', 'matches' in result);
-        console.log('Success value:', result.success);
-        console.log('Matches count:', result.matches ? result.matches.length : 'No matches property');
-        console.log('Shop name:', result.shop_name);
-        console.log('Extracted text:', result.extracted_text);
-        console.log('Processing time:', result.processing_time);
-        console.log('Total products searched:', result.total_products_searched);
-        
-        if (result.matches && result.matches.length > 0) {
-          console.log('=== FIRST MATCH DETAILS ===');
-          console.log('First match:', result.matches[0]);
-          console.log('Match properties:', Object.keys(result.matches[0]));
-        }
-        
-        if (!response.ok) {
-          throw new Error(result.error || result.message || 'Card recognition failed');
-        }
-        
-        displayScanResults(result);
-        
-      } catch (error) {
-        console.error('Card recognition error:', error);
-        
-        // Show fallback options
-        scanStatus.innerHTML = '❌ <span>Could not identify card automatically</span>';
-        scanMatches.innerHTML = `
-          <div class="scan-match" style="border-color: var(--warning); background: rgba(245, 158, 11, 0.05);">
-            <div class="scan-match-name">Manual Entry Required</div>
-            <div class="scan-match-details">
-              <span>Card could not be automatically identified</span>
-              <span style="background: var(--warning); color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">Manual Review</span>
-            </div>
-          </div>
-        `;
-      }
-    }
-
-    function displayScanResults(results) {
-      const scanStatus = document.getElementById('scan-status');
-      const scanMatches = document.getElementById('scan-matches');
-      
-      console.log('Displaying scan results:', results); // Debug log
-      
-      if (results.success && results.matches && results.matches.length > 0) {
-        scanStatus.innerHTML = `✅ <span>Found ${results.matches.length} matches in ${results.shop_name}!</span>`;
-        
-        scanMatches.innerHTML = '';
-        results.matches.forEach((match, index) => {
-          const matchElement = document.createElement('div');
-          matchElement.className = 'scan-match';
-          
-          const cardName = match.name || match.title || 'Unknown Card';
-          const cardSku = match.sku || match.variant_sku || 'N/A';
-          const cardVariant = match.variant_title || 'Default';
-          const cardPrice = match.price || '0.00';
-          const confidence = match.confidence || 0;
-          
-          matchElement.innerHTML = `
-            <div class="scan-match-name">${cardName}</div>
-            <div class="scan-match-details">
-              <span>SKU: ${cardSku}</span>
-              <span>Variant: ${cardVariant}</span>
-              <span>Price: ${cardPrice}</span>
-              <span class="scan-match-confidence">${Math.round(confidence * 100)}% match</span>
-            </div>
-            ${match.image_url ? `
-              <div style="margin-top: 8px;">
-                <img src="${match.image_url}" alt="${cardName}" 
-                     style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid var(--gray-200);">
-              </div>
-            ` : ''}
-          `;
-          
-          matchElement.addEventListener('click', function() {
-            // Remove previous selection
-            document.querySelectorAll('.scan-match').forEach(el => el.classList.remove('selected'));
-            // Select this match
-            matchElement.classList.add('selected');
-            
-            // Store the result
-            selectedScanResult = {
-              name: cardName,
-              sku: cardSku,
-              retailPrice: parseFloat(cardPrice || 0),
-              compareAtPrice: match.compare_at_price ? parseFloat(match.compare_at_price) : null,
-              confidence: confidence,
-              scanMethod: 'shopify_scan',
-              productId: match.product_id,
-              variantId: match.variant_id,
-              inventoryQuantity: match.inventory_quantity,
-              imageUrl: match.image_url
-            };
-            
-            console.log('Selected scan result:', selectedScanResult); // Debug log
-          });
-          
-          scanMatches.appendChild(matchElement);
-          
-          // Auto-select first match if decent confidence
-          if (index === 0 && confidence > 0.3) {
-            matchElement.classList.add('selected');
-            selectedScanResult = {
-              name: cardName,
-              sku: cardSku,
-              retailPrice: parseFloat(cardPrice || 0),
-              compareAtPrice: match.compare_at_price ? parseFloat(match.compare_at_price) : null,
-              confidence: confidence,
-              scanMethod: 'shopify_scan',
-              productId: match.product_id,
-              variantId: match.variant_id,
-              inventoryQuantity: match.inventory_quantity,
-              imageUrl: match.image_url
-            };
-          }
-        });
-        
-      } else {
-        scanStatus.innerHTML = '❓ <span>No matches found - will be manually reviewed</span>';
-        scanMatches.innerHTML = `
-          <div class="scan-match selected" style="border-color: var(--warning); background: rgba(245, 158, 11, 0.05);">
-            <div class="scan-match-name">Scanned Card - Manual Review</div>
-            <div class="scan-match-details">
-              <span>Extracted text: "${results.extracted_text || 'Unknown'}"</span>
-              <span>From: ${results.shop_name || 'Shop'} (${results.total_products_searched || 0} products searched)</span>
-              <span style="background: var(--warning); color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">Manual Review</span>
-            </div>
-          </div>
-        `;
-        
-        selectedScanResult = {
-          name: `Scanned Card - ${results.extracted_text || 'Manual Review'}`,
-          sku: null,
-          retailPrice: 0,
-          confidence: 0,
-          scanMethod: 'manual_review',
-          extractedText: results.extracted_text
-        };
-      }
-    }
-
-    function acceptScanResult() {
-      if (!selectedScanResult) {
-        alert('Please select a card match first.');
-        return;
-      }
-      
-      // Create card data object with Shopify-specific fields
-      const cardData = {
-        name: selectedScanResult.name,
-        quantity: 1,
-        condition: 'NM', // Default to Near Mint, user can change
-        scanResult: {
-          match: selectedScanResult.name,
-          sku: selectedScanResult.sku,
-          retailPrice: selectedScanResult.retailPrice,
-          compareAtPrice: selectedScanResult.compareAtPrice,
-          searchMethod: 'shopify_scan',
-          confidence: selectedScanResult.confidence,
-          productId: selectedScanResult.productId,
-          variantId: selectedScanResult.variantId,
-          inventoryQuantity: selectedScanResult.inventoryQuantity,
-          imageUrl: selectedScanResult.imageUrl
-        }
-      };
-      
-      // Add card to the list
-      addNewCardRow(cardData);
-      
-      // Close camera modal
-      closeCameraModal();
-      
-      // Show success message with Shopify-specific info
-      setTimeout(() => {
-        if (selectedScanResult.productId) {
-          alert(`Card successfully matched with our inventory!\n\nProduct: ${selectedScanResult.name}\nSKU: ${selectedScanResult.sku}\nConfidence: ${Math.round(selectedScanResult.confidence * 100)}%`);
-        } else {
-          alert('Card scanned and added for manual review by our team.');
-        }
-      }, 100);
-    }
-
-    function resetScanInterface() {
-      const scanResults = document.getElementById('scan-results');
-      scanResults.style.display = 'none';
-      selectedScanResult = null;
-    }
-
-    // Search Functionality
-    function setupSearchFunctionality() {
-      document.querySelectorAll('.card-input').forEach(setupCardSearch);
     }
 
     function setupCardSearch(input) {
@@ -2320,7 +1405,6 @@ Then try scanning again.`;
 
           const result = data.results && data.results[0];
           
-          // Check if we have multiple options available
           if (result && result.allOptions && result.allOptions.length > 1) {
             showMultipleOptions(container, input, query, result);
           } else {
@@ -2329,8 +1413,80 @@ Then try scanning again.`;
 
         } catch (error) {
           console.error('Search error:', error);
-          // Don't show error to customer - just let them continue
         }
+      }
+
+      function showMultipleOptions(container, input, query, result) {
+        const existing = container.querySelector('.search-suggestion');
+        if (existing) existing.remove();
+
+        const suggestion = document.createElement('div');
+        suggestion.className = 'search-suggestion';
+        
+        let optionsHtml = '<div style="padding: 16px;">';
+        optionsHtml += `<div style="margin-bottom: 12px; font-weight: 600;">🔍 Multiple matches found for "${query}"</div>`;
+        optionsHtml += '<div style="font-size: 14px; color: var(--gray-600); margin-bottom: 12px;">Please select the correct card:</div>';
+        
+        let selectedOption = null;
+        
+        result.allOptions.forEach((option, index) => {
+          const isRecommended = index === 0;
+          optionsHtml += `
+            <div class="option-item ${isRecommended ? 'selected' : ''}" data-option-index="${index}">
+              <div style="font-weight: 600; margin-bottom: 4px;">
+                ${option.fullTitle} ${isRecommended ? '⭐ Recommended' : ''}
+              </div>
+              <div style="font-size: 13px; color: var(--gray-500);">
+                SKU: ${option.sku} • Price: ${option.price.toFixed(2)}
+              </div>
+            </div>
+          `;
+        });
+        
+        optionsHtml += `
+          <div style="margin-top: 16px; display: flex; gap: 8px; justify-content: flex-end;">
+            <button type="button" class="suggestion-btn confirm-btn">✅ Use Selected</button>
+            <button type="button" class="suggestion-btn reject-btn">❌ Cancel</button>
+          </div>
+        </div>`;
+        
+        suggestion.innerHTML = optionsHtml;
+        container.appendChild(suggestion);
+        currentSuggestion = suggestion;
+
+        suggestion.querySelectorAll('.option-item').forEach((item, index) => {
+          item.addEventListener('click', function() {
+            suggestion.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
+            item.classList.add('selected');
+            selectedOption = result.allOptions[index];
+          });
+        });
+
+        selectedOption = result.allOptions[0];
+
+        const confirmBtn = suggestion.querySelector('.confirm-btn');
+        const rejectBtn = suggestion.querySelector('.reject-btn');
+
+        confirmBtn.addEventListener('click', function() {
+          if (selectedOption) {
+            input.classList.remove('not-found');
+            input.classList.add('confirmed');
+            input.value = selectedOption.fullTitle;
+            input.setAttribute('data-search-result', JSON.stringify({
+              match: selectedOption.fullTitle,
+              sku: selectedOption.sku,
+              retailPrice: selectedOption.price,
+              searchMethod: 'confirmed_search'
+            }));
+            suggestion.remove();
+            currentSuggestion = null;
+          }
+        });
+
+        rejectBtn.addEventListener('click', function() {
+          suggestion.remove();
+          currentSuggestion = null;
+        });
       }
 
       function showSearchResult(container, input, query, result) {
@@ -2378,7 +1534,6 @@ Then try scanning again.`;
         container.appendChild(suggestion);
         currentSuggestion = suggestion;
 
-        // Setup event handlers
         const confirmBtn = suggestion.querySelector('.confirm-btn');
         const continueBtn = suggestion.querySelector('.continue-btn');
         const rejectBtn = suggestion.querySelector('.reject-btn');
@@ -2417,12 +1572,6 @@ Then try scanning again.`;
       }
     }
 
-    // Payout Method Handling
-    function setupPayoutMethodHandling() {
-      // No special handling needed for customer portal - all methods are valid
-    }
-
-    // Review Summary
     function updateReviewSummary() {
       const name = document.getElementById('customerName').value;
       const email = document.getElementById('customerEmail').value;
@@ -2478,12 +1627,22 @@ Then try scanning again.`;
       document.getElementById('summary-content').innerHTML = summaryHTML;
     }
 
-    // Estimate Functionality
-    function setupEstimateFunctionality() {
+    function setupFormSubmission() {
+      const form = document.getElementById('customer-trade-form');
       const estimateBtn = document.getElementById('get-estimate');
+      const newRequestBtn = document.getElementById('new-request');
       
       estimateBtn.addEventListener('click', async function() {
         await getTradeEstimate();
+      });
+      
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        await submitTradeRequest();
+      });
+
+      newRequestBtn.addEventListener('click', function() {
+        location.reload();
       });
     }
 
@@ -2586,129 +1745,78 @@ Then try scanning again.`;
         estimateCards.appendChild(cardElement);
       });
 
-      document.getElementById('total-retail').textContent = `${data.totalRetailValue || '0.00'}`;
-      document.getElementById('total-payout').textContent = `${data.suggestedTotal || '0.00'}`;
+      document.getElementById('total-retail').textContent = `$${data.totalRetailValue || '0.00'}`;
+      document.getElementById('total-payout').textContent = `$${data.suggestedTotal || '0.00'}`;
 
       document.getElementById('estimate-results').classList.add('visible');
-    }
-
-    // Form Submission
-    function setupFormSubmission() {
-      const form = document.getElementById('customer-trade-form');
-      const estimateBtn = document.getElementById('get-estimate');
-      
-      // Setup estimate button
-      estimateBtn.addEventListener('click', async function() {
-        await getTradeEstimate();
-      });
-      
-      form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        await submitTradeRequest();
-      });
     }
 
     async function submitTradeRequest() {
       const submitBtn = document.getElementById('submit-request');
       
-      // Gather all form data
+      const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
+        const input = row.querySelector('[name="cardName"]');
+        const searchResult = input.getAttribute('data-search-result');
+        
+        let cardData = {
+          cardName: input.value,
+          quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
+          condition: row.querySelector('[name="cardCondition"]').value
+        };
+
+        if (searchResult) {
+          try {
+            const result = JSON.parse(searchResult);
+            cardData.sku = result.sku;
+            cardData.searchMethod = 'exact_sku';
+          } catch (e) {
+            console.warn('Failed to parse search result:', e);
+          }
+        }
+
+        return cardData;
+      });
+
       const formData = {
         customerName: document.getElementById('customerName').value,
         customerEmail: document.getElementById('customerEmail').value,
         customerPhone: document.getElementById('customerPhone').value,
         payoutMethod: document.querySelector('input[name="payoutMethod"]:checked').value,
+        cards: cards,
         submissionType: 'customer_request',
-        estimateData: lastApiResponse // Include the estimate data
+        estimateData: lastApiResponse
       };
-
-      // Gather cards data
-      const cards = Array.from(document.querySelectorAll('.card-row')).map(row => {
-        const input = row.querySelector('[name="cardName"]');
-        const searchResult = input.getAttribute('data-search-result');
-        
-        if (searchResult) {
-          try {
-            const result = JSON.parse(searchResult);
-            return {
-              cardName: input.value,
-              quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
-              condition: row.querySelector('[name="cardCondition"]').value,
-              sku: result.sku,
-              searchMethod: 'exact_sku'
-            };
-          } catch (e) {
-            console.warn('Failed to parse search result:', e);
-          }
-        }
-        
-        return {
-          cardName: input.value,
-          quantity: parseInt(row.querySelector('[name="cardQuantity"]').value) || 1,
-          condition: row.querySelector('[name="cardCondition"]').value
-        };
-      });
 
       submitBtn.innerHTML = '<span class="spinner"></span><span>Submitting...</span>';
       submitBtn.disabled = true;
 
       try {
-        // Real API submission to your backend
         const response = await fetch(SUBMISSION_API_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            customerName: formData.customerName,
-            customerEmail: formData.customerEmail,
-            customerPhone: formData.customerPhone,
-            payoutMethod: formData.payoutMethod,
-            cards: cards,
-            estimateData: formData.estimateData
-          })
+          body: JSON.stringify(formData)
         });
 
-        const result = await response.json();
-        
+        const data = await response.json();
+
         if (!response.ok) {
-          throw new Error(result.error || 'Failed to submit trade-in request');
+          throw new Error(data.error || 'Failed to submit request');
         }
+
+        document.getElementById('submission-id-display').textContent = data.submissionId;
         
-        // Set the submission ID for display
-        document.getElementById('submission-id-display').textContent = result.submissionId;
-        
-        console.log('Trade-in submission successful:', result);
-        
-        showSuccessSection();
+        document.getElementById('customer-trade-form').style.display = 'none';
+        document.getElementById('success-section').classList.add('visible');
 
       } catch (error) {
         console.error('Submission error:', error);
         alert('Error submitting request: ' + error.message);
-      } finally {
         submitBtn.innerHTML = '<span>🚀</span><span>Submit Trade-In Request</span>';
         submitBtn.disabled = false;
       }
     }
-
-    function showSuccessSection() {
-      // Hide the form
-      document.getElementById('customer-trade-form').style.display = 'none';
-      
-      // Show success section
-      document.getElementById('success-section').classList.add('visible');
-      
-      // Setup new request button
-      document.getElementById('new-request').addEventListener('click', function() {
-        // Reload the page to start over
-        window.location.reload();
-      });
-    }
-
-    // Initialize when DOM is loaded
-    document.addEventListener('DOMContentLoaded', function() {
-      updateNavigationButtons();
-      setupEstimateFunctionality();
-    });
   </script>
 </body>
 </html>
