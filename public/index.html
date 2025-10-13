@@ -1156,9 +1156,6 @@
             <div class="multiple-options-header">
               <div class="multiple-options-title">🔍 Found ${optionCount} matches for "${query}"</div>
               <div class="multiple-options-subtitle">Select the card you want to use:</div>
-              <input type="text" class="options-search" placeholder="🔍 Filter results..." autocomplete="off">
-              <div class="options-count">Showing <span class="visible-count">${optionCount}</span> of ${optionCount} options</div>
-              <div class="keyboard-hint">💡 Use arrow keys to navigate, Enter to select</div>
             </div>
             <div class="options-list">
           `;
@@ -1166,51 +1163,41 @@
           if (options.length > 0) {
             options.forEach((option, index) => {
               const isRecommended = index === 0;
-              const stockLevel = option.inventory || option.inventoryQuantity || 0;
-              const stockClass = stockLevel > 10 ? 'high' : stockLevel > 0 ? 'medium' : 'low';
               
               html += `
-                <div class="option-item" data-option-index="${index}" data-search-text="${(option.fullTitle || option.productTitle || '').toLowerCase()}">
-                  <div class="option-content">
-                    <div class="option-details">
-                      <div class="option-title">
+                <div class="option-item" data-option-index="${index}">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                      <div style="font-weight: 600; color: var(--gray-800);">
                         ${isRecommended ? '⭐ ' : ''}${option.fullTitle || option.productTitle}
                       </div>
-                      <div class="option-meta">
-                        <span class="option-badge">SKU: ${option.sku || 'N/A'}</span>
-                        <span class="option-badge price">${option.price ? option.price.toFixed(2) : '0.00'}</span>
-                        <span class="option-badge stock">Stock: ${stockLevel}</span>
-                        ${isRecommended ? '<span class="option-badge recommended">⭐ Recommended</span>' : ''}
+                      <div style="font-size: 14px; color: var(--gray-500); margin-top: 4px;">
+                        SKU: ${option.sku || 'N/A'} • Price: ${option.price ? option.price.toFixed(2) : '0.00'}
+                        ${isRecommended ? ' • <span style="color: var(--accent); font-weight: 600;">Best Match</span>' : ''}
                       </div>
                     </div>
-                    <div class="option-select">
-                      <button type="button" class="option-select-btn ${isRecommended ? 'recommended' : ''}" data-option-index="${index}">
-                        ${isRecommended ? '⭐ Select' : '✅ Select'}
-                      </button>
-                    </div>
+                    <button type="button" class="suggestion-btn confirm-btn" data-option-index="${index}">
+                      ${isRecommended ? '⭐ Select' : '✅ Select'}
+                    </button>
                   </div>
                 </div>
               `;
             });
           } else if (result.match) {
             html += `
-              <div class="option-item" data-option-index="0" data-search-text="${result.match.toLowerCase()}">
-                <div class="option-content">
-                  <div class="option-details">
-                    <div class="option-title">
+              <div class="option-item" data-option-index="0">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-weight: 600; color: var(--gray-800);">
                       ⭐ ${result.match}
                     </div>
-                    <div class="option-meta">
-                      <span class="option-badge">SKU: ${result.sku || 'N/A'}</span>
-                      <span class="option-badge price">${result.retailPrice ? result.retailPrice.toFixed(2) : '0.00'}</span>
-                      <span class="option-badge recommended">⭐ Best Match</span>
+                    <div style="font-size: 14px; color: var(--gray-500); margin-top: 4px;">
+                      SKU: ${result.sku || 'N/A'} • Price: ${result.retailPrice ? result.retailPrice.toFixed(2) : '0.00'}
                     </div>
                   </div>
-                  <div class="option-select">
-                    <button type="button" class="option-select-btn recommended" data-option-index="0">
-                      ⭐ Select
-                    </button>
-                  </div>
+                  <button type="button" class="suggestion-btn confirm-btn" data-option-index="0">
+                    ⭐ Select
+                  </button>
                 </div>
               </div>
             `;
@@ -1228,98 +1215,8 @@
           container.appendChild(suggestion);
           currentSuggestion = suggestion;
 
-          // Enhanced functionality
-          const searchInput = suggestion.querySelector('.options-search');
-          const optionsList = suggestion.querySelector('.options-list');
-          const visibleCountSpan = suggestion.querySelector('.visible-count');
-          let selectedIndex = 0;
-          let visibleOptions = suggestion.querySelectorAll('.option-item');
-
-          // Search filtering
-          searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase().trim();
-            const allOptions = suggestion.querySelectorAll('.option-item');
-            let visibleCount = 0;
-            
-            allOptions.forEach((option, index) => {
-              const searchText = option.getAttribute('data-search-text') || '';
-              const isVisible = searchText.includes(searchTerm);
-              
-              if (isVisible) {
-                option.classList.remove('hidden');
-                visibleCount++;
-              } else {
-                option.classList.add('hidden');
-              }
-            });
-            
-            visibleOptions = suggestion.querySelectorAll('.option-item:not(.hidden)');
-            visibleCountSpan.textContent = visibleCount;
-            selectedIndex = 0;
-            updateSelection();
-            
-            if (visibleCount === 0) {
-              if (!optionsList.querySelector('.no-results')) {
-                const noResults = document.createElement('div');
-                noResults.className = 'no-results';
-                noResults.innerHTML = `
-                  <div>🔍 No matches found for "${searchTerm}"</div>
-                  <div style="font-size: 12px; margin-top: 8px;">Try a different search term or use the options below</div>
-                `;
-                optionsList.appendChild(noResults);
-              }
-            } else {
-              const noResults = optionsList.querySelector('.no-results');
-              if (noResults) noResults.remove();
-            }
-          });
-
-          // Keyboard navigation
-          function updateSelection() {
-            visibleOptions.forEach((option, index) => {
-              if (index === selectedIndex) {
-                option.style.background = '#dbeafe';
-                option.style.transform = 'translateX(8px)';
-                option.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-              } else {
-                option.style.background = '';
-                option.style.transform = '';
-              }
-            });
-          }
-
-          searchInput.addEventListener('keydown', function(e) {
-            switch(e.key) {
-              case 'ArrowDown':
-                e.preventDefault();
-                selectedIndex = Math.min(selectedIndex + 1, visibleOptions.length - 1);
-                updateSelection();
-                break;
-              case 'ArrowUp':
-                e.preventDefault();
-                selectedIndex = Math.max(selectedIndex - 1, 0);
-                updateSelection();
-                break;
-              case 'Enter':
-                e.preventDefault();
-                if (visibleOptions[selectedIndex]) {
-                  const btn = visibleOptions[selectedIndex].querySelector('.option-select-btn');
-                  if (btn) btn.click();
-                }
-                break;
-              case 'Escape':
-                e.preventDefault();
-                suggestion.remove();
-                currentSuggestion = null;
-                break;
-            }
-          });
-
-          // Auto-focus search input
-          setTimeout(() => searchInput.focus(), 100);
-
           // Event handlers for option selection
-          suggestion.querySelectorAll('.option-select-btn').forEach(btn => {
+          suggestion.querySelectorAll('.confirm-btn').forEach(btn => {
             btn.addEventListener('click', function() {
               const optionIndex = parseInt(this.getAttribute('data-option-index'));
               let selectedOption;
@@ -1743,8 +1640,267 @@
       });
 
       document.getElementById('print-receipt').addEventListener('click', function() {
-        alert('Receipt printing functionality would be implemented here.');
+        if (!lastApiResponse) {
+          alert('No trade data available to print.');
+          return;
+        }
+        
+        printReceipt(lastApiResponse);
       });
+
+      function printReceipt(data) {
+        const receiptWindow = window.open('', '_blank', 'width=800,height=600');
+        
+        const payoutMethod = document.querySelector('input[name="payoutMethod"]:checked').value;
+        const customerEmail = document.getElementById('customerEmail').value;
+        
+        let payoutInfo = '';
+        if (payoutMethod === 'gift-card' && data.giftCardCode) {
+          payoutInfo = `
+            <div style="background: #f0f9ff; padding: 16px; border-radius: 8px; margin: 16px 0; border: 2px solid #3b82f6;">
+              <div style="font-weight: 700; color: #1e40af; margin-bottom: 8px;">🎁 GIFT CARD CODE</div>
+              <div style="font-family: Monaco, monospace; font-size: 24px; font-weight: 700; letter-spacing: 4px; color: #1e40af;">
+                ${data.giftCardCode}
+              </div>
+            </div>
+          `;
+        } else if (payoutMethod === 'store-credit') {
+          payoutInfo = `
+            <div style="background: #f0f9ff; padding: 16px; border-radius: 8px; margin: 16px 0; border: 2px solid #3b82f6;">
+              <div style="font-weight: 700; color: #1e40af; margin-bottom: 8px;">🏪 STORE CREDIT</div>
+              <div style="font-size: 20px; font-weight: 700; color: #1e40af;">
+                ${data.finalPayout} CAD
+              </div>
+              ${customerEmail ? `<div style="font-size: 14px; color: #64748b; margin-top: 4px;">Customer: ${customerEmail}</div>` : ''}
+            </div>
+          `;
+        } else {
+          payoutInfo = `
+            <div style="background: #f0fdf4; padding: 16px; border-radius: 8px; margin: 16px 0; border: 2px solid #22c55e;">
+              <div style="font-weight: 700; color: #15803d; margin-bottom: 8px;">💵 CASH PAYOUT</div>
+              <div style="font-size: 28px; font-weight: 700; color: #15803d;">
+                ${data.finalPayout} CAD
+              </div>
+            </div>
+          `;
+        }
+        
+        const receiptHTML = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Trade Receipt</title>
+            <style>
+              body {
+                font-family: 'Courier New', monospace;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+                background: white;
+              }
+              .receipt {
+                border: 2px solid #000;
+                padding: 24px;
+              }
+              .header {
+                text-align: center;
+                border-bottom: 2px dashed #000;
+                padding-bottom: 16px;
+                margin-bottom: 16px;
+              }
+              .store-name {
+                font-size: 24px;
+                font-weight: bold;
+                margin-bottom: 8px;
+              }
+              .receipt-title {
+                font-size: 20px;
+                font-weight: bold;
+                margin-top: 12px;
+              }
+              .section {
+                margin: 16px 0;
+                padding: 12px 0;
+                border-bottom: 1px dashed #ccc;
+              }
+              .section-title {
+                font-weight: bold;
+                font-size: 16px;
+                margin-bottom: 8px;
+                text-transform: uppercase;
+              }
+              .info-row {
+                display: flex;
+                justify-content: space-between;
+                margin: 4px 0;
+                font-size: 14px;
+              }
+              .cards-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 12px 0;
+                font-size: 13px;
+              }
+              .cards-table th {
+                text-align: left;
+                border-bottom: 2px solid #000;
+                padding: 8px 4px;
+                font-weight: bold;
+              }
+              .cards-table td {
+                padding: 6px 4px;
+                border-bottom: 1px solid #ddd;
+              }
+              .totals {
+                margin-top: 16px;
+                padding-top: 12px;
+                border-top: 2px solid #000;
+              }
+              .total-row {
+                display: flex;
+                justify-content: space-between;
+                margin: 8px 0;
+                font-size: 14px;
+              }
+              .final-total {
+                font-size: 20px;
+                font-weight: bold;
+                margin-top: 12px;
+                padding-top: 12px;
+                border-top: 2px solid #000;
+              }
+              .footer {
+                text-align: center;
+                margin-top: 24px;
+                padding-top: 16px;
+                border-top: 2px dashed #000;
+                font-size: 12px;
+              }
+              @media print {
+                body {
+                  padding: 0;
+                }
+                .no-print {
+                  display: none;
+                }
+              }
+              .print-button {
+                background: #3b82f6;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                font-size: 16px;
+                font-weight: bold;
+                border-radius: 8px;
+                cursor: pointer;
+                margin: 20px auto;
+                display: block;
+              }
+              .print-button:hover {
+                background: #2563eb;
+              }
+            </style>
+          </head>
+          <body>
+            <button class="print-button no-print" onclick="window.print()">🖨️ Print Receipt</button>
+            
+            <div class="receipt">
+              <div class="header">
+                <div class="store-name">CARD TRADE-IN RECEIPT</div>
+                <div style="font-size: 14px; margin-top: 8px;">
+                  ${new Date().toLocaleString('en-US', { 
+                    weekday: 'short', 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </div>
+                <div class="receipt-title">TRADE CONFIRMATION</div>
+              </div>
+
+              <div class="section">
+                <div class="section-title">Transaction Details</div>
+                <div class="info-row">
+                  <span>Employee:</span>
+                  <span><strong>${data.employeeName}</strong></span>
+                </div>
+                <div class="info-row">
+                  <span>Payout Method:</span>
+                  <span><strong>${payoutMethod.toUpperCase().replace('-', ' ')}</strong></span>
+                </div>
+                ${customerEmail ? `
+                <div class="info-row">
+                  <span>Customer Email:</span>
+                  <span>${customerEmail}</span>
+                </div>
+                ` : ''}
+              </div>
+
+              ${payoutInfo}
+
+              <div class="section">
+                <div class="section-title">Cards Traded (${data.results.length} items)</div>
+                <table class="cards-table">
+                  <thead>
+                    <tr>
+                      <th>Card Name</th>
+                      <th style="text-align: center;">Qty</th>
+                      <th style="text-align: right;">Retail</th>
+                      <th style="text-align: right;">Trade Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${data.results.map(card => `
+                      <tr>
+                        <td>${card.match || card.cardName}${!card.match ? ' ⚠️' : ''}</td>
+                        <td style="text-align: center;">${card.quantity}</td>
+                        <td style="text-align: right;">$${(card.retailPrice || 0).toFixed(2)}</td>
+                        <td style="text-align: right;">$${(card.tradeInValue || 0).toFixed(2)}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="totals">
+                <div class="total-row">
+                  <span>Total Retail Value:</span>
+                  <span><strong>$${data.totalRetailValue || '0.00'}</strong></span>
+                </div>
+                <div class="total-row">
+                  <span>Suggested Trade Value:</span>
+                  <span>$${data.suggestedTotal || '0.00'}</span>
+                </div>
+                <div class="total-row">
+                  <span>Maximum Trade Value:</span>
+                  <span>$${data.maximumTotal || '0.00'}</span>
+                </div>
+                <div class="total-row final-total">
+                  <span>FINAL PAYOUT:</span>
+                  <span>${data.finalPayout} CAD</span>
+                </div>
+              </div>
+
+              <div class="footer">
+                <div style="font-weight: bold; margin-bottom: 8px;">Thank you for your trade-in!</div>
+                <div>All trades are final. Please keep this receipt for your records.</div>
+                ${payoutMethod === 'gift-card' ? '<div style="margin-top: 8px; font-weight: bold;">⚠️ Gift card codes cannot be replaced if lost</div>' : ''}
+              </div>
+            </div>
+
+            <button class="print-button no-print" onclick="window.print()" style="margin-top: 20px;">🖨️ Print Receipt</button>
+          </body>
+          </html>
+        `;
+        
+        receiptWindow.document.write(receiptHTML);
+        receiptWindow.document.close();
+        
+        // Auto-focus the print window
+        receiptWindow.focus();
+      }
 
       document.getElementById('print-barcodes').addEventListener('click', function() {
         alert('Barcode printing functionality would be implemented here.');
