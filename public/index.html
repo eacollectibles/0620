@@ -985,6 +985,7 @@
   <script>
     const API_URL = '/api/buybackstep4';
     let lastApiResponse = null;
+    let lastTradeDetails = null;
 
     function openCustomerPortal() {
       window.open('/customer-portal.html', '_blank');
@@ -1552,6 +1553,13 @@
 
           const data = await response.json();
           lastApiResponse = data;
+          
+          // Store trade details for receipt printing
+          lastTradeDetails = {
+            payoutMethod: formData.get('payoutMethod'),
+            customerEmail: formData.get('customerEmail'),
+            employeeName: formData.get('employeeName')
+          };
 
           if (!response.ok) {
             throw new Error(data.error || 'Failed to process trade');
@@ -1640,19 +1648,50 @@
       });
 
       document.getElementById('print-receipt').addEventListener('click', function() {
-        if (!lastApiResponse) {
+        if (!lastApiResponse || !lastTradeDetails) {
           alert('No trade data available to print.');
           return;
         }
         
-        printReceipt(lastApiResponse);
+        console.log('Printing receipt with data:', lastApiResponse);
+        console.log('Trade details:', lastTradeDetails);
+        printReceipt(lastApiResponse, lastTradeDetails);
       });
 
-      function printReceipt(data) {
-        const receiptWindow = window.open('', '_blank', 'width=800,height=600');
-        
-        const payoutMethod = document.querySelector('input[name="payoutMethod"]:checked').value;
-        const customerEmail = document.getElementById('customerEmail').value;
+      function printReceipt(data, tradeDetails) {
+        try {
+          const receiptWindow = window.open('', '_blank', 'width=800,height=600');
+          
+          if (!receiptWindow) {
+            alert('Failed to open print window. Please allow popups for this site.');
+            return;
+          }
+          
+          const payoutMethod = tradeDetails.payoutMethod;
+          const customerEmail = tradeDetails.customerEmail || '';
+          
+          console.log('Building receipt with payout method:', payoutMethod);
+          
+          // Simple test first
+          const testHTML = `
+            <!DOCTYPE html>
+            <html>
+            <head><title>Test Receipt</title></head>
+            <body>
+              <h1>Receipt Test</h1>
+              <p>Employee: ${data.employeeName || 'Unknown'}</p>
+              <p>Payout: ${data.finalPayout || 'Unknown'}</p>
+              <p>Method: ${payoutMethod}</p>
+            </body>
+            </html>
+          `;
+          
+          receiptWindow.document.write(testHTML);
+          receiptWindow.document.close();
+          console.log('Simple receipt written');
+          return;
+          
+          // Original receipt code below (currently disabled for testing)
         
         let payoutInfo = '';
         if (payoutMethod === 'gift-card' && data.giftCardCode) {
@@ -1898,9 +1937,18 @@
         receiptWindow.document.write(receiptHTML);
         receiptWindow.document.close();
         
+        console.log('Receipt HTML written successfully');
+        
         // Auto-focus the print window
-        receiptWindow.focus();
+        setTimeout(() => {
+          receiptWindow.focus();
+        }, 100);
+        
+      } catch (error) {
+        console.error('Error printing receipt:', error);
+        alert('Error printing receipt: ' + error.message);
       }
+    }
 
       document.getElementById('print-barcodes').addEventListener('click', function() {
         alert('Barcode printing functionality would be implemented here.');
