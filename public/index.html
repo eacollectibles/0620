@@ -1653,8 +1653,6 @@
           return;
         }
         
-        console.log('Printing receipt with data:', lastApiResponse);
-        console.log('Trade details:', lastTradeDetails);
         printReceipt(lastApiResponse, lastTradeDetails);
       });
 
@@ -1670,30 +1668,7 @@
           const payoutMethod = tradeDetails.payoutMethod;
           const customerEmail = tradeDetails.customerEmail || '';
           
-          console.log('Building receipt with payout method:', payoutMethod);
-          
-          // Simple test first
-          const testHTML = `
-            <!DOCTYPE html>
-            <html>
-            <head><title>Test Receipt</title></head>
-            <body>
-              <h1>Receipt Test</h1>
-              <p>Employee: ${data.employeeName || 'Unknown'}</p>
-              <p>Payout: ${data.finalPayout || 'Unknown'}</p>
-              <p>Method: ${payoutMethod}</p>
-            </body>
-            </html>
-          `;
-          
-          receiptWindow.document.write(testHTML);
-          receiptWindow.document.close();
-          console.log('Simple receipt written');
-          return;
-          
-          // Original receipt code below (currently disabled for testing)
-        
-        let payoutInfo = '';
+          let payoutInfo = '';
         if (payoutMethod === 'gift-card' && data.giftCardCode) {
           payoutInfo = `
             <div style="background: #f0f9ff; padding: 16px; border-radius: 8px; margin: 16px 0; border: 2px solid #3b82f6;">
@@ -1880,7 +1855,7 @@
               ${payoutInfo}
 
               <div class="section">
-                <div class="section-title">Cards Traded (${data.results.length} items)</div>
+                <div class="section-title">Cards Traded (${(data.results || []).length} items)</div>
                 <table class="cards-table">
                   <thead>
                     <tr>
@@ -1891,12 +1866,12 @@
                     </tr>
                   </thead>
                   <tbody>
-                    ${data.results.map(card => `
+                    ${(data.results || []).map(card => `
                       <tr>
-                        <td>${card.match || card.cardName}${!card.match ? ' ⚠️' : ''}</td>
-                        <td style="text-align: center;">${card.quantity}</td>
-                        <td style="text-align: right;">$${(card.retailPrice || 0).toFixed(2)}</td>
-                        <td style="text-align: right;">$${(card.tradeInValue || 0).toFixed(2)}</td>
+                        <td>${card.match || card.cardName || 'Unknown'}${!card.match ? ' ⚠️' : ''}</td>
+                        <td style="text-align: center;">${card.quantity || 1}</td>
+                        <td style="text-align: right;">${(card.retailPrice || 0).toFixed(2)}</td>
+                        <td style="text-align: right;">${(card.tradeInValue || 0).toFixed(2)}</td>
                       </tr>
                     `).join('')}
                   </tbody>
@@ -1937,9 +1912,7 @@
         receiptWindow.document.write(receiptHTML);
         receiptWindow.document.close();
         
-        console.log('Receipt HTML written successfully');
-        
-        // Auto-focus the print window
+        // Auto-focus the print window after a brief delay
         setTimeout(() => {
           receiptWindow.focus();
         }, 100);
