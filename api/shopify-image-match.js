@@ -1,5 +1,5 @@
 // /api/shopify-image-match.js
-// Complete version with Pokemon SINGLES detection (not sealed products)
+// Complete version with Pokemon SINGLES detection and FRONTEND OCR support
 
 export const config = {
   api: {
@@ -54,19 +54,22 @@ export default async function handler(req, res) {
       });
     }
     
+    // ✅ UPDATED: Accept extracted_text from frontend
     const { 
       shopify_store = shopifyStore, 
       match_threshold = 0.7, 
       max_results = 5,
       search_type = 'generic',
-      card_number = null
+      card_number = null,
+      extracted_text = null  // ← NEW: Get OCR result from frontend
     } = formData.fields;
 
     console.log('Search parameters:', {
       search_type,
       card_number,
       threshold: match_threshold,
-      max_results
+      max_results,
+      has_extracted_text: !!extracted_text  // ← Log if we got frontend OCR
     });
 
     if (!formData.files || !formData.files.image) {
@@ -128,9 +131,10 @@ export default async function handler(req, res) {
       });
     }
 
-    // Extract text from image
-    const extractedText = await extractTextFromImage(imageFile);
-    console.log('Extracted text:', extractedText);
+    // ✅ UPDATED: Use frontend OCR result if available
+    const extractedText = extracted_text || await extractTextFromImage(imageFile);
+    console.log('📝 Using extracted text:', extracted_text ? '(from frontend OCR)' : '(from backend)');
+    console.log('Text:', extractedText);
 
     // ENHANCED SEARCH LOGIC - Use frontend parameters if available
     if (search_type === 'pokemon_card' && card_number) {
@@ -380,6 +384,7 @@ export default async function handler(req, res) {
       shop_name: shopInfo?.name || 'Unknown',
       store_domain: shopInfo?.domain || shopifyStore + '.myshopify.com',
       extracted_text: extractedText,
+      ocr_source: extracted_text ? 'frontend' : 'backend',  // ← Track OCR source
       image_info: {
         filename: imageFile.filename,
         size: imageFile.data.length,
@@ -478,16 +483,16 @@ async function parseFormDataNative(req) {
   });
 }
 
-// FORCED POKEMON EXTRACTION FOR TESTING
+// ✅ UPDATED: Backend OCR is now just a fallback
 async function extractTextFromImage(imageFile) {
-  console.log('=== OCR PROCESSING START ===');
+  console.log('=== OCR PROCESSING (Backend Fallback) ===');
+  console.log('⚠️ Backend OCR should not be used when frontend OCR is available');
   console.log('Image file size:', imageFile.size);
   console.log('Image type:', imageFile.mimetype);
   
-  const extractedText = 'Pokemon Card 031/182';
-  console.log('🎯 FORCED Pokemon extraction for testing:', extractedText);
-  
-  return extractedText;
+  // Return empty string - frontend should handle OCR
+  // If you want to add backend OCR later (Google Vision, etc.), do it here
+  return '';
 }
 
 // Find matching products with SINGLES prioritization
