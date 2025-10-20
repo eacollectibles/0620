@@ -1030,7 +1030,7 @@
       }
     }
 
-    // UPDATED: handleScanCard with Frontend OCR and DEBUG ALERTS
+    // ✅ SIMPLIFIED SCAN CARD FUNCTION - Creates rows inline
     function handleScanCard() {
       const input = document.createElement('input');
       input.type = 'file';
@@ -1068,75 +1068,106 @@
           console.log('Extracted text:', text);
           console.log('Confidence:', confidence);
           
-          // Extract card number from text - MORE FLEXIBLE
+          // Extract card number
           const cardNumberMatch = text.match(/[0O]{0,3}(\d{1,3})[\/\-\s]*(\d{2,3})/);
           let cardNumber = null;
           
           if (cardNumberMatch) {
             cardNumber = cardNumberMatch[0]
-              .replace(/[O]/g, '0')          // O to 0
-              .replace(/[\/\-\s]/g, '');     // Remove separators
-            
-            console.log('Card number detected:', cardNumber);
+              .replace(/[O]/g, '0')
+              .replace(/[\/\-\s]/g, '');
           }
           
-          // DEBUG ALERT FOR MOBILE
+          console.log('Card number detected:', cardNumber);
+          
+          // DEBUG ALERT
           alert(`📱 OCR RESULT:\n\n${text}\n\n────────\nCard #: ${cardNumber || 'Not detected'}\nConfidence: ${Math.round(confidence)}%`);
           
           scanBtn.innerHTML = '<span class="spinner"></span><span>Finding Card...</span>';
           
-          // Send to backend with extracted text
+          // Send to backend
           const formData = new FormData();
           formData.append('image', file);
           formData.append('search_type', 'pokemon_card');
           formData.append('extracted_text', text);
-          formData.append('match_threshold', '0.3');  // Lower threshold for better matching
+          formData.append('match_threshold', '0.3');
           
           if (cardNumber) {
             formData.append('card_number', cardNumber);
           }
+          
+          console.log('Sending to API...');
           
           const response = await fetch('/api/shopify-image-match', {
             method: 'POST',
             body: formData
           });
           
-          if (!response.ok) throw new Error('Scan failed');
+          if (!response.ok) {
+            throw new Error(`API returned ${response.status}: ${response.statusText}`);
+          }
           
           const data = await response.json();
           
           console.log('API Response:', data);
           
-          // DEBUG ALERT FOR API RESPONSE
+          // DEBUG ALERT
           alert(`📱 API RESPONSE:\n\nMatches: ${data.matches?.length || 0}\nSearched: ${data.total_products_searched}\nOCR Source: ${data.ocr_source}\n\n────────\nExtracted:\n${data.extracted_text?.substring(0, 80)}...`);
           
           if (data.matches && data.matches.length > 0) {
             const match = data.matches[0];
             
+            console.log('✅ Match found:', match.title);
+            
+            // ✅ SIMPLIFIED: Create new row directly inline
             const cardList = document.getElementById('card-list');
-            const lastRow = cardList.querySelector('.card-row:last-child');
             
-            const lastInput = lastRow.querySelector('[name="cardName"]');
-            const useLastRow = !lastInput.value.trim();
-            
-            let targetRow;
-            if (useLastRow) {
-              targetRow = lastRow;
-            } else {
-              targetRow = addNewCardRow();
+            if (!cardList) {
+              throw new Error('Card list element not found');
             }
             
-            const input = targetRow.querySelector('[name="cardName"]');
-            input.value = match.title;
-            input.classList.add('confirmed');
-            input.setAttribute('data-search-result', JSON.stringify({
-              match: match.title,
-              sku: match.sku,
-              retailPrice: parseFloat(match.price),
-              searchMethod: 'image_scan',
-              extractedText: text,
-              cardNumber: cardNumber
-            }));
+            // Create new row
+            const newRow = document.createElement('div');
+            newRow.className = 'card-row';
+            newRow.innerHTML = `
+              <div class="card-input-container">
+                <input type="text" class="card-input confirmed" name="cardName" placeholder="Enter card name or SKU" value="${match.title}" required>
+              </div>
+              <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
+              <button type="button" class="remove-btn">✖</button>
+            `;
+            
+            console.log('Adding row to card list...');
+            
+            // Add to list
+            cardList.appendChild(newRow);
+            
+            // Set up remove button
+            newRow.querySelector('.remove-btn').addEventListener('click', function() {
+              if (cardList.children.length > 1) {
+                newRow.remove();
+              } else {
+                alert('You must have at least one card.');
+              }
+            });
+            
+            // Get the input and add data
+            const input = newRow.querySelector('[name="cardName"]');
+            if (input) {
+              input.setAttribute('data-search-result', JSON.stringify({
+                match: match.title,
+                sku: match.sku,
+                retailPrice: parseFloat(match.price),
+                searchMethod: 'image_scan',
+                extractedText: text,
+                cardNumber: cardNumber
+              }));
+              
+              // Set up autocomplete for this input
+              setupCardSearch(input);
+            }
+            
+            console.log('✅ Card added successfully');
             
             scanBtn.innerHTML = '✅ Card Added!';
             setTimeout(() => {
@@ -1145,6 +1176,7 @@
             }, 2000);
             
           } else {
+            console.log('❌ No matches found');
             alert(`❌ No matching cards found\n\nOCR extracted:\n"${text}"\n\n────────\nTips:\n• Try better lighting\n• Hold camera directly above card\n• Or enter manually`);
             scanBtn.innerHTML = originalHTML;
             scanBtn.disabled = false;
@@ -1152,6 +1184,7 @@
           
         } catch (error) {
           console.error('Scan error:', error);
+          console.error('Error stack:', error.stack);
           alert('❌ Failed to scan card:\n\n' + error.message);
           scanBtn.innerHTML = originalHTML;
           scanBtn.disabled = false;
