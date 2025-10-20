@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Trade-In Your Cards</title>
   
-  <!-- ✅ ADDED: Tesseract.js for OCR -->
+  <!-- Tesseract.js for OCR -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   
   <style>
@@ -805,7 +805,7 @@
 
       setupCardSearch(newRow.querySelector('.card-input'));
       
-      return newRow; // Return the row for use in handleScanCard
+      return newRow;
     }
 
     function setupCardSearch(input) {
@@ -1030,7 +1030,7 @@
       }
     }
 
-    // ✅ UPDATED: handleScanCard with Frontend OCR
+    // UPDATED: handleScanCard with Frontend OCR and DEBUG ALERTS
     function handleScanCard() {
       const input = document.createElement('input');
       input.type = 'file';
@@ -1044,20 +1044,18 @@
         const scanBtn = document.getElementById('scan-card');
         const originalHTML = scanBtn.innerHTML;
         
-        // Show "Reading Card" status
         scanBtn.innerHTML = '<span class="spinner"></span><span>Reading Card...</span>';
         scanBtn.disabled = true;
         
         try {
           console.log('📸 Starting OCR on image...');
           
-          // ✅ DO OCR IN THE BROWSER!
+          // DO OCR IN THE BROWSER
           const { data: { text, confidence } } = await Tesseract.recognize(
             file,
             'eng',
             {
               logger: (m) => {
-                // Show progress to user
                 if (m.status === 'recognizing text') {
                   const percent = Math.round(m.progress * 100);
                   scanBtn.innerHTML = `<span class="spinner"></span><span>Reading... ${percent}%</span>`;
@@ -1070,20 +1068,29 @@
           console.log('Extracted text:', text);
           console.log('Confidence:', confidence);
           
-          // Extract card number from text
-          const cardNumberMatch = text.match(/(\d{3}\/\d{3}|\d{2}\/\d{3}|\d{1}\/\d{3})/);
-          const cardNumber = cardNumberMatch ? cardNumberMatch[0].replace('/', '') : null;
+          // Extract card number from text - MORE FLEXIBLE
+          const cardNumberMatch = text.match(/[0O]{0,3}(\d{1,3})[\/\-\s]*(\d{2,3})/);
+          let cardNumber = null;
           
-          console.log('Card number detected:', cardNumber);
+          if (cardNumberMatch) {
+            cardNumber = cardNumberMatch[0]
+              .replace(/[O]/g, '0')          // O to 0
+              .replace(/[\/\-\s]/g, '');     // Remove separators
+            
+            console.log('Card number detected:', cardNumber);
+          }
           
-          // Show "Finding Card" status
+          // DEBUG ALERT FOR MOBILE
+          alert(`📱 OCR RESULT:\n\n${text}\n\n────────\nCard #: ${cardNumber || 'Not detected'}\nConfidence: ${Math.round(confidence)}%`);
+          
           scanBtn.innerHTML = '<span class="spinner"></span><span>Finding Card...</span>';
           
-          // ✅ Send to backend with extracted text
+          // Send to backend with extracted text
           const formData = new FormData();
           formData.append('image', file);
           formData.append('search_type', 'pokemon_card');
-          formData.append('extracted_text', text); // ← Send OCR result
+          formData.append('extracted_text', text);
+          formData.append('match_threshold', '0.3');  // Lower threshold for better matching
           
           if (cardNumber) {
             formData.append('card_number', cardNumber);
@@ -1100,14 +1107,15 @@
           
           console.log('API Response:', data);
           
+          // DEBUG ALERT FOR API RESPONSE
+          alert(`📱 API RESPONSE:\n\nMatches: ${data.matches?.length || 0}\nSearched: ${data.total_products_searched}\nOCR Source: ${data.ocr_source}\n\n────────\nExtracted:\n${data.extracted_text?.substring(0, 80)}...`);
+          
           if (data.matches && data.matches.length > 0) {
             const match = data.matches[0];
             
-            // Add card to list
             const cardList = document.getElementById('card-list');
             const lastRow = cardList.querySelector('.card-row:last-child');
             
-            // Check if last row is empty
             const lastInput = lastRow.querySelector('[name="cardName"]');
             const useLastRow = !lastInput.value.trim();
             
@@ -1115,11 +1123,9 @@
             if (useLastRow) {
               targetRow = lastRow;
             } else {
-              // Create new row
               targetRow = addNewCardRow();
             }
             
-            // Fill in the card data
             const input = targetRow.querySelector('[name="cardName"]');
             input.value = match.title;
             input.classList.add('confirmed');
@@ -1132,7 +1138,6 @@
               cardNumber: cardNumber
             }));
             
-            // Success message
             scanBtn.innerHTML = '✅ Card Added!';
             setTimeout(() => {
               scanBtn.innerHTML = originalHTML;
@@ -1140,15 +1145,14 @@
             }, 2000);
             
           } else {
-            // No match found
-            alert(`No matching cards found.\n\nExtracted text: "${text}"\n\nPlease try:\n- Taking a clearer photo\n- Better lighting\n- Or enter the card manually`);
+            alert(`❌ No matching cards found\n\nOCR extracted:\n"${text}"\n\n────────\nTips:\n• Try better lighting\n• Hold camera directly above card\n• Or enter manually`);
             scanBtn.innerHTML = originalHTML;
             scanBtn.disabled = false;
           }
           
         } catch (error) {
           console.error('Scan error:', error);
-          alert('Failed to scan card: ' + error.message);
+          alert('❌ Failed to scan card:\n\n' + error.message);
           scanBtn.innerHTML = originalHTML;
           scanBtn.disabled = false;
         }
