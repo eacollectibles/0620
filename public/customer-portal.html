@@ -1030,7 +1030,7 @@
       }
     }
 
-    // ✅ SIMPLIFIED SCAN CARD FUNCTION - Creates rows inline
+    // ✅ ENHANCED SCAN CARD FUNCTION with Better Error Detection
     function handleScanCard() {
       const input = document.createElement('input');
       input.type = 'file';
@@ -1048,9 +1048,9 @@
         scanBtn.disabled = true;
         
         try {
-          console.log('📸 Starting OCR on image...');
+          console.log('📸 Step 1: Starting OCR...');
           
-          // DO OCR IN THE BROWSER
+          // DO OCR
           const { data: { text, confidence } } = await Tesseract.recognize(
             file,
             'eng',
@@ -1064,28 +1064,63 @@
             }
           );
           
-          console.log('✅ OCR Complete!');
-          console.log('Extracted text:', text);
+          console.log('✅ Step 1 Complete: OCR finished');
+          console.log('Full extracted text:', text);
           console.log('Confidence:', confidence);
           
-          // Extract card number
-          const cardNumberMatch = text.match(/[0O]{0,3}(\d{1,3})[\/\-\s]*(\d{2,3})/);
+          // IMPROVED: Extract card number with multiple patterns
           let cardNumber = null;
           
-          if (cardNumberMatch) {
-            cardNumber = cardNumberMatch[0]
-              .replace(/[O]/g, '0')
-              .replace(/[\/\-\s]/g, '');
+          // Try different patterns
+          const patterns = [
+            /NO\.\s*(\d{4})/i,                    // "NO. 0025"
+            /(\d{3,4})[\/\-](\d{3})/,              // "025/165" or "0025/165"
+            /#(\d{3,4})/,                          // "#025"
+            /\b(\d{3,4})\s*\/\s*(\d{3})\b/         // "025 / 165"
+          ];
+          
+          for (const pattern of patterns) {
+            const match = text.match(pattern);
+            if (match) {
+              if (match[2]) {
+                // Format like "025/165"
+                cardNumber = match[1] + match[2];
+              } else {
+                // Format like "NO. 0025"
+                cardNumber = match[1];
+              }
+              console.log(`Found card number using pattern: ${pattern}, result: ${cardNumber}`);
+              break;
+            }
           }
           
-          console.log('Card number detected:', cardNumber);
+          // Also extract Pokemon name
+          let pokemonName = null;
+          const nameMatch = text.match(/(?:^|\n)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s*(?:HP|[0-9])/m);
+          if (nameMatch) {
+            pokemonName = nameMatch[1].trim();
+            console.log('Found Pokemon name:', pokemonName);
+          }
           
-          // DEBUG ALERT
-          alert(`📱 OCR RESULT:\n\n${text}\n\n────────\nCard #: ${cardNumber || 'Not detected'}\nConfidence: ${Math.round(confidence)}%`);
+          console.log('Final card number:', cardNumber);
+          console.log('Final Pokemon name:', pokemonName);
           
+          // FIRST ALERT - with confirm to continue
+          const alertMsg = `📱 OCR RESULT:\n\nPokemon: ${pokemonName || 'Unknown'}\nCard #: ${cardNumber || 'Not detected'}\nConfidence: ${Math.round(confidence)}%\n\n────────\nExtracted Text:\n${text.substring(0, 150)}...\n\n────────\nClick OK to search, or Cancel to stop.`;
+          
+          const alertConfirm = confirm(alertMsg);
+          
+          if (!alertConfirm) {
+            console.log('User cancelled after OCR');
+            scanBtn.innerHTML = originalHTML;
+            scanBtn.disabled = false;
+            return;
+          }
+          
+          console.log('📤 Step 2: Preparing API request...');
           scanBtn.innerHTML = '<span class="spinner"></span><span>Finding Card...</span>';
           
-          // Send to backend
+          // Prepare form data
           const formData = new FormData();
           formData.append('image', file);
           formData.append('search_type', 'pokemon_card');
@@ -1096,37 +1131,78 @@
             formData.append('card_number', cardNumber);
           }
           
-          console.log('Sending to API...');
+          console.log('📤 Sending to API...');
+          console.log('API URL:', '/api/shopify-image-match');
+          console.log('Card number being sent:', cardNumber);
+          console.log('Pokemon name:', pokemonName);
           
-          const response = await fetch('/api/shopify-image-match', {
-            method: 'POST',
-            body: formData
-          });
+          let response;
+          let data;
           
-          if (!response.ok) {
-            throw new Error(`API returned ${response.status}: ${response.statusText}`);
+          try {
+            console.log('Making fetch request...');
+            response = await fetch('/api/shopify-image-match', {
+              method: 'POST',
+              body: formData
+            });
+            
+            console.log('✅ Got response from API');
+            console.log('Response status:', response.status);
+            console.log('Response OK:', response.ok);
+            console.log('Response headers:', [...response.headers.entries()]);
+            
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error('API error response:', errorText);
+              throw new Error(`API returned ${response.status}: ${errorText.substring(0, 200)}`);
+            }
+            
+            const responseText = await response.text();
+            console.log('Response text (first 500 chars):', responseText.substring(0, 500));
+            
+            try {
+              data = JSON.parse(responseText);
+              console.log('✅ Parsed JSON successfully');
+            } catch (parseError) {
+              console.error('JSON parse error:', parseError);
+              throw new Error(`Failed to parse response as JSON: ${parseError.message}`);
+            }
+            
+            console.log('Response data:', JSON.stringify(data, null, 2));
+            
+          } catch (fetchError) {
+            console.error('❌ API Fetch Error:', fetchError);
+            console.error('Error stack:', fetchError.stack);
+            alert(`❌ API ERROR:\n\n${fetchError.message}\n\n────────\nCheck browser console (F12) for details`);
+            scanBtn.innerHTML = originalHTML;
+            scanBtn.disabled = false;
+            return;
           }
           
-          const data = await response.json();
+          // SECOND ALERT - with all the debug info
+          const debugInfo = {
+            matches: data.matches?.length || 0,
+            searched: data.total_products_searched || 0,
+            ocrSource: data.ocr_source || 'unknown',
+            success: data.success || false
+          };
           
-          console.log('API Response:', data);
+          const alertMsg2 = `📱 API RESPONSE:\n\nMatches Found: ${debugInfo.matches}\nProducts Searched: ${debugInfo.searched}\nOCR Source: ${debugInfo.ocrSource}\nSuccess: ${debugInfo.success}\n\n────────\nExtracted (API):\n${data.extracted_text?.substring(0, 100) || 'none'}...\n\n────────\nFirst Match:\n${data.matches?.[0]?.title || 'No matches'}`;
           
-          // DEBUG ALERT
-          alert(`📱 API RESPONSE:\n\nMatches: ${data.matches?.length || 0}\nSearched: ${data.total_products_searched}\nOCR Source: ${data.ocr_source}\n\n────────\nExtracted:\n${data.extracted_text?.substring(0, 80)}...`);
+          alert(alertMsg2);
           
           if (data.matches && data.matches.length > 0) {
             const match = data.matches[0];
             
             console.log('✅ Match found:', match.title);
             
-            // ✅ SIMPLIFIED: Create new row directly inline
+            // Create new row
             const cardList = document.getElementById('card-list');
             
             if (!cardList) {
               throw new Error('Card list element not found');
             }
             
-            // Create new row
             const newRow = document.createElement('div');
             newRow.className = 'card-row';
             newRow.innerHTML = `
@@ -1137,12 +1213,8 @@
               <button type="button" class="remove-btn">✖</button>
             `;
             
-            console.log('Adding row to card list...');
-            
-            // Add to list
             cardList.appendChild(newRow);
             
-            // Set up remove button
             newRow.querySelector('.remove-btn').addEventListener('click', function() {
               if (cardList.children.length > 1) {
                 newRow.remove();
@@ -1151,7 +1223,6 @@
               }
             });
             
-            // Get the input and add data
             const input = newRow.querySelector('[name="cardName"]');
             if (input) {
               input.setAttribute('data-search-result', JSON.stringify({
@@ -1160,10 +1231,10 @@
                 retailPrice: parseFloat(match.price),
                 searchMethod: 'image_scan',
                 extractedText: text,
-                cardNumber: cardNumber
+                cardNumber: cardNumber,
+                pokemonName: pokemonName
               }));
               
-              // Set up autocomplete for this input
               setupCardSearch(input);
             }
             
@@ -1177,15 +1248,18 @@
             
           } else {
             console.log('❌ No matches found');
-            alert(`❌ No matching cards found\n\nOCR extracted:\n"${text}"\n\n────────\nTips:\n• Try better lighting\n• Hold camera directly above card\n• Or enter manually`);
+            const noMatchMsg = `❌ No matching cards found\n\nSearched: ${debugInfo.searched} products\n\nOCR extracted:\nPokemon: ${pokemonName || 'Unknown'}\nCard #: ${cardNumber || 'Not detected'}\n\n────────\nTips:\n• Try better lighting\n• Hold camera directly above card\n• Or enter "${pokemonName || 'card name'}" manually`;
+            alert(noMatchMsg);
             scanBtn.innerHTML = originalHTML;
             scanBtn.disabled = false;
           }
           
         } catch (error) {
-          console.error('Scan error:', error);
+          console.error('❌ Scan error:', error);
           console.error('Error stack:', error.stack);
-          alert('❌ Failed to scan card:\n\n' + error.message);
+          console.error('Error name:', error.name);
+          console.error('Error message:', error.message);
+          alert(`❌ Failed to scan card:\n\n${error.message}\n\nError type: ${error.name}\n\n────────\nCheck browser console (F12) for full details`);
           scanBtn.innerHTML = originalHTML;
           scanBtn.disabled = false;
         }
