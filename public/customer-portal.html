@@ -62,7 +62,7 @@
     }
 
     .ea-trade-rate-value {
-      font-size: 20px;
+      font-size: 16px;
       font-weight: 700;
       color: #4ade80;
     }
@@ -113,7 +113,7 @@
 
     .ea-trade-search-input {
       width: 100%;
-      padding: 18px 130px 18px 56px;
+      padding: 18px 170px 18px 56px;
       background: rgba(255,255,255,0.03);
       border: 1px solid rgba(212, 175, 55, 0.2);
       border-radius: 16px;
@@ -131,6 +131,34 @@
 
     .ea-trade-search-input::placeholder {
       color: rgba(255,255,255,0.4);
+    }
+
+    .ea-trade-clear-btn {
+      position: absolute;
+      right: 130px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 32px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      border-radius: 50%;
+      color: rgba(255,255,255,0.6);
+      font-size: 18px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-clear-btn:hover {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+    }
+
+    .ea-trade-clear-btn.visible {
+      display: flex;
     }
 
     .ea-trade-scan-btn {
@@ -403,13 +431,15 @@
     }
 
     .ea-trade-payout-rate {
-      font-weight: 700;
-      font-size: 14px;
-      color: #4ade80;
+      font-weight: 600;
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
-    .ea-trade-payout-option.cash .ea-trade-payout-rate {
-      color: #f59e0b;
+    .ea-trade-payout-option.selected .ea-trade-payout-rate {
+      color: #d4af37;
     }
 
     /* Cart Items */
@@ -766,11 +796,11 @@
     <div class="ea-trade-rates">
       <div class="ea-trade-rate">
         <div class="ea-trade-rate-label">Store Credit</div>
-        <div class="ea-trade-rate-value">Up to 60%</div>
+        <div class="ea-trade-rate-value">Best Value</div>
       </div>
       <div class="ea-trade-rate">
         <div class="ea-trade-rate-label">Cash</div>
-        <div class="ea-trade-rate-value cash">Up to 45%</div>
+        <div class="ea-trade-rate-value cash">Available</div>
       </div>
     </div>
   </header>
@@ -784,6 +814,7 @@
       <div class="ea-trade-search-box">
         <span class="ea-trade-search-icon">🔍</span>
         <input type="text" class="ea-trade-search-input" id="search-input" placeholder="Enter card name, set, or number..." autocomplete="off">
+        <button class="ea-trade-clear-btn" id="clear-btn" type="button">✕</button>
         <button class="ea-trade-scan-btn" id="scan-btn">
           <span>📷</span> Scan Card
         </button>
@@ -820,17 +851,17 @@
             <div class="ea-trade-payout-option selected" data-payout="store-credit">
               <div class="ea-trade-payout-icon">🏪</div>
               <div class="ea-trade-payout-name">Store Credit</div>
-              <div class="ea-trade-payout-rate">60%</div>
+              <div class="ea-trade-payout-rate">Best Value</div>
             </div>
             <div class="ea-trade-payout-option" data-payout="gift-card">
               <div class="ea-trade-payout-icon">🎁</div>
               <div class="ea-trade-payout-name">Gift Card</div>
-              <div class="ea-trade-payout-rate">55%</div>
+              <div class="ea-trade-payout-rate">Instant</div>
             </div>
             <div class="ea-trade-payout-option cash" data-payout="cash">
               <div class="ea-trade-payout-icon">💵</div>
               <div class="ea-trade-payout-name">Cash</div>
-              <div class="ea-trade-payout-rate">45%</div>
+              <div class="ea-trade-payout-rate">In-Store</div>
             </div>
           </div>
         </div>
@@ -906,6 +937,7 @@
 
     // DOM Elements
     const searchInput = document.getElementById('search-input');
+    const clearBtn = document.getElementById('clear-btn');
     const resultsContainer = document.getElementById('results-container');
     const cartItems = document.getElementById('cart-items');
     const cartCount = document.getElementById('cart-count');
@@ -927,6 +959,13 @@
       searchInput.addEventListener('input', function() {
         const query = this.value.trim();
         
+        // Show/hide clear button
+        if (query.length > 0) {
+          clearBtn.classList.add('visible');
+        } else {
+          clearBtn.classList.remove('visible');
+        }
+        
         if (searchTimeout) clearTimeout(searchTimeout);
         
         if (query.length < 2) {
@@ -947,6 +986,19 @@
         `;
 
         searchTimeout = setTimeout(() => performSearch(query), 400);
+      });
+
+      // Clear button functionality
+      clearBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        clearBtn.classList.remove('visible');
+        resultsContainer.innerHTML = `
+          <div class="ea-trade-empty">
+            <div class="ea-trade-empty-icon">🔍</div>
+            <p>Start typing to search for cards</p>
+          </div>
+        `;
+        searchInput.focus();
       });
     }
 
@@ -1369,3 +1421,4 @@
   </script>
 </body>
 </html>
+
