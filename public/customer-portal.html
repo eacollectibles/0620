@@ -253,7 +253,8 @@
     .ea-trade-result-image img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
+      background: #1a1a2e;
     }
 
     .ea-trade-result-info {
@@ -472,6 +473,14 @@
       justify-content: center;
       font-size: 16px;
       flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .ea-trade-cart-item-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #1a1a2e;
     }
 
     .ea-trade-cart-item-info {
@@ -1062,10 +1071,13 @@
         const price = option.price || 0;
         const rate = getCurrentRate();
         const tradeValue = price * rate;
+        const imageUrl = option.image || option.imageUrl || null;
         
         html += `
           <div class="ea-trade-result" onclick="addToCart(${index})" data-option='${JSON.stringify(option).replace(/'/g, "\\'")}'>
-            <div class="ea-trade-result-image">🎴</div>
+            <div class="ea-trade-result-image">
+              ${imageUrl ? `<img src="${imageUrl}" alt="${option.fullTitle || option.productTitle || 'Card'}" onerror="this.parentElement.innerHTML='🎴'">` : '🎴'}
+            </div>
             <div class="ea-trade-result-info">
               <div class="ea-trade-result-title">${option.fullTitle || option.productTitle || 'Unknown'}</div>
               <div class="ea-trade-result-meta">SKU: ${option.sku || 'N/A'} • Retail: $${price.toFixed(2)}</div>
@@ -1091,7 +1103,8 @@
         title: option.fullTitle || option.productTitle,
         sku: option.sku,
         price: option.price || 0,
-        condition: 'NM'
+        condition: 'NM',
+        image: option.image || option.imageUrl || null
       });
       
       updateCart();
@@ -1134,7 +1147,9 @@
           
           html += `
             <div class="ea-trade-cart-item">
-              <div class="ea-trade-cart-item-image">🎴</div>
+              <div class="ea-trade-cart-item-image">
+                ${item.image ? `<img src="${item.image}" alt="${item.title}" onerror="this.parentElement.innerHTML='🎴'">` : '🎴'}
+              </div>
               <div class="ea-trade-cart-item-info">
                 <div class="ea-trade-cart-item-title">${item.title}</div>
                 <div class="ea-trade-cart-item-meta">
@@ -1421,4 +1436,3 @@
   </script>
 </body>
 </html>
-
