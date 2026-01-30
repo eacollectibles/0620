@@ -254,7 +254,6 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
-      background: #1a1a2e;
     }
 
     .ea-trade-result-info {
@@ -510,7 +509,6 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
-      background: #1a1a2e;
     }
 
     .ea-trade-cart-item-info {
@@ -776,6 +774,132 @@
       box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
     }
 
+    /* Representative Trade-In Section */
+    .ea-trade-rep-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .ea-trade-rep-divider {
+      text-align: center;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .ea-trade-rep-divider::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 1px;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .ea-trade-rep-divider span {
+      position: relative;
+      background: rgba(255,255,255,0.02);
+      padding: 0 12px;
+      color: rgba(255,255,255,0.4);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .ea-trade-rep-btn {
+      width: 100%;
+      padding: 14px 20px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 10px;
+      color: #ef4444;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .ea-trade-rep-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: #ef4444;
+    }
+
+    .ea-trade-rep-auth {
+      margin-top: 16px;
+    }
+
+    .ea-trade-rep-password {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      text-align: center;
+      margin-bottom: 12px;
+      outline: none;
+    }
+
+    .ea-trade-rep-password:focus {
+      border-color: rgba(239, 68, 68, 0.5);
+    }
+
+    .ea-trade-rep-confirm {
+      width: 100%;
+      padding: 14px 20px;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .ea-trade-rep-confirm:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);
+    }
+
+    .ea-trade-rep-confirm:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .ea-trade-rep-note {
+      text-align: center;
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      margin-top: 10px;
+    }
+
+    .ea-trade-rep-success {
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      color: #4ade80;
+      font-weight: 600;
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
     /* Scrollbar */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
@@ -931,6 +1055,26 @@
         <button class="ea-trade-submit-btn" id="submit-btn" disabled>
           <span>🚀</span> Submit Trade-In Request
         </button>
+
+        <!-- Representative Trade-In Section -->
+        <div class="ea-trade-rep-section">
+          <div class="ea-trade-rep-divider">
+            <span>Staff Only</span>
+          </div>
+          <button class="ea-trade-rep-btn" id="rep-trade-btn" onclick="showRepAuth()">
+            <span>🔐</span> Representative Trade-In
+          </button>
+          <div class="ea-trade-rep-auth" id="rep-auth-section" style="display: none;">
+            <input type="password" class="ea-trade-rep-password" id="rep-password" placeholder="Enter staff password">
+            <button class="ea-trade-rep-confirm" id="rep-confirm-btn" onclick="processRepTrade()">
+              <span>📦</span> Process & Add to Inventory
+            </button>
+            <p class="ea-trade-rep-note">This will instantly add cards to Shopify inventory</p>
+          </div>
+          <div class="ea-trade-rep-success" id="rep-success" style="display: none;">
+            <span>✅</span> Inventory Updated Successfully!
+          </div>
+        </div>
       </div>
     </div>
   </main>
@@ -1363,9 +1507,8 @@
       let tradeTotal = 0;
       
       cart.forEach(item => {
-        const conditionRate = CONFIG.conditionRates[item.condition];
         retailTotal += item.price;
-        tradeTotal += item.price * rate * conditionRate;
+        tradeTotal += item.price * rate;
       });
 
       const payoutNames = {
@@ -1403,6 +1546,7 @@
       cart = [];
       updateCart();
       searchInput.value = '';
+      clearBtn.classList.remove('visible');
       resultsContainer.innerHTML = `
         <div class="ea-trade-empty">
           <div class="ea-trade-empty-icon">🔍</div>
@@ -1414,6 +1558,104 @@
       document.getElementById('customer-phone').value = '';
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<span>🚀</span> Submit Trade-In Request';
+      resetRepSection();
+    }
+
+    // Representative Trade-In Functions
+    const REP_PASSWORD = 'EArep2025'; // Change this password
+
+    function showRepAuth() {
+      if (cart.length === 0) {
+        alert('Please add cards to the cart first');
+        return;
+      }
+      document.getElementById('rep-trade-btn').style.display = 'none';
+      document.getElementById('rep-auth-section').style.display = 'block';
+      document.getElementById('rep-password').focus();
+    }
+
+    async function processRepTrade() {
+      const password = document.getElementById('rep-password').value;
+      
+      if (password !== REP_PASSWORD) {
+        alert('Incorrect password');
+        document.getElementById('rep-password').value = '';
+        document.getElementById('rep-password').focus();
+        return;
+      }
+
+      if (cart.length === 0) {
+        alert('No items to process');
+        return;
+      }
+
+      const confirmBtn = document.getElementById('rep-confirm-btn');
+      confirmBtn.disabled = true;
+      confirmBtn.innerHTML = '<span class="ea-trade-spinner" style="width:16px;height:16px;border-width:2px;margin:0;"></span> Processing...';
+
+      try {
+        // Call the API WITHOUT estimate mode to actually update inventory
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cards: cart.map(item => ({
+              cardName: item.title,
+              quantity: 1,
+              condition: item.condition,
+              sku: item.sku,
+              searchMethod: 'exact_sku'
+            })),
+            employeeName: 'Customer Portal Rep',
+            payoutMethod: selectedPayout
+            // No estimate=true query param, so it will update inventory
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to process trade-in');
+        }
+
+        // Show success
+        document.getElementById('rep-auth-section').style.display = 'none';
+        document.getElementById('rep-success').style.display = 'flex';
+        
+        // Reset after 3 seconds
+        setTimeout(() => {
+          resetRepSection();
+          cart = [];
+          updateCart();
+          searchInput.value = '';
+          clearBtn.classList.remove('visible');
+          resultsContainer.innerHTML = `
+            <div class="ea-trade-empty">
+              <div class="ea-trade-empty-icon">✅</div>
+              <p>Trade-in processed successfully!</p>
+              <p style="font-size: 13px; margin-top: 8px; opacity: 0.6;">Inventory has been updated</p>
+            </div>
+          `;
+        }, 3000);
+        
+        console.log('Rep trade-in processed:', data);
+
+      } catch (error) {
+        console.error('Rep trade-in error:', error);
+        alert('Error: ' + error.message);
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<span>📦</span> Process & Add to Inventory';
+      }
+    }
+
+    function resetRepSection() {
+      document.getElementById('rep-auth-section').style.display = 'none';
+      document.getElementById('rep-success').style.display = 'none';
+      document.getElementById('rep-trade-btn').style.display = 'flex';
+      document.getElementById('rep-password').value = '';
+      const confirmBtn = document.getElementById('rep-confirm-btn');
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = '<span>📦</span> Process & Add to Inventory';
     }
 
     // OCR Scan
