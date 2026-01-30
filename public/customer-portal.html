@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trade-In Portal | EA Collectibles</title>
+  <title>Sell Your Cards | EA Collectibles</title>
   
   <!-- Tesseract.js for OCR -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -113,7 +113,7 @@
 
     .ea-trade-search-input {
       width: 100%;
-      padding: 18px 170px 18px 56px;
+      padding: 18px 180px 18px 56px;
       background: rgba(255,255,255,0.03);
       border: 1px solid rgba(212, 175, 55, 0.2);
       border-radius: 16px;
@@ -135,16 +135,16 @@
 
     .ea-trade-clear-btn {
       position: absolute;
-      right: 130px;
+      right: 140px;
       top: 50%;
       transform: translateY(-50%);
-      width: 32px;
-      height: 32px;
+      width: 28px;
+      height: 28px;
       background: rgba(255,255,255,0.1);
       border: none;
       border-radius: 50%;
       color: rgba(255,255,255,0.6);
-      font-size: 18px;
+      font-size: 16px;
       cursor: pointer;
       display: none;
       align-items: center;
@@ -954,8 +954,8 @@
   <!-- Header -->
   <header class="ea-trade-header">
     <div class="ea-trade-header-left">
-      <h1>Trade-In Portal</h1>
-      <p>Get instant quotes on your cards</p>
+      <h1>Sell Your Cards</h1>
+      <p>Get cash or store credit instantly</p>
     </div>
     <div class="ea-trade-rates">
       <div class="ea-trade-rate">
@@ -1016,11 +1016,6 @@
               <div class="ea-trade-payout-icon">🏪</div>
               <div class="ea-trade-payout-name">Store Credit</div>
               <div class="ea-trade-payout-rate">Best Value</div>
-            </div>
-            <div class="ea-trade-payout-option" data-payout="gift-card">
-              <div class="ea-trade-payout-icon">🎁</div>
-              <div class="ea-trade-payout-name">Gift Card</div>
-              <div class="ea-trade-payout-rate">Instant</div>
             </div>
             <div class="ea-trade-payout-option cash" data-payout="cash">
               <div class="ea-trade-payout-icon">💵</div>
@@ -1104,7 +1099,6 @@
     
     const CONFIG = {
       storeCreditRate: 0.60,
-      giftCardRate: 0.55,
       cashRate: 0.45
     };
 
@@ -1420,7 +1414,6 @@
     function getCurrentRate() {
       switch (selectedPayout) {
         case 'store-credit': return CONFIG.storeCreditRate;
-        case 'gift-card': return CONFIG.giftCardRate;
         case 'cash': return CONFIG.cashRate;
         default: return CONFIG.storeCreditRate;
       }
@@ -1513,7 +1506,6 @@
 
       const payoutNames = {
         'store-credit': 'Store Credit',
-        'gift-card': 'Gift Card',
         'cash': 'Cash'
       };
 
