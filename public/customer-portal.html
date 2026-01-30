@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sell Your Cards | EA Collectibles</title>
   
-  <!-- Tesseract.js for OCR -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -18,20 +15,59 @@
       color: #fff;
     }
 
-    /* Header */
-    .ea-trade-header {
-      padding: 24px 40px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+    /* EA Top Bar */
+    .ea-top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 20px;
+      padding: 12px 40px;
+      background: rgba(0,0,0,0.5);
+      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
     }
 
-    .ea-trade-header-left h1 {
+    .ea-top-bar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #fff;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .ea-top-bar-logo:hover {
+      color: #d4af37;
+    }
+
+    .ea-top-bar-icon {
+      font-size: 24px;
+    }
+
+    .ea-top-bar-nav {
+      display: flex;
+      gap: 24px;
+    }
+
+    .ea-top-bar-nav a {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s ease;
+    }
+
+    .ea-top-bar-nav a:hover {
+      color: #d4af37;
+    }
+
+    /* Header */
+    .ea-trade-header {
+      padding: 40px 40px 30px;
+      text-align: center;
+    }
+
+    .ea-trade-header h1 {
       margin: 0;
-      font-size: 28px;
+      font-size: 36px;
       font-weight: 700;
       background: linear-gradient(135deg, #d4af37 0%, #f4e4a6 50%, #d4af37 100%);
       -webkit-background-clip: text;
@@ -39,36 +75,11 @@
       background-clip: text;
     }
 
-    .ea-trade-header-left p {
-      margin: 4px 0 0;
-      opacity: 0.5;
-      font-size: 13px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
-
-    .ea-trade-rates {
-      display: flex;
-      gap: 24px;
-    }
-
-    .ea-trade-rate {
-      text-align: right;
-    }
-
-    .ea-trade-rate-label {
-      font-size: 12px;
-      opacity: 0.5;
-    }
-
-    .ea-trade-rate-value {
+    .ea-trade-header p {
+      margin: 8px 0 0;
+      opacity: 0.6;
       font-size: 16px;
-      font-weight: 700;
-      color: #4ade80;
-    }
-
-    .ea-trade-rate-value.cash {
-      color: #f59e0b;
+      color: #fff;
     }
 
     /* Main Layout */
@@ -113,7 +124,7 @@
 
     .ea-trade-search-input {
       width: 100%;
-      padding: 18px 180px 18px 56px;
+      padding: 18px 56px 18px 56px;
       background: rgba(255,255,255,0.03);
       border: 1px solid rgba(212, 175, 55, 0.2);
       border-radius: 16px;
@@ -135,7 +146,7 @@
 
     .ea-trade-clear-btn {
       position: absolute;
-      right: 140px;
+      right: 16px;
       top: 50%;
       transform: translateY(-50%);
       width: 28px;
@@ -159,36 +170,6 @@
 
     .ea-trade-clear-btn.visible {
       display: flex;
-    }
-
-    .ea-trade-scan-btn {
-      position: absolute;
-      right: 8px;
-      top: 50%;
-      transform: translateY(-50%);
-      padding: 12px 20px;
-      background: linear-gradient(135deg, #d4af37 0%, #b8962e 100%);
-      border: none;
-      border-radius: 10px;
-      color: #0a0a0a;
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s ease;
-    }
-
-    .ea-trade-scan-btn:hover {
-      transform: translateY(-50%) scale(1.02);
-      box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
-    }
-
-    .ea-trade-scan-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: translateY(-50%);
     }
 
     /* Loading State */
@@ -922,51 +903,39 @@
 
     @media (max-width: 640px) {
       .ea-trade-header {
-        padding: 20px;
-        flex-direction: column;
-        text-align: center;
+        padding: 30px 20px 20px;
       }
-      .ea-trade-rates {
-        justify-content: center;
+      .ea-trade-header h1 {
+        font-size: 28px;
       }
       .ea-trade-payout-options {
         flex-direction: column;
       }
-      .ea-trade-scan-btn {
-        position: static;
-        transform: none;
-        width: 100%;
-        margin-top: 12px;
-        justify-content: center;
-      }
       .ea-trade-search-input {
-        padding-right: 20px;
-      }
-      .ea-trade-search-box {
-        display: flex;
-        flex-direction: column;
+        padding-right: 50px;
       }
     }
   </style>
 </head>
 <body>
 
+  <!-- EA Header Bar -->
+  <div class="ea-top-bar">
+    <a href="https://eacollectibles.com" class="ea-top-bar-logo">
+      <span class="ea-top-bar-icon">🎴</span>
+      <span>EA Collectibles</span>
+    </a>
+    <nav class="ea-top-bar-nav">
+      <a href="https://eacollectibles.com/collections/all">Shop</a>
+      <a href="https://eacollectibles.com/pages/location">Location</a>
+      <a href="https://eacollectibles.com/pages/contact">Contact</a>
+    </nav>
+  </div>
+
   <!-- Header -->
   <header class="ea-trade-header">
-    <div class="ea-trade-header-left">
-      <h1>Sell Your Cards</h1>
-      <p>Get cash or store credit instantly</p>
-    </div>
-    <div class="ea-trade-rates">
-      <div class="ea-trade-rate">
-        <div class="ea-trade-rate-label">Store Credit</div>
-        <div class="ea-trade-rate-value">Best Value</div>
-      </div>
-      <div class="ea-trade-rate">
-        <div class="ea-trade-rate-label">Cash</div>
-        <div class="ea-trade-rate-value cash">Available</div>
-      </div>
-    </div>
+    <h1>Sell Your Cards</h1>
+    <p>Get cash or store credit instantly</p>
   </header>
 
   <!-- Main Content -->
@@ -979,9 +948,6 @@
         <span class="ea-trade-search-icon">🔍</span>
         <input type="text" class="ea-trade-search-input" id="search-input" placeholder="Enter card name, set, or number..." autocomplete="off">
         <button class="ea-trade-clear-btn" id="clear-btn" type="button">✕</button>
-        <button class="ea-trade-scan-btn" id="scan-btn">
-          <span>📷</span> Scan Card
-        </button>
       </div>
 
       <div id="results-container">
@@ -1116,14 +1082,12 @@
     const totalRetail = document.getElementById('total-retail');
     const totalQuote = document.getElementById('total-quote');
     const submitBtn = document.getElementById('submit-btn');
-    const scanBtn = document.getElementById('scan-btn');
 
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
       setupSearch();
       setupPayout();
       setupSubmit();
-      setupScan();
     });
 
     // Search
@@ -1648,109 +1612,6 @@
       const confirmBtn = document.getElementById('rep-confirm-btn');
       confirmBtn.disabled = false;
       confirmBtn.innerHTML = '<span>📦</span> Process & Add to Inventory';
-    }
-
-    // OCR Scan
-    function setupScan() {
-      scanBtn.addEventListener('click', handleScan);
-    }
-
-    async function handleScan() {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      input.capture = 'environment';
-      
-      input.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        const originalHTML = scanBtn.innerHTML;
-        scanBtn.innerHTML = '<span class="ea-trade-spinner" style="width:16px;height:16px;border-width:2px;margin:0;"></span> Reading...';
-        scanBtn.disabled = true;
-        
-        try {
-          const { data: { text, confidence } } = await Tesseract.recognize(
-            file,
-            'eng',
-            {
-              logger: (m) => {
-                if (m.status === 'recognizing text') {
-                  const percent = Math.round(m.progress * 100);
-                  scanBtn.innerHTML = `<span class="ea-trade-spinner" style="width:16px;height:16px;border-width:2px;margin:0;"></span> ${percent}%`;
-                }
-              }
-            }
-          );
-          
-          // Extract card info
-          let cardNumber = null;
-          const patterns = [
-            /NO\.\s*(\d{4})/i,
-            /(\d{3,4})[\/\-](\d{3})/,
-            /#(\d{3,4})/,
-          ];
-          
-          for (const pattern of patterns) {
-            const match = text.match(pattern);
-            if (match) {
-              cardNumber = match[2] ? match[1] + match[2] : match[1];
-              break;
-            }
-          }
-          
-          let pokemonName = null;
-          const nameMatch = text.match(/(?:^|\n)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s*(?:HP|[0-9])/m);
-          if (nameMatch) pokemonName = nameMatch[1].trim();
-
-          // Search via image match API
-          scanBtn.innerHTML = '<span class="ea-trade-spinner" style="width:16px;height:16px;border-width:2px;margin:0;"></span> Matching...';
-          
-          const formData = new FormData();
-          formData.append('image', file);
-          formData.append('search_type', 'pokemon_card');
-          formData.append('extracted_text', text);
-          if (cardNumber) formData.append('card_number', cardNumber);
-          
-          const response = await fetch('/api/shopify-image-match', {
-            method: 'POST',
-            body: formData
-          });
-          
-          if (!response.ok) throw new Error('Match failed');
-          
-          const data = await response.json();
-          
-          if (data.matches && data.matches.length > 0) {
-            const match = data.matches[0];
-            cart.push({
-              title: match.title,
-              sku: match.sku,
-              price: parseFloat(match.price) || 0,
-              condition: 'NM'
-            });
-            updateCart();
-            
-            scanBtn.innerHTML = '✓ Added!';
-            setTimeout(() => {
-              scanBtn.innerHTML = originalHTML;
-              scanBtn.disabled = false;
-            }, 2000);
-          } else {
-            alert(`No match found.\n\nDetected: ${pokemonName || 'Unknown'}\nCard #: ${cardNumber || 'Not found'}\n\nTry searching manually.`);
-            scanBtn.innerHTML = originalHTML;
-            scanBtn.disabled = false;
-          }
-          
-        } catch (error) {
-          console.error('Scan error:', error);
-          alert('Scan failed. Please try again or search manually.');
-          scanBtn.innerHTML = '<span>📷</span> Scan Card';
-          scanBtn.disabled = false;
-        }
-      };
-      
-      input.click();
     }
   </script>
 </body>
