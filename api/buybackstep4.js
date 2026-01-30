@@ -264,12 +264,18 @@ module.exports = async function handler(req, res) {
               sku
               price
               inventoryQuantity
+              image {
+                url
+              }
               inventoryItem {
                 id
               }
               product {
                 id
                 title
+                featuredImage {
+                  url
+                }
               }
             }
           }
@@ -304,7 +310,8 @@ module.exports = async function handler(req, res) {
             price: variant.price,
             inventory_item_id: numericInventoryItemId
           },
-          searchMethod: 'exact_sku'
+          searchMethod: 'exact_sku',
+          image: variant.image?.url || variant.product.featuredImage?.url || null
         };
       }
       
@@ -341,7 +348,8 @@ module.exports = async function handler(req, res) {
             price: variant.price,
             inventory_item_id: variant.inventory_item_id
           },
-          searchMethod: 'title'
+          searchMethod: 'title',
+          image: product.image?.src || product.images?.[0]?.src || null
         };
       }
       
@@ -360,12 +368,18 @@ module.exports = async function handler(req, res) {
               sku
               price
               inventoryQuantity
+              image {
+                url
+              }
               inventoryItem {
                 id
               }
               product {
                 id
                 title
+                featuredImage {
+                  url
+                }
               }
             }
           }
@@ -400,7 +414,8 @@ module.exports = async function handler(req, res) {
             price: variant.price,
             inventory_item_id: numericInventoryItemId
           },
-          searchMethod: 'sku'
+          searchMethod: 'sku',
+          image: variant.image?.url || variant.product.featuredImage?.url || null
         };
       }
       
@@ -420,6 +435,9 @@ module.exports = async function handler(req, res) {
               id
               title
               tags
+              featuredImage {
+                url
+              }
               variants(first: 5) {
                 edges {
                   node {
@@ -468,7 +486,8 @@ module.exports = async function handler(req, res) {
             inventoryItemId: variant.inventoryItem?.id?.replace('gid://shopify/InventoryItem/', ''),
             fullTitle: variant.title !== 'Default Title' ? `${product.title} - ${variant.title}` : product.title,
             productId: product.id,
-            variantId: variant.id
+            variantId: variant.id,
+            image: product.featuredImage?.url || null
           });
         });
       });
@@ -487,7 +506,8 @@ module.exports = async function handler(req, res) {
             inventory_item_id: option.inventoryItemId
           },
           searchMethod: 'tag_single',
-          confidence: 'high'
+          confidence: 'high',
+          image: option.image || null
         };
       }
 
@@ -509,7 +529,8 @@ module.exports = async function handler(req, res) {
           searchMethod: 'tag_confident',
           confidence: 'high',
           alternativeCount: allOptions.length - 1,
-          allOptions: allOptions // Include all options for frontend
+          allOptions: allOptions, // Include all options for frontend
+          image: bestMatch.option.image || null
         };
       }
 
@@ -528,7 +549,8 @@ module.exports = async function handler(req, res) {
         confidence: bestMatch.score > 0.5 ? 'medium' : 'low',
         alternativeCount: allOptions.length - 1,
         allOptions: allOptions, // Include all options for frontend selection
-        needsConfirmation: true
+        needsConfirmation: true,
+        image: bestMatch.option.image || null
       };
     };
 
@@ -732,7 +754,8 @@ module.exports = async function handler(req, res) {
           // Include additional data for debugging and frontend
           confidence: searchResult.confidence,
           alternativeCount: searchResult.alternativeCount,
-          allOptions: searchResult.allOptions
+          allOptions: searchResult.allOptions,
+          image: searchResult.image || null
         });
       }
 
