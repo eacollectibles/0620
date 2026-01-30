@@ -3,85 +3,122 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trade-In Your Cards</title>
+  <title>Trade-In Portal | EA Collectibles</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Tesseract.js for OCR -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   
   <style>
     :root {
-      --primary: #3b82f6;
-      --primary-dark: #1d4ed8;
-      --success: #059669;
+      --gold: #d4af37;
+      --gold-light: #f4e4a6;
+      --gold-dark: #b8962e;
+      --green: #4ade80;
+      --green-dark: #22c55e;
       --warning: #f59e0b;
       --error: #ef4444;
-      --gray-50: #f9fafb;
-      --gray-100: #f3f4f6;
-      --gray-200: #e5e7eb;
-      --gray-300: #d1d5db;
-      --gray-400: #9ca3af;
-      --gray-500: #6b7280;
-      --gray-600: #4b5563;
-      --gray-700: #374151;
-      --gray-800: #1f2937;
-      --gray-900: #111827;
-      --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      --border-radius: 12px;
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      --bg-dark: #0a0a0a;
+      --bg-card: #0d0d12;
+      --bg-input: rgba(255,255,255,0.03);
+      --border: rgba(255,255,255,0.08);
+      --border-gold: rgba(212, 175, 55, 0.3);
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255,255,255,0.7);
+      --text-muted: rgba(255,255,255,0.5);
+      --font-display: 'Bebas Neue', Impact, sans-serif;
+      --font-body: 'Inter', system-ui, -apple-system, sans-serif;
     }
 
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: var(--font-family);
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      font-family: var(--font-body);
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
       min-height: 100vh;
-      margin: 0;
-      padding: 20px;
-      color: var(--gray-800);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    /* Header Bar */
+    .ea-header {
+      background: rgba(0,0,0,0.5);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ea-logo {
+      font-family: var(--font-display);
+      font-size: 24px;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .ea-badge {
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      color: #0a0a0a;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
     .container {
-      max-width: 1000px;
+      max-width: 900px;
       margin: 0 auto;
+      padding: 40px 20px 80px;
     }
 
+    /* Main Card */
     .main-card {
-      background: white;
-      border-radius: 16px;
-      box-shadow: var(--shadow-xl);
+      background: var(--bg-card);
+      border-radius: 24px;
+      border: 1px solid var(--border-gold);
       overflow: hidden;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 100px rgba(212,175,55,0.05);
     }
 
     .card-header {
-      background: linear-gradient(135deg, var(--gray-800) 0%, var(--gray-900) 100%);
-      color: white;
-      padding: 32px;
+      background: linear-gradient(135deg, rgba(212,175,55,0.15) 0%, rgba(212,175,55,0.05) 100%);
+      padding: 40px;
       text-align: center;
+      border-bottom: 1px solid var(--border-gold);
     }
 
     .card-title {
-      font-size: 24px;
-      font-weight: 700;
-      margin: 0;
+      font-family: var(--font-display);
+      font-size: 42px;
+      letter-spacing: 3px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
     }
 
     .card-subtitle {
+      color: var(--text-secondary);
       font-size: 16px;
-      opacity: 0.9;
-      margin: 8px 0 0 0;
     }
 
     .card-content {
       padding: 40px;
     }
 
+    /* Progress Indicator */
     .progress-indicator {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 40px;
+      margin-bottom: 50px;
       position: relative;
     }
 
@@ -91,76 +128,101 @@
       align-items: center;
       flex: 1;
       position: relative;
+      z-index: 2;
     }
 
     .progress-step:not(:last-child)::after {
       content: '';
       position: absolute;
-      top: 20px;
+      top: 22px;
       left: 60%;
       right: -40%;
       height: 2px;
-      background: var(--gray-200);
+      background: var(--border);
       z-index: 1;
     }
 
-    .progress-step.active:not(:last-child)::after {
-      background: var(--primary);
+    .progress-step.active:not(:last-child)::after,
+    .progress-step.completed:not(:last-child)::after {
+      background: linear-gradient(90deg, var(--gold), var(--gold-dark));
     }
 
     .progress-circle {
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
-      background: var(--gray-200);
-      color: var(--gray-500);
+      background: var(--bg-input);
+      border: 2px solid var(--border);
+      color: var(--text-muted);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 600;
-      margin-bottom: 8px;
+      font-weight: 700;
+      font-size: 16px;
+      margin-bottom: 10px;
+      transition: all 0.3s ease;
       position: relative;
       z-index: 2;
-      transition: all 0.3s ease;
     }
 
     .progress-step.active .progress-circle {
-      background: var(--primary);
-      color: white;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      border-color: var(--gold);
+      color: #0a0a0a;
+      box-shadow: 0 0 25px rgba(212,175,55,0.4);
     }
 
     .progress-step.completed .progress-circle {
-      background: var(--success);
-      color: white;
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      border-color: var(--green);
+      color: #0a0a0a;
     }
 
     .progress-label {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 500;
-      color: var(--gray-600);
+      color: var(--text-muted);
+      text-align: center;
     }
 
     .progress-step.active .progress-label {
-      color: var(--primary);
+      color: var(--gold);
     }
 
+    .progress-step.completed .progress-label {
+      color: var(--green);
+    }
+
+    /* Step Sections */
     .step-section {
       display: none;
+      animation: fadeIn 0.4s ease;
     }
 
     .step-section.active {
       display: block;
     }
 
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     .step-title {
-      font-size: 20px;
-      font-weight: 600;
-      margin: 0 0 20px 0;
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 24px 0;
       display: flex;
       align-items: center;
       gap: 12px;
+      color: var(--text-primary);
     }
 
+    .step-title span:first-child {
+      font-size: 28px;
+    }
+
+    /* Form Elements */
     .form-group {
       margin-bottom: 24px;
     }
@@ -169,29 +231,39 @@
       display: block;
       font-size: 14px;
       font-weight: 600;
-      color: var(--gray-700);
-      margin-bottom: 8px;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
     .form-input, .form-select {
       width: 100%;
-      padding: 16px 20px;
-      border: 2px solid var(--gray-200);
-      border-radius: var(--border-radius);
+      padding: 18px 20px;
+      background: var(--bg-input);
+      border: 2px solid var(--border);
+      border-radius: 14px;
       font-size: 16px;
-      background: white;
-      transition: all 0.2s ease;
+      color: var(--text-primary);
+      transition: all 0.3s ease;
+      font-family: var(--font-body);
+    }
+
+    .form-input::placeholder {
+      color: var(--text-muted);
     }
 
     .form-input:focus, .form-select:focus {
       outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      border-color: var(--gold);
+      background: rgba(212,175,55,0.05);
+      box-shadow: 0 0 20px rgba(212,175,55,0.15);
     }
 
+    /* Payout Options */
     .payout-options {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
     }
 
@@ -206,39 +278,97 @@
 
     .payout-label {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 12px;
-      padding: 20px;
-      background: white;
-      border: 2px solid var(--gray-200);
-      border-radius: var(--border-radius);
-      font-weight: 500;
-      transition: all 0.2s ease;
+      gap: 10px;
+      padding: 24px 16px;
+      background: var(--bg-input);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      font-weight: 600;
+      transition: all 0.3s ease;
       cursor: pointer;
+      text-align: center;
+    }
+
+    .payout-label .icon {
+      font-size: 32px;
+    }
+
+    .payout-label .label {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .payout-label .rate {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.05);
+      padding: 4px 10px;
+      border-radius: 10px;
     }
 
     .payout-option:hover .payout-label {
-      border-color: var(--primary);
-      transform: translateY(-2px);
+      border-color: var(--gold);
+      transform: translateY(-3px);
     }
 
     .payout-radio:checked + .payout-label {
-      border-color: var(--primary);
-      background: var(--primary);
-      color: white;
+      border-color: var(--gold);
+      background: linear-gradient(135deg, rgba(212,175,55,0.2) 0%, rgba(212,175,55,0.05) 100%);
+      box-shadow: 0 10px 30px rgba(212,175,55,0.2);
     }
 
+    .payout-radio:checked + .payout-label .label {
+      color: var(--gold);
+    }
+
+    /* Info Box */
+    .info-box {
+      background: rgba(212,175,55,0.08);
+      border: 1px solid var(--border-gold);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin: 20px 0;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .info-box .icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .info-box .text {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .info-box.warning {
+      background: rgba(245,158,11,0.1);
+      border-color: rgba(245,158,11,0.3);
+    }
+
+    .info-box.success {
+      background: rgba(74,222,128,0.1);
+      border-color: rgba(74,222,128,0.3);
+    }
+
+    /* Cards Section */
     .cards-section {
-      background: var(--gray-50);
-      border-radius: var(--border-radius);
-      border: 1px solid var(--gray-200);
+      background: rgba(255,255,255,0.02);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      overflow: hidden;
     }
 
     .cards-header {
-      background: white;
-      padding: 24px;
-      border-bottom: 1px solid var(--gray-200);
+      background: rgba(255,255,255,0.03);
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -246,27 +376,39 @@
       gap: 12px;
     }
 
+    .cards-header h4 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .cards-header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
     .cards-list {
-      padding: 24px;
-      max-height: 60vh;
+      padding: 20px;
+      max-height: 50vh;
       overflow-y: auto;
     }
 
     .card-row {
       display: grid;
-      grid-template-columns: 2fr auto auto;
-      gap: 16px;
-      align-items: start;
-      padding: 20px;
-      background: white;
-      border-radius: var(--border-radius);
-      border: 1px solid var(--gray-200);
-      margin-bottom: 16px;
+      grid-template-columns: 1fr 90px 50px;
+      gap: 12px;
+      align-items: center;
+      padding: 16px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 12px;
       transition: all 0.2s ease;
     }
 
     .card-row:hover {
-      box-shadow: var(--shadow-md);
+      border-color: var(--border-gold);
+      background: rgba(212,175,55,0.03);
     }
 
     .card-input-container {
@@ -275,187 +417,266 @@
 
     .card-input {
       width: 100%;
-      padding: 12px 16px;
-      border: 2px solid var(--gray-200);
-      border-radius: var(--border-radius);
-      font-size: 16px;
+      padding: 14px 16px;
+      background: var(--bg-input);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+      color: var(--text-primary);
       transition: all 0.2s ease;
+      font-family: var(--font-body);
+    }
+
+    .card-input::placeholder {
+      color: var(--text-muted);
     }
 
     .card-input:focus {
       outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      border-color: var(--gold);
+      box-shadow: 0 0 15px rgba(212,175,55,0.15);
     }
 
     .card-input.confirmed {
-      border-color: var(--success);
-      background: rgba(5, 150, 105, 0.05);
+      border-color: var(--green);
+      background: rgba(74,222,128,0.08);
     }
 
     .card-input.not-found {
       border-color: var(--warning);
-      background: rgba(245, 158, 11, 0.05);
+      background: rgba(245,158,11,0.08);
     }
 
+    /* Search Suggestions */
     .search-suggestion {
       position: absolute;
-      top: 100%;
+      top: calc(100% + 4px);
       left: 0;
       right: 0;
-      background: white;
-      border: 2px solid var(--primary);
-      border-top: none;
-      border-radius: 0 0 var(--border-radius) var(--border-radius);
-      box-shadow: var(--shadow-lg);
+      background: #15151f;
+      border: 2px solid var(--gold);
+      border-radius: 12px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
       z-index: 9999;
-      max-height: 500px;
+      overflow: hidden;
     }
 
     .option-item {
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--gray-100);
-      background: white;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      background: transparent;
       cursor: pointer;
       transition: background 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .option-item:hover {
-      background: #f0f9ff;
+      background: rgba(212,175,55,0.1);
     }
 
+    .option-item:last-child {
+      border-bottom: none;
+    }
+
+    /* Remove Button */
     .remove-btn {
-      background: var(--error);
-      color: white;
-      border: none;
-      border-radius: var(--border-radius);
-      padding: 8px 12px;
+      width: 42px;
+      height: 42px;
+      background: rgba(239,68,68,0.15);
+      color: var(--error);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 10px;
       cursor: pointer;
       font-size: 16px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .remove-btn:hover {
-      background: #dc2626;
+      background: var(--error);
+      color: white;
+      border-color: var(--error);
     }
 
+    /* Buttons */
     .btn {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 14px 28px;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px 28px;
       border: none;
-      border-radius: var(--border-radius);
-      font-size: 16px;
-      font-weight: 600;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
+      font-family: var(--font-body);
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
     .btn:hover {
       transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-
-    .btn-secondary {
-      background: var(--gray-100);
-      color: var(--gray-700);
-      border: 1px solid var(--gray-300);
-    }
-
-    .btn-success {
-      background: var(--success);
-      color: white;
     }
 
     .btn:disabled {
-      opacity: 0.6;
+      opacity: 0.5;
       cursor: not-allowed;
       transform: none !important;
     }
 
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: #0a0a0a;
+      box-shadow: 0 5px 20px rgba(212,175,55,0.3);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 10px 30px rgba(212,175,55,0.4);
+    }
+
+    .btn-secondary {
+      background: var(--bg-input);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      color: #0a0a0a;
+      box-shadow: 0 5px 20px rgba(74,222,128,0.3);
+    }
+
+    .btn-success:hover {
+      box-shadow: 0 10px 30px rgba(74,222,128,0.4);
+    }
+
+    /* Navigation */
     .step-navigation {
       display: flex;
       justify-content: space-between;
       margin-top: 40px;
-      padding-top: 24px;
-      border-top: 1px solid var(--gray-200);
+      padding-top: 30px;
+      border-top: 1px solid var(--border);
     }
 
+    /* Estimate Results */
     .estimate-results {
-      background: rgba(16, 185, 129, 0.05);
-      border: 1px solid rgba(16, 185, 129, 0.2);
-      border-radius: var(--border-radius);
-      padding: 32px;
-      margin: 32px 0;
+      background: rgba(74,222,128,0.05);
+      border: 1px solid rgba(74,222,128,0.2);
+      border-radius: 16px;
+      padding: 30px;
+      margin: 30px 0;
       display: none;
     }
 
     .estimate-results.visible {
       display: block;
+      animation: fadeIn 0.4s ease;
     }
 
     .estimate-card {
-      background: white;
-      border-radius: var(--border-radius);
-      padding: 20px;
-      margin-bottom: 16px;
-      border: 1px solid var(--gray-200);
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
     }
 
     .estimate-totals {
-      background: white;
-      border-radius: var(--border-radius);
+      background: rgba(212,175,55,0.1);
+      border-radius: 14px;
       padding: 24px;
-      border: 2px solid var(--primary);
+      border: 2px solid var(--border-gold);
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 20px;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
       text-align: center;
+      margin-top: 20px;
+    }
+
+    .total-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
     }
 
     .total-value {
-      font-size: 24px;
+      font-size: 28px;
       font-weight: 700;
-      color: var(--gray-800);
+      color: var(--text-primary);
     }
 
     .total-value.primary {
-      color: var(--primary);
+      color: var(--gold);
     }
 
+    /* Success Section */
     .success-section {
-      background: rgba(16, 185, 129, 0.05);
-      border: 2px solid var(--success);
-      border-radius: var(--border-radius);
-      padding: 40px;
+      background: rgba(74,222,128,0.08);
+      border: 2px solid var(--green);
+      border-radius: 20px;
+      padding: 50px 40px;
       text-align: center;
       display: none;
     }
 
     .success-section.visible {
       display: block;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .success-icon {
+      font-size: 80px;
+      margin-bottom: 24px;
     }
 
     .success-title {
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--success);
+      font-family: var(--font-display);
+      font-size: 36px;
+      letter-spacing: 2px;
+      color: var(--green);
       margin-bottom: 16px;
     }
 
+    .success-message {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-bottom: 30px;
+    }
+
+    .submission-id {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 24px 0;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 18px;
+      color: var(--gold);
+    }
+
+    /* Spinner */
     .spinner {
       display: inline-block;
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       border: 2px solid transparent;
       border-top: 2px solid currentColor;
       border-radius: 50%;
-      animation: spin 1s linear infinite;
+      animation: spin 0.8s linear infinite;
     }
 
     @keyframes spin {
@@ -463,61 +684,62 @@
       100% { transform: rotate(360deg); }
     }
 
-    .info-box {
-      background: rgba(59, 130, 246, 0.05);
-      border: 1px solid rgba(59, 130, 246, 0.2);
-      border-radius: var(--border-radius);
-      padding: 16px;
-      margin: 16px 0;
-      display: flex;
-      gap: 12px;
-    }
-
-    .info-box.warning {
-      background: rgba(245, 158, 11, 0.05);
-      border-color: rgba(245, 158, 11, 0.2);
-    }
-
-    .info-box.success {
-      background: rgba(16, 185, 129, 0.05);
-      border-color: rgba(16, 185, 129, 0.2);
-    }
-
+    /* Responsive */
     @media (max-width: 768px) {
-      body { padding: 12px; }
-      .card-content { padding: 24px; }
+      .container { padding: 20px 16px 60px; }
+      .card-content { padding: 24px 20px; }
+      .card-header { padding: 30px 20px; }
+      .card-title { font-size: 32px; }
       .card-row { grid-template-columns: 1fr; gap: 12px; }
+      .card-row .form-input[name="cardQuantity"] { width: 100% !important; }
+      .card-row .remove-btn { width: 100%; height: 44px; }
       .payout-options { grid-template-columns: 1fr; }
       .step-navigation { flex-direction: column; gap: 12px; }
-      .btn { width: 100%; justify-content: center; }
+      .btn { width: 100%; }
+      .estimate-totals { grid-template-columns: 1fr; }
+      .progress-label { font-size: 11px; }
+      .progress-circle { width: 36px; height: 36px; font-size: 14px; }
     }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-dark); }
+    ::-webkit-scrollbar-thumb { background: var(--border-gold); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
   </style>
 </head>
 <body>
+  <!-- Header -->
+  <header class="ea-header">
+    <div class="ea-logo">EA COLLECTIBLES</div>
+    <span class="ea-badge">Trade-In Portal</span>
+  </header>
+
   <div class="container">
     <div class="main-card">
       <div class="card-header">
-        <h1 class="card-title">Customer Trade-In Portal</h1>
-        <p class="card-subtitle">Complete your trade-in request in just a few easy steps</p>
+        <h1 class="card-title">TRADE-IN PORTAL</h1>
+        <p class="card-subtitle">Turn your cards into cash or store credit in minutes</p>
       </div>
 
       <div class="card-content">
+        <!-- Progress Indicator -->
         <div class="progress-indicator">
           <div class="progress-step active" data-step="1">
             <div class="progress-circle">1</div>
-            <div class="progress-label">Contact Info</div>
+            <div class="progress-label">Contact</div>
           </div>
           <div class="progress-step" data-step="2">
             <div class="progress-circle">2</div>
-            <div class="progress-label">Add Cards</div>
+            <div class="progress-label">Cards</div>
           </div>
           <div class="progress-step" data-step="3">
             <div class="progress-circle">3</div>
-            <div class="progress-label">Choose Payout</div>
+            <div class="progress-label">Payout</div>
           </div>
           <div class="progress-step" data-step="4">
             <div class="progress-circle">4</div>
-            <div class="progress-label">Review & Submit</div>
+            <div class="progress-label">Review</div>
           </div>
         </div>
 
@@ -526,8 +748,8 @@
           <div class="step-section active" data-step="1">
             <h3 class="step-title"><span>📧</span><span>Your Contact Information</span></h3>
             <div class="info-box">
-              <div>ℹ️</div>
-              <div>We'll use your email to send you updates about your trade-in request.</div>
+              <div class="icon">ℹ️</div>
+              <div class="text">We'll use your email to send you updates about your trade-in request and issue store credit if selected.</div>
             </div>
             <div class="form-group">
               <label class="form-label" for="customerName">Full Name</label>
@@ -547,15 +769,15 @@
           <div class="step-section" data-step="2">
             <h3 class="step-title"><span>🃏</span><span>Cards to Trade</span></h3>
             <div class="info-box">
-              <div>💡</div>
-              <div>Add your cards below. Our system will search and provide instant estimates.</div>
+              <div class="icon">💡</div>
+              <div class="text">Search for your cards below or scan them with your camera. Our system will find matches and provide instant estimates.</div>
             </div>
             <div class="cards-section">
               <div class="cards-header">
-                <h4 style="margin: 0; font-size: 16px; font-weight: 600;">Your Cards</h4>
-                <div style="display: flex; gap: 12px;">
+                <h4>Your Cards</h4>
+                <div class="cards-header-actions">
                   <button type="button" class="btn btn-secondary" id="scan-card">
-                    <span>📷</span><span>Scan Card</span>
+                    <span>📷</span><span>Scan</span>
                   </button>
                   <button type="button" class="btn btn-secondary" id="add-card">
                     <span>➕</span><span>Add Card</span>
@@ -567,8 +789,8 @@
                   <div class="card-input-container">
                     <input type="text" class="card-input" name="cardName" placeholder="Enter card name or SKU" required>
                   </div>
-                  <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
-                  <button type="button" class="remove-btn">✖</button>
+                  <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 90px;">
+                  <button type="button" class="remove-btn">✕</button>
                 </div>
               </div>
             </div>
@@ -576,10 +798,10 @@
 
           <!-- Step 3: Payout -->
           <div class="step-section" data-step="3">
-            <h3 class="step-title"><span>💰</span><span>How would you like to be paid?</span></h3>
+            <h3 class="step-title"><span>💰</span><span>Choose Your Payout</span></h3>
             <div class="info-box warning">
-              <div>⚠️</div>
-              <div><strong>Important:</strong> Store credit typically offers the best value!</div>
+              <div class="icon">⭐</div>
+              <div class="text"><strong>Pro Tip:</strong> Store credit typically offers 10-15% higher value than cash payouts!</div>
             </div>
             <div class="form-group">
               <label class="form-label">Payout Method</label>
@@ -587,19 +809,25 @@
                 <div class="payout-option">
                   <input type="radio" class="payout-radio" name="payoutMethod" value="store-credit" id="store-credit">
                   <label class="payout-label" for="store-credit">
-                    <span>🏪</span><span>Store Credit</span>
+                    <span class="icon">🏪</span>
+                    <span class="label">Store Credit</span>
+                    <span class="rate">Best Value</span>
                   </label>
                 </div>
                 <div class="payout-option">
                   <input type="radio" class="payout-radio" name="payoutMethod" value="gift-card" id="gift-card">
                   <label class="payout-label" for="gift-card">
-                    <span>🎁</span><span>Gift Card</span>
+                    <span class="icon">🎁</span>
+                    <span class="label">Gift Card</span>
+                    <span class="rate">Instant</span>
                   </label>
                 </div>
                 <div class="payout-option">
                   <input type="radio" class="payout-radio" name="payoutMethod" value="cash" id="cash">
                   <label class="payout-label" for="cash">
-                    <span>💵</span><span>Cash</span>
+                    <span class="icon">💵</span>
+                    <span class="label">Cash</span>
+                    <span class="rate">In-Store</span>
                   </label>
                 </div>
               </div>
@@ -608,13 +836,13 @@
 
           <!-- Step 4: Review -->
           <div class="step-section" data-step="4">
-            <h3 class="step-title"><span>✅</span><span>Review Your Trade-In Request</span></h3>
+            <h3 class="step-title"><span>✅</span><span>Review & Submit</span></h3>
             <div class="info-box">
-              <div>🔍</div>
-              <div>Please review all information below. Once submitted, our team will process your request.</div>
+              <div class="icon">🔍</div>
+              <div class="text">Review your information below, then get an instant estimate before submitting.</div>
             </div>
-            <div id="review-summary" style="background: var(--gray-50); border-radius: var(--border-radius); padding: 24px; margin: 24px 0;">
-              <h4 style="margin: 0 0 16px 0;">📋 Trade-In Summary</h4>
+            <div id="review-summary" style="background: rgba(255,255,255,0.02); border-radius: 14px; padding: 24px; margin: 24px 0; border: 1px solid var(--border);">
+              <h4 style="margin: 0 0 16px 0; font-size: 16px; color: var(--gold);">📋 Trade-In Summary</h4>
               <div id="summary-content"></div>
             </div>
             <div style="text-align: center; margin: 32px 0;">
@@ -623,50 +851,50 @@
               </button>
             </div>
             <div id="estimate-results" class="estimate-results">
-              <div style="margin-bottom: 24px;">
-                <h4 style="margin: 0 0 16px 0;">📊 Your Trade-In Estimate</h4>
+              <div style="margin-bottom: 20px;">
+                <h4 style="margin: 0 0 16px 0; font-size: 18px; color: var(--green);">📊 Your Estimate</h4>
                 <div id="estimate-cards"></div>
               </div>
               <div class="estimate-totals">
                 <div>
-                  <div style="font-size: 14px; color: var(--gray-600);">Retail Value</div>
+                  <div class="total-label">Retail Value</div>
                   <div class="total-value" id="total-retail">$0.00</div>
                 </div>
                 <div>
-                  <div style="font-size: 14px; color: var(--gray-600);">Your Payout</div>
+                  <div class="total-label">Your Payout</div>
                   <div class="total-value primary" id="total-payout">$0.00</div>
                 </div>
               </div>
             </div>
             <div style="text-align: center; margin: 32px 0;">
               <button type="submit" class="btn btn-success" id="submit-request" style="display: none;">
-                <span>🚀</span><span>Submit Trade-In Request</span>
+                <span>🚀</span><span>Submit Trade-In</span>
               </button>
             </div>
           </div>
 
+          <!-- Navigation -->
           <div class="step-navigation">
             <button type="button" class="btn btn-secondary" id="prev-step" style="display: none;">
-              <span>←</span><span>Previous</span>
+              <span>←</span><span>Back</span>
             </button>
             <button type="button" class="btn btn-primary" id="next-step">
-              <span>Next</span><span>→</span>
+              <span>Continue</span><span>→</span>
             </button>
           </div>
         </form>
 
+        <!-- Success Section -->
         <div id="success-section" class="success-section">
-          <div style="font-size: 4rem; margin-bottom: 20px;">🎉</div>
-          <h2 class="success-title">Trade-In Request Submitted!</h2>
-          <p style="font-size: 18px; color: var(--gray-600); margin-bottom: 32px;">
-            Thank you! We've received your submission and will review it within 24 hours.
-          </p>
-          <div style="background: white; border: 1px solid var(--gray-200); border-radius: var(--border-radius); padding: 20px; margin: 24px 0; font-family: Monaco, monospace;">
-            <strong>Submission ID:</strong> <span id="submission-id-display">TR-2025-XXXX</span>
+          <div class="success-icon">🎉</div>
+          <h2 class="success-title">SUBMISSION RECEIVED!</h2>
+          <p class="success-message">Thank you! We've received your trade-in request and will review it within 24 hours. Check your email for updates.</p>
+          <div class="submission-id">
+            <strong>Confirmation:</strong> <span id="submission-id-display">TR-2025-XXXX</span>
           </div>
           <div style="margin-top: 32px;">
             <button type="button" class="btn btn-primary" id="new-request">
-              <span>🔄</span><span>Submit Another Request</span>
+              <span>🔄</span><span>Submit Another</span>
             </button>
           </div>
         </div>
@@ -748,15 +976,19 @@
             alert('Please add at least one card to trade.');
             return false;
           }
-          for (let row of cardRows) {
-            if (!row.querySelector('[name="cardName"]').value.trim()) {
-              alert('Please fill in all card names.');
-              return false;
-            }
+          let hasValidCard = false;
+          cardRows.forEach(row => {
+            const cardName = row.querySelector('[name="cardName"]').value.trim();
+            if (cardName) hasValidCard = true;
+          });
+          if (!hasValidCard) {
+            alert('Please enter at least one card name.');
+            return false;
           }
           return true;
         case 3:
-          if (!document.querySelector('input[name="payoutMethod"]:checked')) {
+          const payoutSelected = document.querySelector('input[name="payoutMethod"]:checked');
+          if (!payoutSelected) {
             alert('Please select a payout method.');
             return false;
           }
@@ -767,21 +999,31 @@
     }
 
     function setupCardManagement() {
-      document.getElementById('add-card').addEventListener('click', addNewCardRow);
-      document.getElementById('scan-card').addEventListener('click', handleScanCard);
-      
-      document.querySelectorAll('.remove-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const cardList = document.getElementById('card-list');
-          if (cardList.children.length > 1) {
-            btn.closest('.card-row').remove();
-          } else {
-            alert('You must have at least one card.');
-          }
-        });
+      // Initial card search setup
+      const initialInput = document.querySelector('.card-input');
+      if (initialInput) {
+        setupCardSearch(initialInput);
+      }
+
+      // Add card button
+      document.getElementById('add-card').addEventListener('click', function() {
+        addNewCardRow();
       });
 
-      document.querySelectorAll('.card-input').forEach(setupCardSearch);
+      // Scan card button
+      document.getElementById('scan-card').addEventListener('click', function() {
+        handleScanCard();
+      });
+
+      // Remove button for first card
+      document.querySelector('.remove-btn').addEventListener('click', function() {
+        const cardList = document.getElementById('card-list');
+        if (cardList.children.length > 1) {
+          this.closest('.card-row').remove();
+        } else {
+          alert('You must have at least one card.');
+        }
+      });
     }
 
     function addNewCardRow() {
@@ -792,8 +1034,8 @@
         <div class="card-input-container">
           <input type="text" class="card-input" name="cardName" placeholder="Enter card name or SKU" required>
         </div>
-        <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
-        <button type="button" class="remove-btn">✖</button>
+        <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 90px;">
+        <button type="button" class="remove-btn">✕</button>
       `;
       cardList.appendChild(newRow);
 
@@ -867,13 +1109,13 @@
         const options = result.allOptions || [];
         
         let html = `
-          <div style="padding: 16px; border-bottom: 1px solid var(--gray-200); background: var(--gray-50); text-align: center;">
-            <div style="font-weight: 600; color: var(--gray-800); margin-bottom: 8px;">
+          <div style="padding: 16px 18px; border-bottom: 1px solid var(--border); background: rgba(212,175,55,0.1); text-align: center;">
+            <div style="font-weight: 600; color: var(--gold); margin-bottom: 4px;">
               🔍 Found ${options.length} matches
             </div>
-            <div style="font-size: 14px; color: var(--gray-600);">Select the card you want:</div>
+            <div style="font-size: 13px; color: var(--text-muted);">Select the correct card:</div>
           </div>
-          <div style="max-height: 300px; overflow-y: auto;">
+          <div style="max-height: 280px; overflow-y: auto;">
         `;
         
         options.forEach((option, index) => {
@@ -882,40 +1124,41 @@
           const price = option.price || 0;
           
           html += `
-            <div class="option-item" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="option-item">
               <div style="flex: 1;">
-                <div style="font-weight: 600; margin-bottom: 4px;">
+                <div style="font-weight: 600; margin-bottom: 4px; color: var(--text-primary);">
                   ${isRecommended ? '⭐ ' : ''}${title}
                 </div>
-                <div style="font-size: 13px; color: var(--gray-500);">
+                <div style="font-size: 13px; color: var(--text-muted);">
                   SKU: ${option.sku} • $${price.toFixed(2)}
                 </div>
               </div>
               <button type="button" class="option-select-btn" data-option-index="${index}" style="
-                padding: 8px 16px;
-                background: ${isRecommended ? 'var(--success)' : 'var(--primary)'};
-                color: white;
+                padding: 10px 18px;
+                background: ${isRecommended ? 'linear-gradient(135deg, var(--green-dark), var(--green))' : 'linear-gradient(135deg, var(--gold), var(--gold-dark))'};
+                color: #0a0a0a;
                 border: none;
-                border-radius: 6px;
-                font-weight: 600;
+                border-radius: 8px;
+                font-weight: 700;
+                font-size: 13px;
                 cursor: pointer;
-              ">${isRecommended ? '⭐ Select' : '✅ Select'}</button>
+              ">${isRecommended ? '⭐ Select' : 'Select'}</button>
             </div>
           `;
         });
         
         html += `
           </div>
-          <div style="padding: 16px; border-top: 1px solid var(--gray-200); background: var(--gray-50); text-align: center;">
+          <div style="padding: 14px 18px; border-top: 1px solid var(--border); text-align: center;">
             <button type="button" class="reject-btn" style="
-              padding: 10px 20px;
-              background: var(--gray-200);
-              color: var(--gray-700);
-              border: none;
-              border-radius: 6px;
+              padding: 10px 24px;
+              background: rgba(255,255,255,0.05);
+              color: var(--text-muted);
+              border: 1px solid var(--border);
+              border-radius: 8px;
               font-weight: 600;
               cursor: pointer;
-            ">❌ Cancel</button>
+            ">✕ Cancel</button>
           </div>
         `;
 
@@ -937,8 +1180,8 @@
               searchMethod: 'confirmed_search'
             }));
             
-            this.innerHTML = '✅ Selected!';
-            this.style.background = '#059669';
+            this.innerHTML = '✓ Selected';
+            this.style.background = 'var(--green)';
             
             setTimeout(() => {
               suggestion.remove();
@@ -963,29 +1206,29 @@
         
         if (result && result.match) {
           suggestion.innerHTML = `
-            <div style="padding: 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+            <div style="padding: 18px; display: flex; justify-content: space-between; align-items: center; gap: 16px;">
               <div style="flex: 1;">
-                <div style="font-weight: 600; margin-bottom: 4px;">✅ ${result.match}</div>
-                <div style="font-size: 14px; color: var(--gray-500);">
-                  SKU: ${result.sku || 'N/A'} • ${result.retailPrice ? '$' + result.retailPrice.toFixed(2) : '0.00'}
+                <div style="font-weight: 600; margin-bottom: 4px; color: var(--green);">✓ ${result.match}</div>
+                <div style="font-size: 13px; color: var(--text-muted);">
+                  SKU: ${result.sku || 'N/A'} • ${result.retailPrice ? '$' + result.retailPrice.toFixed(2) : '$0.00'}
                 </div>
               </div>
               <div style="display: flex; gap: 8px;">
-                <button type="button" class="confirm-btn" style="padding: 8px 16px; background: var(--success); color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer;">✅ Use This</button>
-                <button type="button" class="reject-btn" style="padding: 8px 16px; background: var(--gray-200); color: var(--gray-700); border: none; border-radius: 6px; font-weight: 500; cursor: pointer;">❌ Cancel</button>
+                <button type="button" class="confirm-btn" style="padding: 10px 18px; background: linear-gradient(135deg, var(--green-dark), var(--green)); color: #0a0a0a; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">✓ Use This</button>
+                <button type="button" class="reject-btn" style="padding: 10px 18px; background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border); border-radius: 8px; font-weight: 600; cursor: pointer;">✕</button>
               </div>
             </div>
           `;
         } else {
           suggestion.innerHTML = `
-            <div style="padding: 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+            <div style="padding: 18px; display: flex; justify-content: space-between; align-items: center; gap: 16px;">
               <div style="flex: 1;">
-                <div style="font-weight: 600; margin-bottom: 4px;">❌ "${query}" not found</div>
-                <div style="font-size: 14px; color: var(--gray-500);">This item will be manually reviewed</div>
+                <div style="font-weight: 600; margin-bottom: 4px; color: var(--warning);">⚠ "${query}" not found</div>
+                <div style="font-size: 13px; color: var(--text-muted);">This item will be manually reviewed</div>
               </div>
               <div style="display: flex; gap: 8px;">
-                <button type="button" class="continue-btn" style="padding: 8px 16px; background: var(--warning); color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer;">⚠️ Continue</button>
-                <button type="button" class="reject-btn" style="padding: 8px 16px; background: var(--gray-200); color: var(--gray-700); border: none; border-radius: 6px; font-weight: 500; cursor: pointer;">❌ Cancel</button>
+                <button type="button" class="continue-btn" style="padding: 10px 18px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #0a0a0a; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">Continue</button>
+                <button type="button" class="reject-btn" style="padding: 10px 18px; background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border); border-radius: 8px; font-weight: 600; cursor: pointer;">✕</button>
               </div>
             </div>
           `;
@@ -1030,7 +1273,7 @@
       }
     }
 
-    // ✅ ENHANCED SCAN CARD FUNCTION with Better Error Detection
+    // OCR Scan Card Function
     function handleScanCard() {
       const input = document.createElement('input');
       input.type = 'file';
@@ -1044,13 +1287,10 @@
         const scanBtn = document.getElementById('scan-card');
         const originalHTML = scanBtn.innerHTML;
         
-        scanBtn.innerHTML = '<span class="spinner"></span><span>Reading Card...</span>';
+        scanBtn.innerHTML = '<span class="spinner"></span><span>Reading...</span>';
         scanBtn.disabled = true;
         
         try {
-          console.log('📸 Step 1: Starting OCR...');
-          
-          // DO OCR
           const { data: { text, confidence } } = await Tesseract.recognize(
             file,
             'eng',
@@ -1058,69 +1298,48 @@
               logger: (m) => {
                 if (m.status === 'recognizing text') {
                   const percent = Math.round(m.progress * 100);
-                  scanBtn.innerHTML = `<span class="spinner"></span><span>Reading... ${percent}%</span>`;
+                  scanBtn.innerHTML = `<span class="spinner"></span><span>${percent}%</span>`;
                 }
               }
             }
           );
           
-          console.log('✅ Step 1 Complete: OCR finished');
-          console.log('Full extracted text:', text);
-          console.log('Confidence:', confidence);
-          
-          // IMPROVED: Extract card number with multiple patterns
           let cardNumber = null;
-          
-          // Try different patterns
           const patterns = [
-            /NO\.\s*(\d{4})/i,                    // "NO. 0025"
-            /(\d{3,4})[\/\-](\d{3})/,              // "025/165" or "0025/165"
-            /#(\d{3,4})/,                          // "#025"
-            /\b(\d{3,4})\s*\/\s*(\d{3})\b/         // "025 / 165"
+            /NO\.\s*(\d{4})/i,
+            /(\d{3,4})[\/\-](\d{3})/,
+            /#(\d{3,4})/,
+            /\b(\d{3,4})\s*\/\s*(\d{3})\b/
           ];
           
           for (const pattern of patterns) {
             const match = text.match(pattern);
             if (match) {
               if (match[2]) {
-                // Format like "025/165"
                 cardNumber = match[1] + match[2];
               } else {
-                // Format like "NO. 0025"
                 cardNumber = match[1];
               }
-              console.log(`Found card number using pattern: ${pattern}, result: ${cardNumber}`);
               break;
             }
           }
           
-          // Also extract Pokemon name
           let pokemonName = null;
           const nameMatch = text.match(/(?:^|\n)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s*(?:HP|[0-9])/m);
           if (nameMatch) {
             pokemonName = nameMatch[1].trim();
-            console.log('Found Pokemon name:', pokemonName);
           }
           
-          console.log('Final card number:', cardNumber);
-          console.log('Final Pokemon name:', pokemonName);
+          const alertMsg = `📱 OCR Result:\n\nPokémon: ${pokemonName || 'Unknown'}\nCard #: ${cardNumber || 'Not detected'}\nConfidence: ${Math.round(confidence)}%\n\nClick OK to search, or Cancel to try again.`;
           
-          // FIRST ALERT - with confirm to continue
-          const alertMsg = `📱 OCR RESULT:\n\nPokemon: ${pokemonName || 'Unknown'}\nCard #: ${cardNumber || 'Not detected'}\nConfidence: ${Math.round(confidence)}%\n\n────────\nExtracted Text:\n${text.substring(0, 150)}...\n\n────────\nClick OK to search, or Cancel to stop.`;
-          
-          const alertConfirm = confirm(alertMsg);
-          
-          if (!alertConfirm) {
-            console.log('User cancelled after OCR');
+          if (!confirm(alertMsg)) {
             scanBtn.innerHTML = originalHTML;
             scanBtn.disabled = false;
             return;
           }
           
-          console.log('📤 Step 2: Preparing API request...');
-          scanBtn.innerHTML = '<span class="spinner"></span><span>Finding Card...</span>';
+          scanBtn.innerHTML = '<span class="spinner"></span><span>Matching...</span>';
           
-          // Prepare form data
           const formData = new FormData();
           formData.append('image', file);
           formData.append('search_type', 'pokemon_card');
@@ -1131,86 +1350,28 @@
             formData.append('card_number', cardNumber);
           }
           
-          console.log('📤 Sending to API...');
-          console.log('API URL:', '/api/shopify-image-match');
-          console.log('Card number being sent:', cardNumber);
-          console.log('Pokemon name:', pokemonName);
+          const response = await fetch('/api/shopify-image-match', {
+            method: 'POST',
+            body: formData
+          });
           
-          let response;
-          let data;
-          
-          try {
-            console.log('Making fetch request...');
-            response = await fetch('/api/shopify-image-match', {
-              method: 'POST',
-              body: formData
-            });
-            
-            console.log('✅ Got response from API');
-            console.log('Response status:', response.status);
-            console.log('Response OK:', response.ok);
-            console.log('Response headers:', [...response.headers.entries()]);
-            
-            if (!response.ok) {
-              const errorText = await response.text();
-              console.error('API error response:', errorText);
-              throw new Error(`API returned ${response.status}: ${errorText.substring(0, 200)}`);
-            }
-            
-            const responseText = await response.text();
-            console.log('Response text (first 500 chars):', responseText.substring(0, 500));
-            
-            try {
-              data = JSON.parse(responseText);
-              console.log('✅ Parsed JSON successfully');
-            } catch (parseError) {
-              console.error('JSON parse error:', parseError);
-              throw new Error(`Failed to parse response as JSON: ${parseError.message}`);
-            }
-            
-            console.log('Response data:', JSON.stringify(data, null, 2));
-            
-          } catch (fetchError) {
-            console.error('❌ API Fetch Error:', fetchError);
-            console.error('Error stack:', fetchError.stack);
-            alert(`❌ API ERROR:\n\n${fetchError.message}\n\n────────\nCheck browser console (F12) for details`);
-            scanBtn.innerHTML = originalHTML;
-            scanBtn.disabled = false;
-            return;
+          if (!response.ok) {
+            throw new Error(`API returned ${response.status}`);
           }
           
-          // SECOND ALERT - with all the debug info
-          const debugInfo = {
-            matches: data.matches?.length || 0,
-            searched: data.total_products_searched || 0,
-            ocrSource: data.ocr_source || 'unknown',
-            success: data.success || false
-          };
-          
-          const alertMsg2 = `📱 API RESPONSE:\n\nMatches Found: ${debugInfo.matches}\nProducts Searched: ${debugInfo.searched}\nOCR Source: ${debugInfo.ocrSource}\nSuccess: ${debugInfo.success}\n\n────────\nExtracted (API):\n${data.extracted_text?.substring(0, 100) || 'none'}...\n\n────────\nFirst Match:\n${data.matches?.[0]?.title || 'No matches'}`;
-          
-          alert(alertMsg2);
+          const data = await response.json();
           
           if (data.matches && data.matches.length > 0) {
             const match = data.matches[0];
-            
-            console.log('✅ Match found:', match.title);
-            
-            // Create new row
             const cardList = document.getElementById('card-list');
-            
-            if (!cardList) {
-              throw new Error('Card list element not found');
-            }
-            
             const newRow = document.createElement('div');
             newRow.className = 'card-row';
             newRow.innerHTML = `
               <div class="card-input-container">
                 <input type="text" class="card-input confirmed" name="cardName" placeholder="Enter card name or SKU" value="${match.title}" required>
               </div>
-              <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 80px;">
-              <button type="button" class="remove-btn">✖</button>
+              <input type="number" class="form-input" name="cardQuantity" placeholder="Qty" min="1" value="1" required style="width: 90px;">
+              <button type="button" class="remove-btn">✕</button>
             `;
             
             cardList.appendChild(newRow);
@@ -1218,48 +1379,35 @@
             newRow.querySelector('.remove-btn').addEventListener('click', function() {
               if (cardList.children.length > 1) {
                 newRow.remove();
-              } else {
-                alert('You must have at least one card.');
               }
             });
             
-            const input = newRow.querySelector('[name="cardName"]');
-            if (input) {
-              input.setAttribute('data-search-result', JSON.stringify({
+            const inputEl = newRow.querySelector('[name="cardName"]');
+            if (inputEl) {
+              inputEl.setAttribute('data-search-result', JSON.stringify({
                 match: match.title,
                 sku: match.sku,
                 retailPrice: parseFloat(match.price),
-                searchMethod: 'image_scan',
-                extractedText: text,
-                cardNumber: cardNumber,
-                pokemonName: pokemonName
+                searchMethod: 'image_scan'
               }));
-              
-              setupCardSearch(input);
+              setupCardSearch(inputEl);
             }
             
-            console.log('✅ Card added successfully');
-            
-            scanBtn.innerHTML = '✅ Card Added!';
+            scanBtn.innerHTML = '✓ Added!';
             setTimeout(() => {
               scanBtn.innerHTML = originalHTML;
               scanBtn.disabled = false;
             }, 2000);
             
           } else {
-            console.log('❌ No matches found');
-            const noMatchMsg = `❌ No matching cards found\n\nSearched: ${debugInfo.searched} products\n\nOCR extracted:\nPokemon: ${pokemonName || 'Unknown'}\nCard #: ${cardNumber || 'Not detected'}\n\n────────\nTips:\n• Try better lighting\n• Hold camera directly above card\n• Or enter "${pokemonName || 'card name'}" manually`;
-            alert(noMatchMsg);
+            alert(`No matches found.\n\nOCR extracted:\nPokémon: ${pokemonName || 'Unknown'}\nCard #: ${cardNumber || 'Not detected'}\n\nTry entering the card name manually.`);
             scanBtn.innerHTML = originalHTML;
             scanBtn.disabled = false;
           }
           
         } catch (error) {
-          console.error('❌ Scan error:', error);
-          console.error('Error stack:', error.stack);
-          console.error('Error name:', error.name);
-          console.error('Error message:', error.message);
-          alert(`❌ Failed to scan card:\n\n${error.message}\n\nError type: ${error.name}\n\n────────\nCheck browser console (F12) for full details`);
+          console.error('Scan error:', error);
+          alert(`Scan failed: ${error.message}`);
           scanBtn.innerHTML = originalHTML;
           scanBtn.disabled = false;
         }
@@ -1286,21 +1434,24 @@
       };
 
       let html = `
-        <div style="margin-bottom: 20px;">
-          <strong>📧 Contact:</strong> ${name} (${email})
-          ${phone ? `<br><strong>📱 Phone:</strong> ${phone}` : ''}
+        <div style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
+          <div style="color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Contact</div>
+          <div style="color: var(--text-primary);">${name} (${email})</div>
+          ${phone ? `<div style="color: var(--text-secondary); font-size: 14px;">${phone}</div>` : ''}
         </div>
-        <div style="margin-bottom: 20px;">
-          <strong>💰 Payout Method:</strong> ${payoutNames[payoutMethod] || 'Not selected'}
+        <div style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
+          <div style="color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Payout Method</div>
+          <div style="color: var(--gold); font-weight: 600;">${payoutNames[payoutMethod] || 'Not selected'}</div>
         </div>
         <div>
-          <strong>🃏 Cards (${cards.length} total):</strong>
+          <div style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">Cards (${cards.length} total)</div>
       `;
 
       cards.forEach(card => {
         html += `
-          <div style="background: white; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid var(--gray-200);">
-            ${card.name} - Qty: ${card.quantity}
+          <div style="background: rgba(255,255,255,0.03); padding: 12px 14px; margin: 8px 0; border-radius: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between;">
+            <span style="color: var(--text-primary);">${card.name || 'Unnamed card'}</span>
+            <span style="color: var(--text-muted);">×${card.quantity}</span>
           </div>
         `;
       });
@@ -1362,20 +1513,20 @@
             const cardEl = document.createElement('div');
             cardEl.className = 'estimate-card';
             cardEl.innerHTML = `
-              <div style="font-weight: 600; margin-bottom: 8px;">
-                ${card.match || card.cardName} ${!card.match ? '❓' : '✅'}
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                <div style="font-weight: 600; color: var(--text-primary);">
+                  ${card.match || card.cardName} ${!card.match ? '<span style="color: var(--warning);">⚠</span>' : '<span style="color: var(--green);">✓</span>'}
+                </div>
+                <div style="font-size: 13px; color: var(--text-muted);">×${card.quantity}</div>
               </div>
-              <div style="font-size: 14px; color: var(--gray-500); margin-bottom: 8px;">
-                Quantity: ${card.quantity}
-              </div>
-              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; text-align: center;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; text-align: center;">
                 <div>
-                  <div style="font-size: 12px; color: var(--gray-500);">Retail Value</div>
-                  <div style="font-weight: 600;">${card.retailPrice ? card.retailPrice.toFixed(2) : '0.00'}</div>
+                  <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Retail</div>
+                  <div style="font-weight: 600; color: var(--text-secondary);">$${card.retailPrice ? card.retailPrice.toFixed(2) : '0.00'}</div>
                 </div>
                 <div>
-                  <div style="font-size: 12px; color: var(--gray-500);">Your Payout</div>
-                  <div style="font-weight: 600; color: var(--primary);">${card.suggestedTradeValue ? card.suggestedTradeValue.toFixed(2) : 'TBD'}</div>
+                  <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Payout</div>
+                  <div style="font-weight: 600; color: var(--gold);">$${card.suggestedTradeValue ? card.suggestedTradeValue.toFixed(2) : 'TBD'}</div>
                 </div>
               </div>
             `;
@@ -1456,7 +1607,7 @@
 
         } catch (error) {
           alert('Error: ' + error.message);
-          submitBtn.innerHTML = '<span>🚀</span><span>Submit Trade-In Request</span>';
+          submitBtn.innerHTML = '<span>🚀</span><span>Submit Trade-In</span>';
           submitBtn.disabled = false;
         }
       });
@@ -1468,3 +1619,4 @@
   </script>
 </body>
 </html>
+
