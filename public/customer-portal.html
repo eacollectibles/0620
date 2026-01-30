@@ -272,7 +272,37 @@
 
     .ea-trade-result-meta {
       font-size: 13px;
-      opacity: 0.5;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .ea-trade-result-condition {
+      padding: 8px 12px;
+      background: rgba(212, 175, 55, 0.15);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      outline: none;
+      min-width: 200px;
+    }
+
+    .ea-trade-result-condition:hover {
+      border-color: rgba(212, 175, 55, 0.6);
+    }
+
+    .ea-trade-result-condition:focus {
+      border-color: #d4af37;
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+    }
+
+    .ea-trade-result-condition option {
+      background: #1a1a2e;
+      padding: 8px;
     }
 
     .ea-trade-result-value {
@@ -500,6 +530,23 @@
     .ea-trade-cart-item-meta {
       font-size: 11px;
       opacity: 0.5;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .ea-trade-cart-item-condition {
+      background: rgba(212, 175, 55, 0.2);
+      color: #d4af37;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .ea-trade-cart-item-retail {
+      opacity: 0.7;
     }
 
     .ea-trade-cart-item-value {
@@ -729,22 +776,6 @@
       box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
     }
 
-    /* Condition Selector */
-    .ea-trade-condition-select {
-      padding: 6px 10px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 6px;
-      color: #fff;
-      font-size: 12px;
-      cursor: pointer;
-      outline: none;
-    }
-
-    .ea-trade-condition-select option {
-      background: #1a1a2e;
-    }
-
     /* Scrollbar */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
@@ -930,13 +961,7 @@
     const CONFIG = {
       storeCreditRate: 0.60,
       giftCardRate: 0.55,
-      cashRate: 0.45,
-      conditionRates: {
-        'NM': 1.0,
-        'LP': 0.85,
-        'MP': 0.70,
-        'HP': 0.50
-      }
+      cashRate: 0.45
     };
 
     // State
@@ -1065,28 +1090,71 @@
     }
 
     function displayResults(options) {
+      // Group options by base card name (remove condition from title)
+      const groupedCards = {};
+      
+      options.forEach(option => {
+        const title = option.fullTitle || option.productTitle || 'Unknown';
+        // Extract base name by removing condition suffixes
+        const baseName = title
+          .replace(/\s*-\s*(Near Mint|Lightly Played|Moderately Played|Heavily Played|Damaged|NM|LP|MP|HP|DMG)\s*(-\s*Holofoil)?$/i, '')
+          .replace(/\s*-\s*Holofoil$/i, '')
+          .trim();
+        
+        // Determine condition from title
+        let condition = 'NM';
+        if (/Lightly Played|LP/i.test(title)) condition = 'LP';
+        else if (/Moderately Played|MP/i.test(title)) condition = 'MP';
+        else if (/Heavily Played|HP/i.test(title)) condition = 'HP';
+        else if (/Damaged|DMG/i.test(title)) condition = 'DMG';
+        
+        if (!groupedCards[baseName]) {
+          groupedCards[baseName] = {
+            baseName,
+            image: option.image || option.imageUrl || null,
+            variants: {}
+          };
+        }
+        
+        groupedCards[baseName].variants[condition] = {
+          ...option,
+          condition
+        };
+      });
+
       let html = '<div class="ea-trade-results">';
       
-      options.forEach((option, index) => {
-        const price = option.price || 0;
+      Object.values(groupedCards).forEach((card, index) => {
+        const variants = card.variants;
+        const conditions = Object.keys(variants);
+        const defaultCondition = conditions.includes('NM') ? 'NM' : conditions[0];
+        const defaultVariant = variants[defaultCondition];
+        const price = defaultVariant?.price || 0;
         const rate = getCurrentRate();
         const tradeValue = price * rate;
-        const imageUrl = option.image || option.imageUrl || null;
         
         html += `
-          <div class="ea-trade-result" onclick="addToCart(${index})" data-option='${JSON.stringify(option).replace(/'/g, "\\'")}'>
+          <div class="ea-trade-result" data-card-index="${index}" data-variants='${JSON.stringify(variants).replace(/'/g, "\\'")}'>
             <div class="ea-trade-result-image">
-              ${imageUrl ? `<img src="${imageUrl}" alt="${option.fullTitle || option.productTitle || 'Card'}" onerror="this.parentElement.innerHTML='🎴'">` : '🎴'}
+              ${card.image ? `<img src="${card.image}" alt="${card.baseName}" onerror="this.parentElement.innerHTML='🎴'">` : '🎴'}
             </div>
             <div class="ea-trade-result-info">
-              <div class="ea-trade-result-title">${option.fullTitle || option.productTitle || 'Unknown'}</div>
-              <div class="ea-trade-result-meta">SKU: ${option.sku || 'N/A'} • Retail: $${price.toFixed(2)}</div>
+              <div class="ea-trade-result-title">${card.baseName}</div>
+              <div class="ea-trade-result-meta">
+                <select class="ea-trade-result-condition" onchange="updateResultPrice(this)">
+                  ${conditions.includes('NM') ? `<option value="NM" ${defaultCondition === 'NM' ? 'selected' : ''}>Near Mint ($${(variants['NM'].price || 0).toFixed(2)})</option>` : ''}
+                  ${conditions.includes('LP') ? `<option value="LP" ${defaultCondition === 'LP' ? 'selected' : ''}>Lightly Played ($${(variants['LP'].price || 0).toFixed(2)})</option>` : ''}
+                  ${conditions.includes('MP') ? `<option value="MP" ${defaultCondition === 'MP' ? 'selected' : ''}>Moderately Played ($${(variants['MP'].price || 0).toFixed(2)})</option>` : ''}
+                  ${conditions.includes('HP') ? `<option value="HP" ${defaultCondition === 'HP' ? 'selected' : ''}>Heavily Played ($${(variants['HP'].price || 0).toFixed(2)})</option>` : ''}
+                  ${conditions.includes('DMG') ? `<option value="DMG" ${defaultCondition === 'DMG' ? 'selected' : ''}>Damaged ($${(variants['DMG'].price || 0).toFixed(2)})</option>` : ''}
+                </select>
+              </div>
             </div>
             <div class="ea-trade-result-value">
               <div class="ea-trade-result-value-label">Trade Value</div>
-              <div class="ea-trade-result-value-amount">$${tradeValue.toFixed(2)}</div>
+              <div class="ea-trade-result-value-amount" data-base-price="${price}">$${tradeValue.toFixed(2)}</div>
             </div>
-            <button class="ea-trade-add-btn">+ Add</button>
+            <button class="ea-trade-add-btn" onclick="addToCartFromResult(this)">+ Add</button>
           </div>
         `;
       });
@@ -1095,36 +1163,51 @@
       resultsContainer.innerHTML = html;
     }
 
-    function addToCart(index) {
-      const resultEl = document.querySelectorAll('.ea-trade-result')[index];
-      const option = JSON.parse(resultEl.dataset.option);
+    function updateResultPrice(selectEl) {
+      const resultEl = selectEl.closest('.ea-trade-result');
+      const variants = JSON.parse(resultEl.dataset.variants);
+      const selectedCondition = selectEl.value;
+      const variant = variants[selectedCondition];
       
-      cart.push({
-        title: option.fullTitle || option.productTitle,
-        sku: option.sku,
-        price: option.price || 0,
-        condition: 'NM',
-        image: option.image || option.imageUrl || null
-      });
+      if (variant) {
+        const price = variant.price || 0;
+        const rate = getCurrentRate();
+        const tradeValue = price * rate;
+        
+        resultEl.querySelector('.ea-trade-result-value-amount').textContent = `$${tradeValue.toFixed(2)}`;
+        resultEl.querySelector('.ea-trade-result-value-amount').dataset.basePrice = price;
+      }
+    }
+
+    function addToCartFromResult(btn) {
+      const resultEl = btn.closest('.ea-trade-result');
+      const variants = JSON.parse(resultEl.dataset.variants);
+      const selectedCondition = resultEl.querySelector('.ea-trade-result-condition').value;
+      const variant = variants[selectedCondition];
       
-      updateCart();
-      
-      // Visual feedback
-      resultEl.style.background = 'rgba(74, 222, 128, 0.2)';
-      resultEl.style.borderColor = '#4ade80';
-      setTimeout(() => {
-        resultEl.style.background = '';
-        resultEl.style.borderColor = '';
-      }, 500);
+      if (variant) {
+        cart.push({
+          title: variant.fullTitle || variant.productTitle,
+          sku: variant.sku,
+          price: variant.price || 0,
+          condition: selectedCondition,
+          image: variant.image || variant.imageUrl || null
+        });
+        
+        updateCart();
+        
+        // Visual feedback
+        resultEl.style.background = 'rgba(74, 222, 128, 0.2)';
+        resultEl.style.borderColor = '#4ade80';
+        setTimeout(() => {
+          resultEl.style.background = '';
+          resultEl.style.borderColor = '';
+        }, 500);
+      }
     }
 
     function removeFromCart(index) {
       cart.splice(index, 1);
-      updateCart();
-    }
-
-    function updateCondition(index, condition) {
-      cart[index].condition = condition;
       updateCart();
     }
 
@@ -1141,9 +1224,16 @@
       } else {
         let html = '';
         cart.forEach((item, index) => {
-          const conditionRate = CONFIG.conditionRates[item.condition];
           const rate = getCurrentRate();
-          const tradeValue = item.price * rate * conditionRate;
+          // Price already reflects condition (from variant), just apply payout rate
+          const tradeValue = item.price * rate;
+          const conditionLabel = {
+            'NM': 'Near Mint',
+            'LP': 'Lightly Played', 
+            'MP': 'Moderately Played',
+            'HP': 'Heavily Played',
+            'DMG': 'Damaged'
+          }[item.condition] || item.condition;
           
           html += `
             <div class="ea-trade-cart-item">
@@ -1153,12 +1243,8 @@
               <div class="ea-trade-cart-item-info">
                 <div class="ea-trade-cart-item-title">${item.title}</div>
                 <div class="ea-trade-cart-item-meta">
-                  <select class="ea-trade-condition-select" onchange="updateCondition(${index}, this.value)">
-                    <option value="NM" ${item.condition === 'NM' ? 'selected' : ''}>Near Mint</option>
-                    <option value="LP" ${item.condition === 'LP' ? 'selected' : ''}>Lightly Played</option>
-                    <option value="MP" ${item.condition === 'MP' ? 'selected' : ''}>Moderately Played</option>
-                    <option value="HP" ${item.condition === 'HP' ? 'selected' : ''}>Heavily Played</option>
-                  </select>
+                  <span class="ea-trade-cart-item-condition">${conditionLabel}</span>
+                  <span class="ea-trade-cart-item-retail">Retail: $${item.price.toFixed(2)}</span>
                 </div>
               </div>
               <div class="ea-trade-cart-item-value">
@@ -1178,9 +1264,8 @@
       let tradeTotal = 0;
       
       cart.forEach(item => {
-        const conditionRate = CONFIG.conditionRates[item.condition];
         retailTotal += item.price;
-        tradeTotal += item.price * rate * conditionRate;
+        tradeTotal += item.price * rate;
       });
 
       cartCount.textContent = `${cart.length} item${cart.length !== 1 ? 's' : ''}`;
