@@ -281,10 +281,66 @@ async function getEstimateFromTradeInSystem(data) {
     return normalized;
   }
 
+  // Normalize One Piece / Pokemon set+number patterns
+  // "EB03-026" -> "EB03026", "OP09 001" -> "OP09001"
+  function normalizeCardNumber(cardName) {
+    if (!cardName) return cardName;
+    
+    // One Piece patterns: OP09-001, EB03-026, ST01-001, PRB-001
+    const onePiecePattern = /^(OP|EB|ST|PRB)\s*(\d{1,2})[\s\-]*(\d{1,3})$/i;
+    const match = cardName.match(onePiecePattern);
+    
+    if (match) {
+      const prefix = match[1].toUpperCase();
+      const setNum = match[2].padStart(2, '0');
+      const cardNum = match[3].padStart(3, '0');
+      return `${prefix}${setNum}${cardNum}`;
+    }
+    
+    // Pokemon patterns: SV07-025, SV07 025
+    const pokemonPattern = /^(SV|SM|XY|BW|SWSH)\s*(\d{1,2})[\s\-]*(\d{1,3})$/i;
+    const pkMatch = cardName.match(pokemonPattern);
+    
+    if (pkMatch) {
+      const prefix = pkMatch[1].toUpperCase();
+      const setNum = pkMatch[2].padStart(2, '0');
+      const cardNum = pkMatch[3].padStart(3, '0');
+      return `${prefix}${setNum}${cardNum}`;
+    }
+    
+    return cardName;
+  }
+
   function extractPotentialTags(cardName) {
     if (!cardName) return [];
     
     const tags = [];
+    
+    // First, check if it's a One Piece or Pokemon set pattern and normalize it
+    const normalizedCardNum = normalizeCardNumber(cardName);
+    if (normalizedCardNum !== cardName) {
+      tags.push(normalizedCardNum);
+    }
+    
+    // One Piece patterns in longer strings: "Luffy OP09-001" or "EB03-026 Super Rare"
+    const onePieceInString = cardName.match(/(OP|EB|ST|PRB)\s*(\d{1,2})[\s\-]*(\d{1,3})/gi);
+    if (onePieceInString) {
+      onePieceInString.forEach(match => {
+        const normalized = normalizeCardNumber(match.trim());
+        if (normalized) tags.push(normalized);
+      });
+    }
+    
+    // Pokemon patterns in longer strings
+    const pokemonInString = cardName.match(/(SV|SM|XY|BW|SWSH)\s*(\d{1,2})[\s\-]*(\d{1,3})/gi);
+    if (pokemonInString) {
+      pokemonInString.forEach(match => {
+        const normalized = normalizeCardNumber(match.trim());
+        if (normalized) tags.push(normalized);
+      });
+    }
+    
+    // Original number patterns like 025/198
     const numberPattern = /(\d+)[\/\-](\d+)/g;
     let match;
     
@@ -293,11 +349,13 @@ async function getEstimateFromTradeInSystem(data) {
       tags.push(match[1] + match[2]);
     }
     
+    // Standalone numbers (3-6 digits)
     const standaloneNumbers = cardName.match(/\b\d{3,6}\b/g);
     if (standaloneNumbers) {
       tags.push(...standaloneNumbers);
     }
     
+    // Add the fully normalized search term
     tags.push(normalizeSearchTerm(cardName));
     
     return [...new Set(tags)];
