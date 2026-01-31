@@ -303,13 +303,17 @@ module.exports = async function handler(req, res) {
           numericInventoryItemId: numericInventoryItemId
         });
         
+        // Extract product ID from GraphQL ID
+        const productId = variant.product.id;
+        
         return {
           found: true,
-          product: { title: variant.product.title },
+          product: { title: variant.product.title, id: productId },
           variant: {
             sku: variant.sku,
             price: variant.price,
-            inventory_item_id: numericInventoryItemId
+            inventory_item_id: numericInventoryItemId,
+            product_id: productId
           },
           searchMethod: 'exact_sku',
           image: variant.image?.url || variant.product.featuredImage?.url || null,
@@ -348,7 +352,8 @@ module.exports = async function handler(req, res) {
           variant: {
             sku: variant.sku,
             price: variant.price,
-            inventory_item_id: variant.inventory_item_id
+            inventory_item_id: variant.inventory_item_id,
+            product_id: product.id
           },
           searchMethod: 'title',
           image: product.image?.src || product.images?.[0]?.src || null
@@ -409,13 +414,17 @@ module.exports = async function handler(req, res) {
           numericInventoryItemId: numericInventoryItemId
         });
         
+        // Get product ID from variant's product
+        const productId = variant.product.id;
+        
         return {
           found: true,
-          product: { title: variant.product.title },
+          product: { title: variant.product.title, id: productId },
           variant: {
             sku: variant.sku,
             price: variant.price,
-            inventory_item_id: numericInventoryItemId
+            inventory_item_id: numericInventoryItemId,
+            product_id: productId
           },
           searchMethod: 'sku',
           image: variant.image?.url || variant.product.featuredImage?.url || null,
@@ -504,11 +513,12 @@ module.exports = async function handler(req, res) {
         const option = allOptions[0];
         return {
           found: true,
-          product: { title: option.productTitle },
+          product: { title: option.productTitle, id: option.productId },
           variant: {
             sku: option.sku,
             price: option.price,
-            inventory_item_id: option.inventoryItemId
+            inventory_item_id: option.inventoryItemId,
+            product_id: option.productId
           },
           searchMethod: 'tag_single',
           confidence: 'high',
@@ -525,11 +535,12 @@ module.exports = async function handler(req, res) {
         
         return {
           found: true,
-          product: { title: bestMatch.option.productTitle },
+          product: { title: bestMatch.option.productTitle, id: bestMatch.option.productId },
           variant: {
             sku: bestMatch.option.sku,
             price: bestMatch.option.price,
-            inventory_item_id: bestMatch.option.inventoryItemId
+            inventory_item_id: bestMatch.option.inventoryItemId,
+            product_id: bestMatch.option.productId
           },
           searchMethod: 'tag_confident',
           confidence: 'high',
@@ -544,11 +555,12 @@ module.exports = async function handler(req, res) {
       
       return {
         found: true,
-        product: { title: bestMatch.option.productTitle },
+        product: { title: bestMatch.option.productTitle, id: bestMatch.option.productId },
         variant: {
           sku: bestMatch.option.sku,
           price: bestMatch.option.price,
-          inventory_item_id: bestMatch.option.inventoryItemId
+          inventory_item_id: bestMatch.option.inventoryItemId,
+          product_id: bestMatch.option.productId
         },
         searchMethod: 'tag_uncertain',
         confidence: bestMatch.score > 0.5 ? 'medium' : 'low',
@@ -672,6 +684,67 @@ module.exports = async function handler(req, res) {
       }
     }
 
+    // Add "justtraded" tag to a product
+    async function addJustTradedTag(productId, cardName) {
+      if (!productId) {
+        console.error(`❌ No product_id for ${cardName}, cannot add tag`);
+        return false;
+      }
+
+      try {
+        // Extract numeric ID if it's a GraphQL ID
+        const numericProductId = productId.toString().includes('gid://') 
+          ? productId.replace('gid://shopify/Product/', '') 
+          : productId;
+
+        console.log(`🏷️ Adding 'justtraded' tag to ${cardName} (Product ID: ${numericProductId})`);
+
+        // First get current tags
+        const getRes = await makeShopifyRequest(`/admin/api/2023-10/products/${numericProductId}.json`);
+        
+        if (!getRes.ok) {
+          console.error(`❌ Failed to get product for tagging:`, await getRes.text());
+          return false;
+        }
+
+        const productData = await getRes.json();
+        const currentTags = productData.product.tags || '';
+        
+        // Check if already has the tag
+        const tagArray = currentTags.split(',').map(t => t.trim()).filter(t => t);
+        if (tagArray.includes('justtraded')) {
+          console.log(`🏷️ Product already has 'justtraded' tag`);
+          return true;
+        }
+
+        // Add the new tag
+        tagArray.push('justtraded');
+        const newTags = tagArray.join(', ');
+
+        // Update product with new tags
+        const updateRes = await makeShopifyRequest(`/admin/api/2023-10/products/${numericProductId}.json`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            product: {
+              id: numericProductId,
+              tags: newTags
+            }
+          })
+        });
+
+        if (updateRes.ok) {
+          console.log(`✅ Added 'justtraded' tag to ${cardName}`);
+          return true;
+        } else {
+          console.error(`❌ Failed to add tag:`, await updateRes.text());
+          return false;
+        }
+      } catch (tagErr) {
+        console.error(`❌ Failed to add 'justtraded' tag for ${cardName}:`, tagErr);
+        return false;
+      }
+    }
+
     // FIXED: Updated main processing loop to handle exact inventory updates
     async function processTradeCards(cards, estimateMode, locationId) {
       let totalSuggestedValue = 0;
@@ -726,6 +799,7 @@ module.exports = async function handler(req, res) {
 
         // Update inventory if not in estimate mode and we have the required data
         let inventoryUpdated = false;
+        let tagAdded = false;
         if (!estimateMode && locationId && variant.inventory_item_id) {
           inventoryUpdated = await updateInventoryForVariant(variant, quantity, cardName, locationId);
           
@@ -736,6 +810,9 @@ module.exports = async function handler(req, res) {
               inventoryItemId: variant.inventory_item_id,
               quantityAdded: quantity
             });
+            
+            // Add "justtraded" tag to the product
+            tagAdded = await addJustTradedTag(variant.product_id, cardName);
           }
         } else {
           console.log(`📦 Skipping inventory update for ${cardName}:`);
