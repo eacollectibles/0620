@@ -273,6 +273,7 @@ module.exports = async function handler(req, res) {
               product {
                 id
                 title
+                tags
                 featuredImage {
                   url
                 }
@@ -311,7 +312,8 @@ module.exports = async function handler(req, res) {
             inventory_item_id: numericInventoryItemId
           },
           searchMethod: 'exact_sku',
-          image: variant.image?.url || variant.product.featuredImage?.url || null
+          image: variant.image?.url || variant.product.featuredImage?.url || null,
+          tags: variant.product.tags || []
         };
       }
       
@@ -377,6 +379,7 @@ module.exports = async function handler(req, res) {
               product {
                 id
                 title
+                tags
                 featuredImage {
                   url
                 }
@@ -415,7 +418,8 @@ module.exports = async function handler(req, res) {
             inventory_item_id: numericInventoryItemId
           },
           searchMethod: 'sku',
-          image: variant.image?.url || variant.product.featuredImage?.url || null
+          image: variant.image?.url || variant.product.featuredImage?.url || null,
+          tags: variant.product.tags || []
         };
       }
       
@@ -487,7 +491,8 @@ module.exports = async function handler(req, res) {
             fullTitle: variant.title !== 'Default Title' ? `${product.title} - ${variant.title}` : product.title,
             productId: product.id,
             variantId: variant.id,
-            image: product.featuredImage?.url || null
+            image: product.featuredImage?.url || null,
+            tags: product.tags || []
           });
         });
       });
@@ -755,7 +760,8 @@ module.exports = async function handler(req, res) {
           confidence: searchResult.confidence,
           alternativeCount: searchResult.alternativeCount,
           allOptions: searchResult.allOptions,
-          image: searchResult.image || null
+          image: searchResult.image || null,
+          tags: searchResult.tags || []
         });
       }
 
