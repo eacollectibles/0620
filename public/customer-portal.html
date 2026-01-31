@@ -1617,12 +1617,13 @@
           <span class="ea-trade-cart-count" id="cart-count">0 items</span>
         </div>
 
-        <!-- Customer Info -->
-        <div class="ea-trade-customer">
-          <div class="ea-trade-section-label">Your Information</div>
-          <input type="text" class="ea-trade-input" id="customer-name" placeholder="Full Name" required>
-          <input type="email" class="ea-trade-input" id="customer-email" placeholder="Email Address" required>
-          <input type="tel" class="ea-trade-input" id="customer-phone" placeholder="Phone (Optional)">
+        <!-- Cart Items (now first) -->
+        <div class="ea-trade-cart-items" id="cart-items">
+          <div class="ea-trade-cart-empty">
+            <div class="ea-trade-cart-empty-icon">🛒</div>
+            <p>Your cart is empty</p>
+            <p style="font-size: 12px; margin-top: 8px;">Search and add cards to get started</p>
+          </div>
         </div>
 
         <!-- Payout Selection -->
@@ -1643,15 +1644,6 @@
                 <div class="ea-trade-payout-rate">In-Store</div>
               </div>
             </div>
-          </div>
-        </div>
-
-        <!-- Cart Items -->
-        <div class="ea-trade-cart-items" id="cart-items">
-          <div class="ea-trade-cart-empty">
-            <div class="ea-trade-cart-empty-icon">🛒</div>
-            <p>Your cart is empty</p>
-            <p style="font-size: 12px; margin-top: 8px;">Search and add cards to get started</p>
           </div>
         </div>
 
@@ -2088,9 +2080,11 @@
         resultEl.style.background = 'rgba(74, 222, 128, 0.2)';
         resultEl.style.borderColor = '#4ade80';
         setTimeout(() => {
-          resultEl.style.background = '';
-          resultEl.style.borderColor = '';
-        }, 500);
+          // Clear search results after adding
+          searchResults.innerHTML = '';
+          searchInput.value = '';
+          searchInput.focus();
+        }, 400);
       }
     }
 
@@ -2195,18 +2189,11 @@
     // Submit
     function setupSubmit() {
       submitBtn.addEventListener('click', async function() {
-        const name = document.getElementById('customer-name').value.trim();
-        const email = document.getElementById('customer-email').value.trim();
-        const phone = document.getElementById('customer-phone').value.trim();
+        // Customer info fields removed for now
+        const name = '';
+        const email = '';
+        const phone = '';
 
-        if (!name) {
-          alert('Please enter your name.');
-          return;
-        }
-        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          alert('Please enter a valid email address.');
-          return;
-        }
         if (cart.length === 0) {
           alert('Please add at least one card to your cart.');
           return;
@@ -2300,9 +2287,6 @@
           <p>Start typing to search for cards</p>
         </div>
       `;
-      document.getElementById('customer-name').value = '';
-      document.getElementById('customer-email').value = '';
-      document.getElementById('customer-phone').value = '';
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<span>🚀</span> Submit Trade-In Request';
       resetRepSection();
