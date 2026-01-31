@@ -177,7 +177,7 @@
     .ea-trade-result-image {
       width: 60px;
       height: 84px;
-      background: linear-gradient(135deg, #2a2a4a 0%, #1a1a2e 100%);
+      background: #0a0a0a;
       border-radius: 6px;
       overflow: hidden;
       flex-shrink: 0;
@@ -190,7 +190,8 @@
     .ea-trade-result-image img {
       width: 100%;
       height: 100%;
-      object-fit: contain;
+      object-fit: cover;
+      border-radius: 4px;
     }
 
     .ea-trade-result-info {
@@ -437,7 +438,7 @@
     .ea-trade-cart-item-image {
       width: 40px;
       height: 56px;
-      background: linear-gradient(135deg, #2a2a4a 0%, #1a1a2e 100%);
+      background: #0a0a0a;
       border-radius: 4px;
       display: flex;
       align-items: center;
@@ -450,7 +451,8 @@
     .ea-trade-cart-item-image img {
       width: 100%;
       height: 100%;
-      object-fit: contain;
+      object-fit: cover;
+      border-radius: 3px;
     }
 
     .ea-trade-cart-item-info {
@@ -1011,10 +1013,37 @@
     const API_URL = '/api/buybackstep4';
     const SUBMISSION_API_URL = '/api/customer-submissions';
     
-    const CONFIG = {
-      storeCreditRate: 0.60,
-      cashRate: 0.45
-    };
+    // Tiered pricing for store credit (based on retail price)
+    // Cash is approximately 75% of store credit rates
+    function getTradeValue(retailPrice, payoutMethod = selectedPayout) {
+      let storeCredit = 0;
+      
+      // Tiered pricing based on retail value
+      if (retailPrice >= 50.00) {
+        storeCredit = retailPrice * 0.75;
+      } else if (retailPrice >= 25.00) {
+        storeCredit = retailPrice * 0.70;
+      } else if (retailPrice >= 15.01) {
+        storeCredit = retailPrice * 0.65;
+      } else if (retailPrice >= 8.00) {
+        storeCredit = retailPrice * 0.50;
+      } else if (retailPrice >= 5.00) {
+        storeCredit = retailPrice * 0.35;
+      } else if (retailPrice >= 3.01) {
+        storeCredit = retailPrice * 0.25;
+      } else if (retailPrice >= 2.00) {
+        storeCredit = 0.25; // Flat $0.25 for cards $2.00-$3.00
+      } else {
+        storeCredit = 0; // Cards under $2 - no value
+      }
+      
+      // Cash is ~75% of store credit
+      if (payoutMethod === 'cash') {
+        return storeCredit * 0.75;
+      }
+      
+      return storeCredit;
+    }
 
     // State
     let cart = [];
@@ -1194,8 +1223,7 @@
         const defaultCondition = priorityOrder.find(c => conditions.includes(c)) || conditions[0];
         const defaultVariant = variants[defaultCondition];
         const price = defaultVariant?.price || 0;
-        const rate = getCurrentRate();
-        const tradeValue = price * rate;
+        const tradeValue = getTradeValue(price);
         
         // Build options HTML
         let optionsHtml = '';
@@ -1242,8 +1270,7 @@
       
       if (variant) {
         const price = variant.price || 0;
-        const rate = getCurrentRate();
-        const tradeValue = price * rate;
+        const tradeValue = getTradeValue(price);
         
         resultEl.querySelector('.ea-trade-result-value-amount').textContent = `$${tradeValue.toFixed(2)}`;
         resultEl.querySelector('.ea-trade-result-value-amount').dataset.basePrice = price;
@@ -1298,9 +1325,8 @@
       } else {
         let html = '';
         cart.forEach((item, index) => {
-          const rate = getCurrentRate();
-          // Price already reflects condition (from variant), just apply payout rate
-          const tradeValue = item.price * rate;
+          // Use tiered pricing based on retail value
+          const tradeValue = getTradeValue(item.price);
           const conditionLabel = {
             'NM': 'Near Mint',
             'LP': 'Lightly Played', 
@@ -1334,26 +1360,17 @@
       }
 
       // Update totals
-      const rate = getCurrentRate();
       let retailTotal = 0;
       let tradeTotal = 0;
       
       cart.forEach(item => {
         retailTotal += item.price;
-        tradeTotal += item.price * rate;
+        tradeTotal += getTradeValue(item.price);
       });
 
       cartCount.textContent = `${cart.length} item${cart.length !== 1 ? 's' : ''}`;
       totalRetail.textContent = `$${retailTotal.toFixed(2)}`;
       totalQuote.textContent = `$${tradeTotal.toFixed(2)}`;
-    }
-
-    function getCurrentRate() {
-      switch (selectedPayout) {
-        case 'store-credit': return CONFIG.storeCreditRate;
-        case 'cash': return CONFIG.cashRate;
-        default: return CONFIG.storeCreditRate;
-      }
     }
 
     // Payout Selection
@@ -1432,13 +1449,12 @@
     }
 
     function showConfirmation(submissionId) {
-      const rate = getCurrentRate();
       let retailTotal = 0;
       let tradeTotal = 0;
       
       cart.forEach(item => {
         retailTotal += item.price;
-        tradeTotal += item.price * rate;
+        tradeTotal += getTradeValue(item.price);
       });
 
       const payoutNames = {
