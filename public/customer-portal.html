@@ -1712,6 +1712,27 @@
       margin-top: 16px;
     }
 
+    .ea-trade-rep-input {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      text-align: center;
+      margin-bottom: 10px;
+      outline: none;
+    }
+
+    .ea-trade-rep-input:focus {
+      border-color: rgba(239, 68, 68, 0.5);
+    }
+
+    .ea-trade-rep-input::placeholder {
+      color: rgba(255,255,255,0.4);
+    }
+
     .ea-trade-rep-password {
       width: 100%;
       padding: 14px 16px;
@@ -2365,7 +2386,8 @@
             <span>🔐</span> Representative Trade-In
           </button>
           <div class="ea-trade-rep-auth" id="rep-auth-section" style="display: none;">
-            <input type="password" class="ea-trade-rep-password" id="rep-password" placeholder="Enter staff password">
+            <input type="text" class="ea-trade-rep-input" id="rep-username" placeholder="Username" autocomplete="username">
+            <input type="password" class="ea-trade-rep-password" id="rep-password" placeholder="Password" autocomplete="current-password">
             <button class="ea-trade-rep-confirm" id="rep-confirm-btn" onclick="processRepTrade()">
               <span>📦</span> Process & Add to Inventory
             </button>
@@ -3238,7 +3260,11 @@
     }
 
     // Representative Trade-In Functions
-    const REP_PASSWORD = 'EArep2025';
+    // Sales rep credentials - username: password
+    const REP_CREDENTIALS = {
+      'jaynerdy': 'h033192'
+      // Add more reps here: 'username': 'password'
+    };
 
     function showRepAuth() {
       if (cart.length === 0) {
@@ -3247,14 +3273,21 @@
       }
       document.getElementById('rep-trade-btn').style.display = 'none';
       document.getElementById('rep-auth-section').style.display = 'block';
-      document.getElementById('rep-password').focus();
+      document.getElementById('rep-username').focus();
     }
 
     async function processRepTrade() {
+      const username = document.getElementById('rep-username').value.trim().toLowerCase();
       const password = document.getElementById('rep-password').value;
       
-      if (password !== REP_PASSWORD) {
-        alert('Incorrect password');
+      // Validate credentials
+      if (!username || !password) {
+        alert('Please enter both username and password');
+        return;
+      }
+      
+      if (!REP_CREDENTIALS[username] || REP_CREDENTIALS[username] !== password) {
+        alert('Invalid username or password');
         document.getElementById('rep-password').value = '';
         document.getElementById('rep-password').focus();
         return;
@@ -3281,7 +3314,7 @@
               sku: item.sku,
               searchMethod: 'exact_sku'
             })),
-            employeeName: 'Customer Portal Rep',
+            employeeName: username,
             payoutMethod: selectedPayout
           })
         });
@@ -3324,6 +3357,7 @@
       document.getElementById('rep-auth-section').style.display = 'none';
       document.getElementById('rep-success').style.display = 'none';
       document.getElementById('rep-trade-btn').style.display = 'flex';
+      document.getElementById('rep-username').value = '';
       document.getElementById('rep-password').value = '';
       const confirmBtn = document.getElementById('rep-confirm-btn');
       confirmBtn.disabled = false;
