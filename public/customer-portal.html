@@ -185,6 +185,7 @@
       align-items: center;
       justify-content: center;
       font-size: 24px;
+      position: relative;
     }
 
     .ea-trade-result-image img {
@@ -844,6 +845,80 @@
       gap: 8px;
     }
 
+    /* Image Lightbox */
+    .ea-trade-lightbox {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      cursor: zoom-out;
+    }
+
+    .ea-trade-lightbox.active {
+      display: flex;
+    }
+
+    .ea-trade-lightbox-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      border-radius: 50%;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      z-index: 10001;
+    }
+
+    .ea-trade-lightbox-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
+    }
+
+    .ea-trade-lightbox-img {
+      max-width: 90vw;
+      max-height: 90vh;
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      cursor: default;
+    }
+
+    /* Make result images clickable */
+    .ea-trade-result-image[onclick] {
+      cursor: zoom-in;
+    }
+
+    .ea-trade-result-image[onclick] img {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .ea-trade-result-image[onclick]:hover img {
+      transform: scale(1.05);
+    }
+
+    .ea-trade-result-image[onclick]:hover {
+      box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.5);
+    }
+
+    .ea-trade-result-image[onclick]:active img {
+      transform: scale(1.02);
+    }
+
     /* Scrollbar */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
@@ -876,6 +951,21 @@
       }
       .ea-trade-search-input {
         padding-right: 50px;
+      }
+      .ea-trade-lightbox {
+        padding: 10px;
+      }
+      .ea-trade-lightbox-close {
+        top: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+      }
+      .ea-trade-lightbox-img {
+        max-width: 95vw;
+        max-height: 85vh;
+        border-radius: 8px;
       }
     }
   </style>
@@ -1006,6 +1096,12 @@
 
       <button class="ea-trade-modal-btn" onclick="closeModal()">Done</button>
     </div>
+  </div>
+
+  <!-- Image Lightbox Modal -->
+  <div class="ea-trade-lightbox" id="image-lightbox" onclick="closeLightbox(event)">
+    <button class="ea-trade-lightbox-close" onclick="closeLightbox(event)">✕</button>
+    <img class="ea-trade-lightbox-img" id="lightbox-img" src="" alt="Card Image">
   </div>
 
   <script>
@@ -1235,7 +1331,12 @@
         }
         
         // Keep tags from any variant (they should be the same for same product)
-        if (option.tags && option.tags.length > 0 && groupedCards[baseName].tags.length === 0) {
+        const optionTags = option.tags || [];
+        const hasOptionTags = Array.isArray(optionTags) ? optionTags.length > 0 : (typeof optionTags === 'string' && optionTags.length > 0);
+        const currentTags = groupedCards[baseName].tags;
+        const hasCurrentTags = Array.isArray(currentTags) ? currentTags.length > 0 : (typeof currentTags === 'string' && currentTags.length > 0);
+        
+        if (hasOptionTags && !hasCurrentTags) {
           groupedCards[baseName].tags = option.tags;
         }
         
@@ -1250,7 +1351,11 @@
       Object.values(groupedCards).forEach((card, index) => {
         const variants = card.variants;
         const conditions = Object.keys(variants);
-        const tags = card.tags || [];
+        // Normalize tags - handle both array and string formats
+        let tags = card.tags || [];
+        if (typeof tags === 'string') {
+          tags = tags.split(',').map(t => t.trim()).filter(t => t);
+        }
         
         // Priority order: NM > LP > MP > HP > DMG > DEFAULT
         const priorityOrder = ['NM', 'LP', 'MP', 'HP', 'DMG', 'DEFAULT'];
@@ -1268,10 +1373,13 @@
         if (conditions.includes('DMG')) optionsHtml += `<option value="DMG" ${defaultCondition === 'DMG' ? 'selected' : ''}>Damaged ($${(variants['DMG'].price || 0).toFixed(2)})</option>`;
         if (conditions.includes('DEFAULT')) optionsHtml += `<option value="DEFAULT" ${defaultCondition === 'DEFAULT' ? 'selected' : ''}>Standard ($${(variants['DEFAULT'].price || 0).toFixed(2)})</option>`;
         
+        const imageUrl = card.image ? card.image.replace(/"/g, '&quot;').replace(/'/g, '&#39;') : '';
+        const tagsString = Array.isArray(tags) ? tags.join(',') : (tags || '');
+        
         html += `
-          <div class="ea-trade-result" data-card-index="${index}" data-card-tags="${tags.join(',').replace(/"/g, '&quot;')}" data-variants='${JSON.stringify(variants).replace(/'/g, "\\'")}'>
-            <div class="ea-trade-result-image">
-              ${card.image ? `<img src="${card.image}" alt="${card.baseName}" onerror="this.parentElement.innerHTML='🎴'">` : '🎴'}
+          <div class="ea-trade-result" data-card-index="${index}" data-card-tags="${tagsString.replace(/"/g, '&quot;')}" data-variants='${JSON.stringify(variants).replace(/'/g, "\\'")}'>
+            <div class="ea-trade-result-image" ${imageUrl ? `data-img-url="${imageUrl}" onclick="openLightbox(this.dataset.imgUrl)"` : ''}>
+              ${card.image ? `<img src="${card.image}" alt="${card.baseName.replace(/"/g, '&quot;')}" onerror="this.parentElement.innerHTML='🎴'; this.parentElement.removeAttribute('onclick'); this.parentElement.removeAttribute('data-img-url');">` : '🎴'}
             </div>
             <div class="ea-trade-result-info">
               <div class="ea-trade-result-title">${card.baseName}</div>
@@ -1639,6 +1747,33 @@
       confirmBtn.disabled = false;
       confirmBtn.innerHTML = '<span>📦</span> Process & Add to Inventory';
     }
+
+    // Image Lightbox
+    function openLightbox(imageUrl) {
+      if (!imageUrl) return;
+      const lightbox = document.getElementById('image-lightbox');
+      const lightboxImg = document.getElementById('lightbox-img');
+      lightboxImg.src = imageUrl;
+      lightbox.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox(event) {
+      // Only close if clicking the background or close button, not the image itself
+      if (event && event.target.classList.contains('ea-trade-lightbox-img')) {
+        return;
+      }
+      const lightbox = document.getElementById('image-lightbox');
+      lightbox.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    // Close lightbox with Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeLightbox();
+      }
+    });
   </script>
 </body>
 </html>
