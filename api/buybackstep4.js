@@ -1,1047 +1,1767 @@
-module.exports = async function handler(req, res) {
-  // CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sell Your Cards | EA Collectibles</title>
   
-  if (req.method === 'OPTIONS') {
-    console.log('OPTIONS request received - sending CORS headers');
-    return res.status(200).end();
-  }
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-  console.log('=== API REQUEST START ===');
-  console.log('Method:', req.method);
-  console.log('URL:', req.url);
-  console.log('Body:', req.body);
-
-  try {
-    if (req.method !== 'POST') {
-      console.log('❌ Method not allowed:', req.method);
-      return res.status(405).json({ error: 'Method Not Allowed' });
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+      min-height: 100vh;
+      color: #fff;
     }
 
-    const estimateMode = req.query?.estimate === 'true';
-    const { cards, employeeName, payoutMethod, overrideTotal, customerEmail } = req.body;
+    /* Header */
+    .ea-trade-header {
+      padding: 40px 40px 30px;
+      text-align: center;
+    }
+
+    .ea-trade-header h1 {
+      margin: 0;
+      font-size: 36px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #d4af37 0%, #f4e4a6 50%, #d4af37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .ea-trade-header p {
+      margin: 8px 0 0;
+      opacity: 0.6;
+      font-size: 16px;
+      color: #fff;
+    }
+
+    /* Main Layout */
+    .ea-trade-main {
+      display: flex;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px;
+      gap: 40px;
+    }
+
+    .ea-trade-search-panel {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .ea-trade-cart-panel {
+      width: 420px;
+      flex-shrink: 0;
+    }
+
+    /* Search Section */
+    .ea-trade-search-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .ea-trade-search-box {
+      position: relative;
+      margin-bottom: 24px;
+    }
+
+    .ea-trade-search-icon {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .ea-trade-search-input {
+      width: 100%;
+      padding: 18px 56px 18px 56px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 16px;
+      color: #fff;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    .ea-trade-search-input:focus {
+      border-color: rgba(212, 175, 55, 0.6);
+      background: rgba(255,255,255,0.05);
+      box-shadow: 0 0 30px rgba(212, 175, 55, 0.1);
+    }
+
+    .ea-trade-search-input::placeholder {
+      color: rgba(255,255,255,0.4);
+    }
+
+    .ea-trade-clear-btn {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 28px;
+      height: 28px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      border-radius: 50%;
+      color: rgba(255,255,255,0.6);
+      font-size: 16px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-clear-btn:hover {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+    }
+
+    .ea-trade-clear-btn.visible {
+      display: flex;
+    }
+
+    /* Loading State */
+    .ea-trade-loading {
+      text-align: center;
+      padding: 40px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .ea-trade-spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid rgba(212, 175, 55, 0.2);
+      border-top-color: #d4af37;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Results */
+    .ea-trade-results {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .ea-trade-result {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-result:hover {
+      background: rgba(212, 175, 55, 0.08);
+      border-color: rgba(212, 175, 55, 0.3);
+      transform: translateX(4px);
+    }
+
+    .ea-trade-result-image {
+      width: 60px;
+      height: 84px;
+      background: #0a0a0a;
+      border-radius: 6px;
+      overflow: hidden;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      position: relative;
+    }
+
+    .ea-trade-result-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .ea-trade-result-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .ea-trade-result-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ea-trade-result-meta {
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .ea-trade-result-condition {
+      padding: 8px 12px;
+      background: rgba(212, 175, 55, 0.15);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      outline: none;
+      min-width: 200px;
+    }
+
+    .ea-trade-result-condition:hover {
+      border-color: rgba(212, 175, 55, 0.6);
+    }
+
+    .ea-trade-result-condition:focus {
+      border-color: #d4af37;
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+    }
+
+    .ea-trade-result-condition option {
+      background: #1a1a2e;
+      padding: 8px;
+    }
+
+    .ea-trade-result-single-condition {
+      color: rgba(255,255,255,0.6);
+      font-size: 13px;
+    }
+
+    .ea-trade-result-value {
+      text-align: right;
+      margin-right: 12px;
+    }
+
+    .ea-trade-result-value-label {
+      font-size: 13px;
+      opacity: 0.5;
+    }
+
+    .ea-trade-result-value-amount {
+      font-size: 18px;
+      font-weight: 600;
+      color: #4ade80;
+    }
+
+    .ea-trade-add-btn {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #d4af37 0%, #b8962e 100%);
+      border: none;
+      border-radius: 8px;
+      color: #0a0a0a;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-add-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+    }
+
+    /* Empty State */
+    .ea-trade-empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .ea-trade-empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    /* Cart Panel */
+    .ea-trade-cart {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 28px;
+      position: sticky;
+      top: 40px;
+    }
+
+    .ea-trade-cart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .ea-trade-cart-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .ea-trade-cart-count {
+      background: rgba(212, 175, 55, 0.2);
+      color: #d4af37;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* Customer Info */
+    .ea-trade-customer {
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .ea-trade-section-label {
+      font-size: 13px;
+      opacity: 0.5;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .ea-trade-input {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      margin-bottom: 10px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-input:focus {
+      border-color: rgba(212, 175, 55, 0.5);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .ea-trade-input::placeholder {
+      color: rgba(255,255,255,0.3);
+    }
+
+    /* Payout Selection */
+    .ea-trade-payout {
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .ea-trade-payout-options {
+      display: flex;
+      gap: 10px;
+    }
+
+    .ea-trade-payout-option {
+      flex: 1;
+      padding: 16px 12px;
+      background: rgba(255,255,255,0.02);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .ea-trade-payout-option:hover {
+      border-color: rgba(212, 175, 55, 0.5);
+    }
+
+    .ea-trade-payout-option.selected {
+      border-color: #d4af37;
+      background: rgba(212, 175, 55, 0.1);
+    }
+
+    .ea-trade-payout-icon {
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+
+    .ea-trade-payout-name {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .ea-trade-payout-rate {
+      font-weight: 600;
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .ea-trade-payout-option.selected .ea-trade-payout-rate {
+      color: #d4af37;
+    }
+
+    /* Cart Items */
+    .ea-trade-cart-items {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .ea-trade-cart-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .ea-trade-cart-item-image {
+      width: 40px;
+      height: 56px;
+      background: #0a0a0a;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .ea-trade-cart-item-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 3px;
+    }
+
+    .ea-trade-cart-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .ea-trade-cart-item-title {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+
+    .ea-trade-cart-item-meta {
+      font-size: 11px;
+      opacity: 0.5;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .ea-trade-cart-item-condition {
+      background: rgba(212, 175, 55, 0.2);
+      color: #d4af37;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .ea-trade-cart-item-retail {
+      opacity: 0.7;
+    }
+
+    .ea-trade-cart-item-value {
+      text-align: right;
+    }
+
+    .ea-trade-cart-item-price {
+      font-weight: 600;
+      color: #4ade80;
+    }
+
+    .ea-trade-cart-item-remove {
+      width: 28px;
+      height: 28px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 6px;
+      color: #ef4444;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-cart-item-remove:hover {
+      background: #ef4444;
+      color: white;
+      border-color: #ef4444;
+    }
+
+    .ea-trade-cart-empty {
+      text-align: center;
+      padding: 30px;
+      color: rgba(255,255,255,0.3);
+      font-size: 14px;
+    }
+
+    .ea-trade-cart-empty-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    /* Totals */
+    .ea-trade-totals {
+      margin-bottom: 20px;
+    }
+
+    .ea-trade-totals-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 14px;
+    }
+
+    .ea-trade-totals-row.total {
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 16px;
+      margin-top: 8px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .ea-trade-totals-row.total .ea-trade-totals-value {
+      color: #d4af37;
+      font-size: 22px;
+    }
+
+    .ea-trade-totals-label {
+      opacity: 0.6;
+    }
+
+    .ea-trade-totals-value {
+      color: #4ade80;
+      font-weight: 600;
+    }
+
+    /* Submit Button */
+    .ea-trade-submit-btn {
+      width: 100%;
+      padding: 18px 24px;
+      background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+      border: none;
+      border-radius: 14px;
+      color: #0a0a0a;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .ea-trade-submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(74, 222, 128, 0.3);
+    }
+
+    .ea-trade-submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Confirmation Modal */
+    .ea-trade-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .ea-trade-modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .ea-trade-modal {
+      background: linear-gradient(135deg, #1a1a2e 0%, #0a0a0a 100%);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+
+    .ea-trade-modal-overlay.active .ea-trade-modal {
+      transform: scale(1);
+    }
+
+    .ea-trade-modal-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .ea-trade-modal-title {
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #d4af37 0%, #f4e4a6 50%, #d4af37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+    }
+
+    .ea-trade-modal-subtitle {
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .ea-trade-modal-code {
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .ea-trade-modal-code-label {
+      font-size: 12px;
+      opacity: 0.5;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .ea-trade-modal-code-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #d4af37;
+      letter-spacing: 2px;
+      font-family: Monaco, monospace;
+    }
+
+    .ea-trade-modal-summary {
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+
+    .ea-trade-modal-summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .ea-trade-modal-summary-row:last-child {
+      border-bottom: none;
+    }
+
+    .ea-trade-modal-btn {
+      width: 100%;
+      padding: 16px 24px;
+      background: linear-gradient(135deg, #d4af37 0%, #b8962e 100%);
+      border: none;
+      border-radius: 12px;
+      color: #0a0a0a;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-modal-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+    }
+
+    /* Representative Trade-In Section */
+    .ea-trade-rep-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .ea-trade-rep-divider {
+      text-align: center;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .ea-trade-rep-divider::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 1px;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .ea-trade-rep-divider span {
+      position: relative;
+      background: rgba(255,255,255,0.02);
+      padding: 0 12px;
+      color: rgba(255,255,255,0.4);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .ea-trade-rep-btn {
+      width: 100%;
+      padding: 14px 20px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 10px;
+      color: #ef4444;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .ea-trade-rep-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: #ef4444;
+    }
+
+    .ea-trade-rep-auth {
+      margin-top: 16px;
+    }
+
+    .ea-trade-rep-password {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      text-align: center;
+      margin-bottom: 12px;
+      outline: none;
+    }
+
+    .ea-trade-rep-password:focus {
+      border-color: rgba(239, 68, 68, 0.5);
+    }
+
+    .ea-trade-rep-confirm {
+      width: 100%;
+      padding: 14px 20px;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .ea-trade-rep-confirm:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);
+    }
+
+    .ea-trade-rep-confirm:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .ea-trade-rep-note {
+      text-align: center;
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      margin-top: 10px;
+    }
+
+    .ea-trade-rep-success {
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      color: #4ade80;
+      font-weight: 600;
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* Image Lightbox */
+    .ea-trade-lightbox {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      cursor: zoom-out;
+    }
+
+    .ea-trade-lightbox.active {
+      display: flex;
+    }
+
+    .ea-trade-lightbox-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      border-radius: 50%;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      z-index: 10001;
+    }
+
+    .ea-trade-lightbox-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
+    }
+
+    .ea-trade-lightbox-img {
+      max-width: 90vw;
+      max-height: 90vh;
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      cursor: default;
+    }
+
+    /* Make result images clickable */
+    .ea-trade-result-image[onclick] {
+      cursor: zoom-in;
+    }
+
+    .ea-trade-result-image[onclick] img {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .ea-trade-result-image[onclick]:hover img {
+      transform: scale(1.05);
+    }
+
+    .ea-trade-result-image[onclick]:hover {
+      box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.5);
+    }
+
+    .ea-trade-result-image[onclick]:active img {
+      transform: scale(1.02);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+    ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.3); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(212, 175, 55, 0.5); }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .ea-trade-main {
+        flex-direction: column;
+        padding: 20px;
+      }
+      .ea-trade-cart-panel {
+        width: 100%;
+      }
+      .ea-trade-cart {
+        position: static;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .ea-trade-header {
+        padding: 30px 20px 20px;
+      }
+      .ea-trade-header h1 {
+        font-size: 28px;
+      }
+      .ea-trade-payout-options {
+        flex-direction: column;
+      }
+      .ea-trade-search-input {
+        padding-right: 50px;
+      }
+      .ea-trade-lightbox {
+        padding: 10px;
+      }
+      .ea-trade-lightbox-close {
+        top: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+      }
+      .ea-trade-lightbox-img {
+        max-width: 95vw;
+        max-height: 85vh;
+        border-radius: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="ea-trade-header">
+    <h1>Sell Your Cards</h1>
+    <p>Get cash or store credit instantly</p>
+  </header>
+
+  <!-- Main Content -->
+  <main class="ea-trade-main">
+    <!-- Search Panel -->
+    <div class="ea-trade-search-panel">
+      <h2 class="ea-trade-search-title">Search Cards</h2>
+      
+      <div class="ea-trade-search-box">
+        <span class="ea-trade-search-icon">🔍</span>
+        <input type="text" class="ea-trade-search-input" id="search-input" placeholder="Enter card name, set, or number..." autocomplete="off">
+        <button class="ea-trade-clear-btn" id="clear-btn" type="button">✕</button>
+      </div>
+
+      <div id="results-container">
+        <div class="ea-trade-empty">
+          <div class="ea-trade-empty-icon">🔍</div>
+          <p>Start typing to search for cards</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cart Panel -->
+    <div class="ea-trade-cart-panel">
+      <div class="ea-trade-cart">
+        <div class="ea-trade-cart-header">
+          <h3 class="ea-trade-cart-title">Trade-In Cart</h3>
+          <span class="ea-trade-cart-count" id="cart-count">0 items</span>
+        </div>
+
+        <!-- Customer Info -->
+        <div class="ea-trade-customer">
+          <div class="ea-trade-section-label">Your Information</div>
+          <input type="text" class="ea-trade-input" id="customer-name" placeholder="Full Name" required>
+          <input type="email" class="ea-trade-input" id="customer-email" placeholder="Email Address" required>
+          <input type="tel" class="ea-trade-input" id="customer-phone" placeholder="Phone (Optional)">
+        </div>
+
+        <!-- Payout Selection -->
+        <div class="ea-trade-payout">
+          <div class="ea-trade-section-label">Payout Method</div>
+          <div class="ea-trade-payout-options">
+            <div class="ea-trade-payout-option selected" data-payout="store-credit">
+              <div class="ea-trade-payout-icon">🏪</div>
+              <div class="ea-trade-payout-name">Store Credit</div>
+              <div class="ea-trade-payout-rate">Best Value</div>
+            </div>
+            <div class="ea-trade-payout-option cash" data-payout="cash">
+              <div class="ea-trade-payout-icon">💵</div>
+              <div class="ea-trade-payout-name">Cash</div>
+              <div class="ea-trade-payout-rate">In-Store</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cart Items -->
+        <div class="ea-trade-cart-items" id="cart-items">
+          <div class="ea-trade-cart-empty">
+            <div class="ea-trade-cart-empty-icon">🛒</div>
+            <p>Your cart is empty</p>
+            <p style="font-size: 12px; margin-top: 8px;">Search and add cards to get started</p>
+          </div>
+        </div>
+
+        <!-- Totals -->
+        <div class="ea-trade-totals">
+          <div class="ea-trade-totals-row">
+            <span class="ea-trade-totals-label">Retail Value</span>
+            <span class="ea-trade-totals-value" id="total-retail">$0.00</span>
+          </div>
+          <div class="ea-trade-totals-row total">
+            <span class="ea-trade-totals-label">Your Quote</span>
+            <span class="ea-trade-totals-value" id="total-quote">$0.00</span>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <button class="ea-trade-submit-btn" id="submit-btn" disabled>
+          <span>🚀</span> Submit Trade-In Request
+        </button>
+
+        <!-- Representative Trade-In Section -->
+        <div class="ea-trade-rep-section">
+          <div class="ea-trade-rep-divider">
+            <span>Staff Only</span>
+          </div>
+          <button class="ea-trade-rep-btn" id="rep-trade-btn" onclick="showRepAuth()">
+            <span>🔐</span> Representative Trade-In
+          </button>
+          <div class="ea-trade-rep-auth" id="rep-auth-section" style="display: none;">
+            <input type="password" class="ea-trade-rep-password" id="rep-password" placeholder="Enter staff password">
+            <button class="ea-trade-rep-confirm" id="rep-confirm-btn" onclick="processRepTrade()">
+              <span>📦</span> Process & Add to Inventory
+            </button>
+            <p class="ea-trade-rep-note">This will instantly add cards to Shopify inventory</p>
+          </div>
+          <div class="ea-trade-rep-success" id="rep-success" style="display: none;">
+            <span>✅</span> Inventory Updated Successfully!
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Confirmation Modal -->
+  <div class="ea-trade-modal-overlay" id="confirmation-modal">
+    <div class="ea-trade-modal">
+      <div class="ea-trade-modal-icon">🎉</div>
+      <h2 class="ea-trade-modal-title">Trade-In Submitted!</h2>
+      <p class="ea-trade-modal-subtitle">We've received your request and will review it within 24 hours. Check your email for updates.</p>
+      
+      <div class="ea-trade-modal-code">
+        <div class="ea-trade-modal-code-label">Confirmation Number</div>
+        <div class="ea-trade-modal-code-value" id="confirmation-code">TR-XXXX</div>
+      </div>
+
+      <div class="ea-trade-modal-summary" id="modal-summary"></div>
+
+      <button class="ea-trade-modal-btn" onclick="closeModal()">Done</button>
+    </div>
+  </div>
+
+  <!-- Image Lightbox Modal -->
+  <div class="ea-trade-lightbox" id="image-lightbox" onclick="closeLightbox(event)">
+    <button class="ea-trade-lightbox-close" onclick="closeLightbox(event)">✕</button>
+    <img class="ea-trade-lightbox-img" id="lightbox-img" src="" alt="Card Image">
+  </div>
+
+  <script>
+    // Config
+    const API_URL = '/api/buybackstep4';
+    const SUBMISSION_API_URL = '/api/customer-submissions';
     
-    console.log('📋 Request data:', {
-      cardsCount: cards?.length,
-      employeeName,
-      payoutMethod,
-      overrideTotal,
-      customerEmail,
-      estimateMode
-    });
-
-    // Log card details for debugging SKU matching
-    console.log('🃏 Card details:', cards?.map(card => ({
-      name: card.cardName,
-      sku: card.sku,
-      searchMethod: card.searchMethod
-    })));
-
-    // Validation
-    if (payoutMethod === "store-credit" && !customerEmail && !estimateMode) {
-      return res.status(400).json({ error: 'Customer email is required for store credit payouts' });
-    }
-
-    // Validate override total
-    let validatedOverride = null;
-    if (overrideTotal !== undefined && overrideTotal !== null && overrideTotal !== '') {
-      const override = parseFloat(overrideTotal);
-      if (isNaN(override) || override < 0) {
-        return res.status(400).json({ error: 'Override total must be a valid positive number' });
-      }
-      if (override > 13500) {
-        return res.status(400).json({ error: 'Override total exceeds maximum allowed limit ($13,500 CAD)' });
-      }
-      validatedOverride = override;
-    }
-
-    if (!cards || !Array.isArray(cards)) {
-      return res.status(400).json({ error: 'Invalid or missing cards array' });
-    }
-
-    // Complete Shopify configuration from Vercel environment variables
-    const SHOPIFY_DOMAIN = process.env.SHOPIFY_DOMAIN;
-    const SHOPIFY_API_KEY = process.env.SHOPIFY_API_KEY;
-    const SHOPIFY_API_SECRET = process.env.SHOPIFY_API_SECRET;
-    const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
-
-    // Validate required environment variables
-    if (!SHOPIFY_DOMAIN || !SHOPIFY_API_KEY || !SHOPIFY_API_SECRET || !SHOPIFY_ACCESS_TOKEN) {
-      console.error('❌ Missing required environment variables');
-      console.error('Required credentials status:', {
-        SHOPIFY_DOMAIN: !!SHOPIFY_DOMAIN,
-        SHOPIFY_API_KEY: !!SHOPIFY_API_KEY,
-        SHOPIFY_API_SECRET: !!SHOPIFY_API_SECRET,
-        SHOPIFY_ACCESS_TOKEN: !!SHOPIFY_ACCESS_TOKEN
-      });
-      return res.status(500).json({ 
-        error: 'Server configuration error',
-        details: 'Missing Shopify credentials'
-      });
-    }
-
-    console.log('🛍️ Shopify config:', {
-      domain: SHOPIFY_DOMAIN,
-      hasApiKey: !!SHOPIFY_API_KEY,
-      hasApiSecret: !!SHOPIFY_API_SECRET,
-      hasAccessToken: !!SHOPIFY_ACCESS_TOKEN
-    });
-
-    // Helper function for authenticated Shopify API requests
-    const makeShopifyRequest = async (endpoint, options = {}) => {
-      const defaultHeaders = {
-        'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
-        'Content-Type': 'application/json',
-        'User-Agent': `Trade-in-System/1.0 (API Key: ${SHOPIFY_API_KEY.substring(0, 8)}...)`
-      };
-
-      return fetch(`https://${SHOPIFY_DOMAIN}${endpoint}`, {
-        ...options,
-        headers: {
-          ...defaultHeaders,
-          ...options.headers
-        }
-      });
-    };
-
-    // Helper function for GraphQL requests
-    const makeShopifyGraphQLRequest = async (query, variables = {}) => {
-      return makeShopifyRequest('/admin/api/2023-10/graphql.json', {
-        method: 'POST',
-        body: JSON.stringify({ 
-          query,
-          variables
-        })
-      });
-    };
-
-    // Trade rate calculation functions
-    function calculateMaximumTradeValue(marketValue) {
-      const price = parseFloat(marketValue);
-      
-      if (price >= 50.00) return parseFloat((price * 0.75).toFixed(2));
-      if (price >= 25.00) return parseFloat((price * 0.70).toFixed(2));
-      if (price >= 15.01) return parseFloat((price * 0.65).toFixed(2));
-      if (price >= 8.00) return parseFloat((price * 0.50).toFixed(2));
-      if (price >= 5.00) return parseFloat((price * 0.35).toFixed(2));
-      if (price >= 3.01) return parseFloat((price * 0.25).toFixed(2));
-      if (price >= 2.00) return 0.50;
-      if (price >= 0.01) return 0.01;
-      return 0;
-    }
-
-    function calculateSuggestedTradeValue(marketValue) {
-      const price = parseFloat(marketValue);
-      
-      if (price >= 50.00) return parseFloat((price * 0.75).toFixed(2));
-      if (price >= 25.00) return parseFloat((price * 0.50).toFixed(2));
-      if (price >= 15.01) return parseFloat((price * 0.35).toFixed(2));
-      if (price >= 8.00) return parseFloat((price * 0.40).toFixed(2));
-      if (price >= 5.00) return parseFloat((price * 0.35).toFixed(2));
-      if (price >= 3.01) return parseFloat((price * 0.25).toFixed(2));
-      if (price >= 2.00) return 0.10;
-      if (price >= 0.01) return 0.01;
-      return 0;
-    }
-
-    // Helper function to normalize card names/tags for search
-    function normalizeSearchTerm(term) {
-      if (!term) return '';
-      
-      // Convert "138/131" format to "138131" for tag searches
-      const normalized = term.replace(/[\/\-\s]/g, '');
-      console.log(`🔄 Normalized "${term}" to "${normalized}"`);
-      return normalized;
-    }
-
-    // Helper function to extract potential tags from card names
-    function extractPotentialTags(cardName) {
-      if (!cardName) return [];
-      
-      const tags = [];
-      
-      // Look for number/number patterns (like 138/131)
-      const numberPattern = /(\d+)[\/\-](\d+)/g;
-      let match;
-      while ((match = numberPattern.exec(cardName)) !== null) {
-        // Add both original and normalized versions
-        tags.push(match[0]); // Original: "138/131"
-        tags.push(match[1] + match[2]); // Normalized: "138131"
+    // Tiered pricing for store credit (based on retail price)
+    // ONLY applies to: Pokemon, Magic the Gathering, One Piece
+    // Cash is approximately 75% of store credit rates
+    function getTradeValue(retailPrice, tags = [], payoutMethod = selectedPayout) {
+      // Normalize tags - can be array or string
+      let tagArray = [];
+      if (Array.isArray(tags)) {
+        tagArray = tags.map(t => t.toLowerCase());
+      } else if (typeof tags === 'string') {
+        tagArray = tags.toLowerCase().split(',').map(t => t.trim());
       }
       
-      // Look for standalone numbers that might be set numbers
-      const standaloneNumbers = cardName.match(/\b\d{3,6}\b/g);
-      if (standaloneNumbers) {
-        tags.push(...standaloneNumbers);
-      }
-      
-      // Also try the full card name as a tag (normalized)
-      tags.push(normalizeSearchTerm(cardName));
-      
-      console.log(`🏷️ Extracted potential tags from "${cardName}":`, tags);
-      return [...new Set(tags)]; // Remove duplicates
-    }
-
-    // Normalize text for comparison
-    function normalizeForComparison(text) {
-      if (!text) return '';
-      
-      return text
-        .toLowerCase()
-        .replace(/[^\w\s]/g, ' ')  // Replace punctuation with spaces
-        .replace(/\s+/g, ' ')      // Collapse multiple spaces
-        .trim();
-    }
-
-    // Simple similarity calculation (Jaccard similarity on word sets)
-    function calculateSimilarity(str1, str2) {
-      const words1 = new Set(str1.split(' ').filter(w => w.length > 1));
-      const words2 = new Set(str2.split(' ').filter(w => w.length > 1));
-      
-      const intersection = new Set([...words1].filter(x => words2.has(x)));
-      const union = new Set([...words1, ...words2]);
-      
-      if (union.size === 0) return 0;
-      
-      return intersection.size / union.size;
-    }
-
-    // Enhanced variant matching that considers both product and variant titles
-    function findBestVariantMatch(searchName, options) {
-      let bestScore = 0;
-      let bestOption = options[0]; // Default to first option
-
-      const normalizedSearch = normalizeForComparison(searchName);
-
-      options.forEach(option => {
-        // Compare against full title (product + variant)
-        const normalizedFull = normalizeForComparison(option.fullTitle);
-        const fullScore = calculateSimilarity(normalizedSearch, normalizedFull);
-        
-        // Also compare against just product title
-        const normalizedProduct = normalizeForComparison(option.productTitle);
-        const productScore = calculateSimilarity(normalizedSearch, normalizedProduct);
-        
-        // Use the better score
-        const score = Math.max(fullScore, productScore * 0.9); // Slight preference for full title matches
-        
-        console.log(`🔍 Scoring "${option.fullTitle}": ${score.toFixed(3)} (full: ${fullScore.toFixed(3)}, product: ${productScore.toFixed(3)})`);
-        
-        if (score > bestScore) {
-          bestScore = score;
-          bestOption = option;
-        }
-      });
-
-      return { option: bestOption, score: bestScore };
-    }
-
-    // Get location ID for inventory updates
-    let locationId = null;
-    if (!estimateMode) {
-      try {
-        const locationRes = await makeShopifyRequest('/admin/api/2023-10/locations.json');
-        const locations = await locationRes.json();
-        locationId = locations.locations?.[0]?.id;
-        console.log('📍 Location ID:', locationId);
-      } catch (err) {
-        console.error('❌ Failed to get location ID:', err);
-      }
-    }
-
-    // Get variant by exact SKU - for frontend confirmed searches
-    const getVariantBySku = async (sku) => {
-      console.log('🎯 Getting exact variant by SKU:', sku);
-      
-      const query = `{
-        productVariants(first: 1, query: "sku:${sku}") {
-          edges {
-            node {
-              id
-              title
-              sku
-              price
-              inventoryQuantity
-              image {
-                url
-              }
-              inventoryItem {
-                id
-              }
-              product {
-                id
-                title
-                tags
-                featuredImage {
-                  url
-                }
-              }
-            }
-          }
-        }
-      }`;
-
-      const graphqlRes = await makeShopifyGraphQLRequest(query);
-      const json = await graphqlRes.json();
-      console.log('🎯 Exact SKU GraphQL response:', JSON.stringify(json, null, 2));
-      
-      const variantEdge = json?.data?.productVariants?.edges?.[0];
-      
-      if (variantEdge?.node) {
-        const variant = variantEdge.node;
-        const inventoryItemId = variant.inventoryItem?.id;
-        
-        // Extract numeric ID from GraphQL ID
-        const numericInventoryItemId = inventoryItemId ? inventoryItemId.replace('gid://shopify/InventoryItem/', '') : null;
-        
-        console.log('🎯 Found exact variant:', {
-          sku: variant.sku,
-          price: variant.price,
-          inventoryItemId: inventoryItemId,
-          numericInventoryItemId: numericInventoryItemId
-        });
-        
-        return {
-          found: true,
-          product: { title: variant.product.title },
-          variant: {
-            sku: variant.sku,
-            price: variant.price,
-            inventory_item_id: numericInventoryItemId
-          },
-          searchMethod: 'exact_sku',
-          image: variant.image?.url || variant.product.featuredImage?.url || null,
-          tags: variant.product.tags || []
-        };
-      }
-      
-      console.log('🎯 Exact SKU not found');
-      return { found: false };
-    };
-
-    // Search by title with better normalization
-    const searchByTitle = async (query) => {
-      console.log('🔍 Searching by title:', query);
-      
-      const productRes = await makeShopifyRequest(
-        `/admin/api/2023-10/products.json?title=${encodeURIComponent(query)}`
+      // Check if card is from supported games via tags
+      const isSupportedGame = tagArray.some(tag => 
+        tag.includes('pokemon') || 
+        tag.includes('pokémon') ||
+        tag.includes('ptcg') ||
+        tag.includes('magic') || 
+        tag.includes('mtg') ||
+        tag.includes('one piece') ||
+        tag.includes('one-piece') ||
+        tag.includes('onepiece') ||
+        tag.includes('optcg')
       );
-
-      const productData = await productRes.json();
-      console.log('🔍 Title search response:', JSON.stringify(productData, null, 2));
       
-      if (productData?.products?.length > 0) {
-        const product = productData.products[0];
-        const variant = product.variants[0];
-        
-        console.log('🔍 Title search found variant:', {
-          sku: variant.sku,
-          price: variant.price,
-          inventory_item_id: variant.inventory_item_id
-        });
-        
-        return {
-          found: true,
-          product: product,
-          variant: {
-            sku: variant.sku,
-            price: variant.price,
-            inventory_item_id: variant.inventory_item_id
-          },
-          searchMethod: 'title',
-          image: product.image?.src || product.images?.[0]?.src || null
-        };
+      // If not a supported game, no trade value
+      if (!isSupportedGame) {
+        return 0;
       }
       
-      return { found: false };
-    };
-
-    const searchBySKU = async (sku) => {
-      console.log('🔍 Searching by SKU (fallback):', sku);
+      let storeCredit = 0;
       
-      const query = `{
-        productVariants(first: 1, query: "sku:${sku}") {
-          edges {
-            node {
-              id
-              title
-              sku
-              price
-              inventoryQuantity
-              image {
-                url
-              }
-              inventoryItem {
-                id
-              }
-              product {
-                id
-                title
-                tags
-                featuredImage {
-                  url
-                }
-              }
-            }
-          }
-        }
-      }`;
-
-      const graphqlRes = await makeShopifyGraphQLRequest(query);
-      const json = await graphqlRes.json();
-      console.log('🔍 SKU GraphQL response:', JSON.stringify(json, null, 2));
-      
-      const variantEdge = json?.data?.productVariants?.edges?.[0];
-      
-      if (variantEdge?.node) {
-        const variant = variantEdge.node;
-        const inventoryItemId = variant.inventoryItem?.id;
-        
-        // Extract numeric ID from GraphQL ID
-        const numericInventoryItemId = inventoryItemId ? inventoryItemId.replace('gid://shopify/InventoryItem/', '') : null;
-        
-        console.log('🔍 SKU search found variant:', {
-          sku: variant.sku,
-          price: variant.price,
-          inventoryItemId: inventoryItemId,
-          numericInventoryItemId: numericInventoryItemId
-        });
-        
-        return {
-          found: true,
-          product: { title: variant.product.title },
-          variant: {
-            sku: variant.sku,
-            price: variant.price,
-            inventory_item_id: numericInventoryItemId
-          },
-          searchMethod: 'sku',
-          image: variant.image?.url || variant.product.featuredImage?.url || null,
-          tags: variant.product.tags || []
-        };
+      // Tiered pricing based on retail value
+      if (retailPrice >= 50.00) {
+        storeCredit = retailPrice * 0.75;
+      } else if (retailPrice >= 25.00) {
+        storeCredit = retailPrice * 0.70;
+      } else if (retailPrice >= 15.01) {
+        storeCredit = retailPrice * 0.65;
+      } else if (retailPrice >= 8.00) {
+        storeCredit = retailPrice * 0.50;
+      } else if (retailPrice >= 5.00) {
+        storeCredit = retailPrice * 0.35;
+      } else if (retailPrice >= 3.01) {
+        storeCredit = retailPrice * 0.25;
+      } else if (retailPrice >= 2.00) {
+        storeCredit = 0.25; // Flat $0.25 for cards $2.00-$3.00
+      } else {
+        storeCredit = 0; // Cards under $2 - no value
       }
       
-      return { found: false };
-    };
-
-    // FIXED: Enhanced tag search that returns ALL matches, not just the first one
-    const searchByTagWithAllOptions = async (tag, originalCardName) => {
-      console.log('🏷️ Searching by tag for ALL options:', tag, 'for card:', originalCardName);
-      
-      const normalizedTag = normalizeSearchTerm(tag);
-      
-      const query = `{
-        products(first: 20, query: "tag:${normalizedTag}") {
-          edges {
-            node {
-              id
-              title
-              tags
-              featuredImage {
-                url
-              }
-              variants(first: 5) {
-                edges {
-                  node {
-                    id
-                    title
-                    sku
-                    price
-                    inventoryQuantity
-                    inventoryItem {
-                      id
-                    }
-                    product {
-                      id
-                      title
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }`;
-
-      const graphqlRes = await makeShopifyGraphQLRequest(query);
-      const json = await graphqlRes.json();
-      console.log(`🏷️ Tag search for "${normalizedTag}" found ${json?.data?.products?.edges?.length || 0} products`);
-      
-      const products = json?.data?.products?.edges || [];
-      
-      if (products.length === 0) {
-        return { found: false };
-      }
-
-      // Flatten all variants from all products
-      const allOptions = [];
-      products.forEach(productEdge => {
-        const product = productEdge.node;
-        product.variants.edges.forEach(variantEdge => {
-          const variant = variantEdge.node;
-          allOptions.push({
-            productTitle: product.title,
-            variantTitle: variant.title,
-            sku: variant.sku,
-            price: parseFloat(variant.price || 0),
-            inventory: variant.inventoryQuantity,
-            inventoryItemId: variant.inventoryItem?.id?.replace('gid://shopify/InventoryItem/', ''),
-            fullTitle: variant.title !== 'Default Title' ? `${product.title} - ${variant.title}` : product.title,
-            productId: product.id,
-            variantId: variant.id,
-            image: product.featuredImage?.url || null,
-            tags: product.tags || []
-          });
-        });
-      });
-
-      console.log(`🔍 Found ${allOptions.length} total variants across ${products.length} products`);
-
-      if (allOptions.length === 1) {
-        // Only one option, return it directly
-        const option = allOptions[0];
-        return {
-          found: true,
-          product: { title: option.productTitle },
-          variant: {
-            sku: option.sku,
-            price: option.price,
-            inventory_item_id: option.inventoryItemId
-          },
-          searchMethod: 'tag_single',
-          confidence: 'high',
-          image: option.image || null
-        };
-      }
-
-      // Multiple options - find best match or return for user selection
-      const bestMatch = findBestVariantMatch(originalCardName, allOptions);
-      
-      if (bestMatch.score > 0.8) {
-        // High confidence match
-        console.log(`🎯 High confidence match: "${bestMatch.option.fullTitle}" (score: ${bestMatch.score.toFixed(2)})`);
-        
-        return {
-          found: true,
-          product: { title: bestMatch.option.productTitle },
-          variant: {
-            sku: bestMatch.option.sku,
-            price: bestMatch.option.price,
-            inventory_item_id: bestMatch.option.inventoryItemId
-          },
-          searchMethod: 'tag_confident',
-          confidence: 'high',
-          alternativeCount: allOptions.length - 1,
-          allOptions: allOptions, // Include all options for frontend
-          image: bestMatch.option.image || null
-        };
-      }
-
-      // Medium/low confidence - return best guess but flag for user confirmation
-      console.log(`⚠️ Multiple options found, best guess: "${bestMatch.option.fullTitle}" (score: ${bestMatch.score.toFixed(2)})`);
-      
-      return {
-        found: true,
-        product: { title: bestMatch.option.productTitle },
-        variant: {
-          sku: bestMatch.option.sku,
-          price: bestMatch.option.price,
-          inventory_item_id: bestMatch.option.inventoryItemId
-        },
-        searchMethod: 'tag_uncertain',
-        confidence: bestMatch.score > 0.5 ? 'medium' : 'low',
-        alternativeCount: allOptions.length - 1,
-        allOptions: allOptions, // Include all options for frontend selection
-        needsConfirmation: true,
-        image: bestMatch.option.image || null
-      };
-    };
-
-    // FIXED: Updated main search function with enhanced tag search
-    const searchCard = async (card) => {
-      const { cardName, sku, searchMethod } = card;
-      
-      console.log(`🔍 Processing card: ${cardName}`);
-      console.log(`  - SKU provided: ${sku}`);
-      console.log(`  - Search method: ${searchMethod}`);
-      
-      // PRIORITY 1: If frontend confirmed exact SKU, use it
-      if (sku && searchMethod === 'exact_sku') {
-        console.log('🎯 Using exact SKU from frontend confirmation');
-        const exactResult = await getVariantBySku(sku);
-        if (exactResult.found) {
-          console.log('✅ Exact SKU match found');
-          return exactResult;
-        } else {
-          console.warn('⚠️ Exact SKU not found, falling back to other methods');
-        }
+      // Cash is ~75% of store credit
+      if (payoutMethod === 'cash') {
+        return storeCredit * 0.75;
       }
       
-      // PRIORITY 2: Try enhanced tag search with multiple options
-      const potentialTags = extractPotentialTags(cardName);
-      
-      for (const tag of potentialTags) {
-        if (!tag || tag.length < 2) continue;
-        
-        try {
-          const result = await searchByTagWithAllOptions(tag, cardName);
-          if (result.found) {
-            console.log(`✅ Found via tag "${tag}": ${result.product.title}`);
-            return result;
-          }
-        } catch (error) {
-          console.log(`❌ Tag search failed for "${tag}":`, error.message);
-          continue;
-        }
-      }
-      
-      // FALLBACK: Use other search methods
-      const searchMethods = [
-        { query: cardName, method: searchByTitle, name: 'title' },
-        { query: sku || cardName, method: searchBySKU, name: 'sku' }
-      ].filter(s => s.query); // Remove null/empty queries
-
-      for (const { query, method, name } of searchMethods) {
-        try {
-          const result = await method(query);
-          if (result.found) {
-            console.log(`✅ Found via ${name}: ${result.product.title}`);
-            return result;
-          }
-        } catch (error) {
-          console.log(`❌ ${name} search failed for ${query}:`, error.message);
-          continue;
-        }
-      }
-      
-      console.log(`❌ No matches found for: ${cardName}`);
-      return { found: false };
-    };
-
-    // FIXED: Enhanced inventory update function that uses exact inventory_item_id
-    async function updateInventoryForVariant(variant, quantity, cardName, locationId) {
-      // Ensure we have all required data
-      if (!variant.inventory_item_id) {
-        console.error(`❌ No inventory_item_id for ${cardName}, cannot update inventory`);
-        return false;
-      }
-
-      if (!locationId) {
-        console.error(`❌ No location ID available, cannot update inventory`);
-        return false;
-      }
-
-      try {
-        console.log(`📦 Updating inventory for ${cardName}:`);
-        console.log(`  - SKU: ${variant.sku}`);
-        console.log(`  - Location ID: ${locationId}`);
-        console.log(`  - Inventory Item ID: ${variant.inventory_item_id}`);
-        console.log(`  - Quantity adjustment: +${quantity}`);
-        
-        const adjustRes = await makeShopifyRequest('/admin/api/2023-10/inventory_levels/adjust.json', {
-          method: 'POST',
-          body: JSON.stringify({
-            location_id: parseInt(locationId),
-            inventory_item_id: parseInt(variant.inventory_item_id),
-            available_adjustment: parseInt(quantity)
-          })
-        });
-        
-        console.log(`📦 Inventory adjustment response status: ${adjustRes.status}`);
-        
-        if (adjustRes.ok) {
-          const adjustData = await adjustRes.json();
-          console.log(`✅ Inventory updated for ${cardName}: +${quantity}`);
-          console.log(`📦 New inventory level:`, adjustData.inventory_level);
-          return true;
-        } else {
-          const errorText = await adjustRes.text();
-          console.error(`❌ Failed to update inventory for ${cardName}:`, errorText);
-          console.error(`📦 Request details:`, {
-            location_id: parseInt(locationId),
-            inventory_item_id: parseInt(variant.inventory_item_id),
-            available_adjustment: parseInt(quantity)
-          });
-          return false;
-        }
-      } catch (inventoryErr) {
-        console.error(`❌ Failed to update inventory for ${cardName}:`, inventoryErr);
-        return false;
-      }
+      return storeCredit;
     }
 
-    // FIXED: Updated main processing loop to handle exact inventory updates
-    async function processTradeCards(cards, estimateMode, locationId) {
-      let totalSuggestedValue = 0;
-      let totalMaximumValue = 0;
-      let totalRetailValue = 0;
-      const results = [];
-      const inventoryUpdates = []; // Track inventory updates for verification
+    // State
+    let cart = [];
+    let selectedPayout = 'store-credit';
+    let searchTimeout;
 
-      console.log('⏱️ Processing', cards.length, 'cards');
+    // DOM Elements
+    const searchInput = document.getElementById('search-input');
+    const clearBtn = document.getElementById('clear-btn');
+    const resultsContainer = document.getElementById('results-container');
+    const cartItems = document.getElementById('cart-items');
+    const cartCount = document.getElementById('cart-count');
+    const totalRetail = document.getElementById('total-retail');
+    const totalQuote = document.getElementById('total-quote');
+    const submitBtn = document.getElementById('submit-btn');
 
-      for (const card of cards) {
-        const { cardName, sku = null, quantity = 1, condition = 'NM', searchMethod = null } = card;
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      setupSearch();
+      setupPayout();
+      setupSubmit();
+    });
+
+    // Search
+    function setupSearch() {
+      searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
         
-        console.log(`🃏 Processing: ${cardName}`);
-        console.log(`  - SKU: ${sku}`);
-        console.log(`  - Quantity: ${quantity}`);
-        console.log(`  - Search Method: ${searchMethod}`);
-        
-        const searchResult = await searchCard(card);
-        
-        if (!searchResult.found) {
-          console.log('❌ No match found for:', cardName);
-          results.push({
-            cardName,
-            match: null,
-            retailPrice: 0,
-            suggestedTradeValue: 0,
-            maximumTradeValue: 0,
-            quantity,
-            condition,
-            sku: null,
-            searchMethod: 'none',
-            inventoryUpdated: false
-          });
-          continue;
-        }
-
-        const product = searchResult.product;
-        const variant = searchResult.variant;
-        const variantPrice = parseFloat(variant.price || 0);
-        const suggestedTradeValue = calculateSuggestedTradeValue(variantPrice);
-        const maximumTradeValue = calculateMaximumTradeValue(variantPrice);
-        
-        totalSuggestedValue += suggestedTradeValue * quantity;
-        totalMaximumValue += maximumTradeValue * quantity;
-        totalRetailValue += variantPrice * quantity;
-
-        console.log(`✅ Found: ${product.title} - $${variantPrice} (Suggested: $${suggestedTradeValue})`);
-        console.log(`  - Final SKU: ${variant.sku}`);
-        console.log(`  - Search Method: ${searchResult.searchMethod}`);
-        console.log(`  - Inventory Item ID: ${variant.inventory_item_id}`);
-
-        // Update inventory if not in estimate mode and we have the required data
-        let inventoryUpdated = false;
-        if (!estimateMode && locationId && variant.inventory_item_id) {
-          inventoryUpdated = await updateInventoryForVariant(variant, quantity, cardName, locationId);
-          
-          if (inventoryUpdated) {
-            inventoryUpdates.push({
-              cardName,
-              sku: variant.sku,
-              inventoryItemId: variant.inventory_item_id,
-              quantityAdded: quantity
-            });
-          }
+        // Show/hide clear button
+        if (query.length > 0) {
+          clearBtn.classList.add('visible');
         } else {
-          console.log(`📦 Skipping inventory update for ${cardName}:`);
-          console.log(`  - Estimate mode: ${estimateMode}`);
-          console.log(`  - Location ID: ${locationId}`);
-          console.log(`  - Inventory Item ID: ${variant.inventory_item_id}`);
+          clearBtn.classList.remove('visible');
         }
-
-        results.push({
-          cardName,
-          match: product.title,
-          retailPrice: variantPrice,
-          suggestedTradeValue,
-          maximumTradeValue,
-          quantity,
-          condition,
-          sku: variant.sku,
-          searchMethod: searchResult.searchMethod,
-          inventoryUpdated,
-          inventoryItemId: variant.inventory_item_id,
-          // Include additional data for debugging and frontend
-          confidence: searchResult.confidence,
-          alternativeCount: searchResult.alternativeCount,
-          allOptions: searchResult.allOptions,
-          image: searchResult.image || null,
-          tags: searchResult.tags || []
-        });
-      }
-
-      // Log inventory update summary
-      if (inventoryUpdates.length > 0) {
-        console.log('📦 Inventory Update Summary:');
-        inventoryUpdates.forEach(update => {
-          console.log(`  ✅ ${update.cardName} (SKU: ${update.sku}): +${update.quantityAdded}`);
-        });
-      }
-
-      return {
-        results,
-        totals: {
-          totalSuggestedValue,
-          totalMaximumValue,
-          totalRetailValue
-        },
-        inventoryUpdates
-      };
-    }
-
-    // Customer and store credit functions with updated API calls
-    const findOrCreateCustomer = async (email) => {
-      try {
-        // Search for existing customer
-        const searchRes = await makeShopifyRequest(
-          `/admin/api/2023-10/customers/search.json?query=email:${encodeURIComponent(email)}`
-        );
         
-        const searchData = await searchRes.json();
+        if (searchTimeout) clearTimeout(searchTimeout);
         
-        if (searchData.customers?.length > 0) {
-          console.log('✅ Existing customer found');
-          return searchData.customers[0];
+        if (query.length < 2) {
+          resultsContainer.innerHTML = `
+            <div class="ea-trade-empty">
+              <div class="ea-trade-empty-icon">🔍</div>
+              <p>Start typing to search for cards</p>
+            </div>
+          `;
+          return;
         }
 
-        // Create new customer
-        const createRes = await makeShopifyRequest('/admin/api/2023-10/customers.json', {
-          method: 'POST',
-          body: JSON.stringify({
-            customer: {
-              email: email,
-              first_name: "Trade-in",
-              last_name: "Customer",
-              note: "Customer created via trade-in system",
-              tags: "trade-in-customer"
-            }
-          })
-        });
-
-        if (!createRes.ok) {
-          throw new Error(`Failed to create customer: ${await createRes.text()}`);
-        }
-
-        const customerData = await createRes.json();
-        console.log('✅ New customer created:', customerData.customer.id);
-        return customerData.customer;
-      } catch (err) {
-        console.error('❌ Error finding/creating customer:', err);
-        throw err;
-      }
-    };
-
-    const issueStoreCredit = async (customerId, amount, reason) => {
-      try {
-        const mutation = `
-          mutation StoreCreditAccountCreditCreate($input: StoreCreditAccountCreditInput!) {
-            storeCreditAccountCreditCreate(input: $input) {
-              storeCreditAccountTransaction {
-                id
-                amount {
-                  amount
-                  currencyCode
-                }
-                createdAt
-                account {
-                  id
-                  balance {
-                    amount
-                    currencyCode
-                  }
-                }
-              }
-              userErrors {
-                field
-                message
-              }
-            }
-          }
+        resultsContainer.innerHTML = `
+          <div class="ea-trade-loading">
+            <div class="ea-trade-spinner"></div>
+            <p>Searching...</p>
+          </div>
         `;
 
-        const variables = {
-          input: {
-            customerId: `gid://shopify/Customer/${customerId}`,
-            amount: {
-              amount: amount.toFixed(2),
-              currencyCode: "CAD"
-            },
-            note: reason
+        searchTimeout = setTimeout(() => performSearch(query), 400);
+      });
+
+      // Clear button functionality
+      clearBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        clearBtn.classList.remove('visible');
+        resultsContainer.innerHTML = `
+          <div class="ea-trade-empty">
+            <div class="ea-trade-empty-icon">🔍</div>
+            <p>Start typing to search for cards</p>
+          </div>
+        `;
+        searchInput.focus();
+      });
+    }
+
+    async function performSearch(query) {
+      try {
+        const response = await fetch(`${API_URL}?estimate=true`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cards: [{ cardName: query, quantity: 1, condition: 'NM' }],
+            employeeName: 'Customer Portal',
+            payoutMethod: selectedPayout
+          })
+        });
+
+        const data = await response.json();
+        
+        if (data.results && data.results[0]) {
+          const result = data.results[0];
+          
+          if (result.allOptions && result.allOptions.length > 0) {
+            displayResults(result.allOptions);
+          } else if (result.match) {
+            displayResults([{
+              fullTitle: result.match,
+              sku: result.sku,
+              price: result.retailPrice
+            }]);
+          } else {
+            resultsContainer.innerHTML = `
+              <div class="ea-trade-empty">
+                <div class="ea-trade-empty-icon">😕</div>
+                <p>No cards found for "${query}"</p>
+                <p style="font-size: 13px; margin-top: 8px; opacity: 0.6;">Try a different search term</p>
+              </div>
+            `;
           }
-        };
-
-        const graphqlRes = await makeShopifyGraphQLRequest(mutation, variables);
-
-        if (!graphqlRes.ok) {
-          throw new Error(`HTTP Error ${graphqlRes.status}: ${await graphqlRes.text()}`);
+        } else {
+          resultsContainer.innerHTML = `
+            <div class="ea-trade-empty">
+              <div class="ea-trade-empty-icon">😕</div>
+              <p>No results found</p>
+            </div>
+          `;
         }
-
-        const result = await graphqlRes.json();
-        
-        if (result.errors) {
-          throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
-        }
-        
-        if (result.data?.storeCreditAccountCreditCreate?.userErrors?.length > 0) {
-          throw new Error(`Store credit error: ${result.data.storeCreditAccountCreditCreate.userErrors[0].message}`);
-        }
-
-        const transaction = result.data?.storeCreditAccountCreditCreate?.storeCreditAccountTransaction;
-        
-        if (!transaction) {
-          throw new Error('Store credit transaction was not created');
-        }
-
-        console.log('✅ Store credit created:', transaction.id);
-        return transaction;
-      } catch (err) {
-        console.error('❌ Store credit creation failed:', err);
-        throw err;
-      }
-    };
-
-    // Process cards with enhanced tag search and exact inventory updates
-    const processingResult = await processTradeCards(cards, estimateMode, locationId);
-    const { results, totals, inventoryUpdates } = processingResult;
-
-    // Calculate final payout
-    const finalPayout = validatedOverride !== null ? validatedOverride : totals.totalSuggestedValue;
-    const overrideUsed = validatedOverride !== null;
-
-    console.log('💰 Final calculations:', {
-      totalSuggestedValue: totals.totalSuggestedValue,
-      totalMaximumValue: totals.totalMaximumValue,
-      totalRetailValue: totals.totalRetailValue,
-      finalPayout,
-      overrideUsed,
-      inventoryUpdatesAttempted: results.filter(r => r.match).length,
-      inventoryUpdatesSuccessful: results.filter(r => r.inventoryUpdated).length,
-      inventoryUpdateFailures: results.filter(r => r.match && !r.inventoryUpdated).length
-    });
-
-    // Handle payouts (only if not estimate mode)
-    let giftCardCode = null;
-    let storeCreditTransaction = null;
-    let customer = null;
-
-    if (!estimateMode && finalPayout > 0) {
-      if (payoutMethod === "store-credit") {
-        try {
-          customer = await findOrCreateCustomer(customerEmail);
-          const reason = `Trade-in payout for ${employeeName || "Unknown"}${overrideUsed ? ` (Override)` : ''}`;
-          storeCreditTransaction = await issueStoreCredit(customer.id, finalPayout, reason);
-          console.log(`✅ Store credit issued: ${finalPayout} to ${customerEmail}`);
-        } catch (err) {
-          console.error("❌ Store credit failed:", err);
-          return res.status(500).json({ 
-            error: "Store credit creation failed", 
-            details: err.message
-          });
-        }
-      } else if (payoutMethod === "gift-card") {
-        try {
-          const giftCardRes = await makeShopifyRequest('/admin/api/2023-10/gift_cards.json', {
-            method: "POST",
-            body: JSON.stringify({
-              gift_card: {
-                initial_value: finalPayout.toFixed(2),
-                note: `Trade-in payout for ${employeeName || "Unknown"}${overrideUsed ? ` (Override)` : ''}`,
-                currency: "CAD"
-              }
-            })
-          });
-          
-          if (!giftCardRes.ok) {
-            throw new Error(await giftCardRes.text());
-          }
-          
-          const giftCardData = await giftCardRes.json();
-          giftCardCode = giftCardData?.gift_card?.code;
-          
-          console.log(`✅ Gift card created: ${finalPayout}, Code: ${giftCardCode}`);
-        } catch (err) {
-          console.error("❌ Gift card failed:", err);
-          return res.status(500).json({ 
-            error: "Gift card creation failed", 
-            details: err.message 
-          });
-        }
-      } else if (payoutMethod === "cash") {
-        console.log(`💵 Cash payout: ${finalPayout} for ${employeeName}`);
+      } catch (error) {
+        console.error('Search error:', error);
+        resultsContainer.innerHTML = `
+          <div class="ea-trade-empty">
+            <div class="ea-trade-empty-icon">⚠️</div>
+            <p>Search failed. Please try again.</p>
+          </div>
+        `;
       }
     }
 
-    // Return response with enhanced debugging information
-    const response = {
-      success: true,
-      estimate: estimateMode,
-      employeeName,
-      payoutMethod,
-      customerEmail,
-      results,
-      suggestedTotal: totals.totalSuggestedValue.toFixed(2),
-      maximumTotal: totals.totalMaximumValue.toFixed(2),
-      totalRetailValue: totals.totalRetailValue.toFixed(2),
-      finalPayout: finalPayout.toFixed(2),
-      overrideUsed,
-      overrideAmount: overrideUsed ? finalPayout.toFixed(2) : null,
-      giftCardCode,
-      storeCreditTransaction: storeCreditTransaction ? {
-        id: storeCreditTransaction.id,
-        amount: storeCreditTransaction.amount,
-        createdAt: storeCreditTransaction.createdAt
-      } : null,
-      customer: customer ? {
-        id: customer.id,
-        email: customer.email,
-        name: `${customer.first_name} ${customer.last_name}`
-      } : null,
-      timestamp: new Date().toISOString(),
-      processingStats: {
-        totalCards: cards.length,
-        cardsFound: results.filter(r => r.match).length,
-        cardsNotFound: results.filter(r => !r.match).length,
-        inventoryUpdatesSuccessful: results.filter(r => r.inventoryUpdated).length,
-        inventoryUpdatesFailed: results.filter(r => r.match && !r.inventoryUpdated).length
-      },
-      // Enhanced debug info
-      debug: {
-        exactSkuMatches: results.filter(r => r.searchMethod === 'exact_sku').length,
-        titleMatches: results.filter(r => r.searchMethod === 'title').length,
-        skuMatches: results.filter(r => r.searchMethod === 'sku').length,
-        tagMatches: results.filter(r => r.searchMethod?.startsWith('tag')).length,
-        uncertainMatches: results.filter(r => r.confidence === 'low' || r.confidence === 'medium').length,
-        multipleOptionsAvailable: results.filter(r => r.alternativeCount > 0).length,
-        searchMethodBreakdown: results.reduce((acc, r) => {
-          acc[r.searchMethod] = (acc[r.searchMethod] || 0) + 1;
-          return acc;
-        }, {}),
-        confidenceBreakdown: results.reduce((acc, r) => {
-          if (r.confidence) {
-            acc[r.confidence] = (acc[r.confidence] || 0) + 1;
-          }
-          return acc;
-        }, {}),
-        apiCredentialsUsed: {
-          domain: SHOPIFY_DOMAIN,
-          apiKeyPresent: !!SHOPIFY_API_KEY,
-          apiSecretPresent: !!SHOPIFY_API_SECRET,
-          accessTokenPresent: !!SHOPIFY_ACCESS_TOKEN
+    function displayResults(options) {
+      // Group options by base card name (remove condition from title)
+      const groupedCards = {};
+      
+      options.forEach(option => {
+        const title = option.fullTitle || option.productTitle || 'Unknown';
+        // Extract base name by removing condition suffixes
+        const baseName = title
+          .replace(/\s*-\s*(Near Mint|Lightly Played|Moderately Played|Heavily Played|Damaged|NM|LP|MP|HP|DMG)\s*(-\s*Holofoil)?$/i, '')
+          .replace(/\s*-\s*Holofoil$/i, '')
+          .trim();
+        
+        // Determine condition from title - check all conditions explicitly
+        let condition = null;
+        const titleLower = title.toLowerCase();
+        if (titleLower.includes('near mint') || / nm[-\s]/i.test(title) || title.endsWith(' NM')) {
+          condition = 'NM';
+        } else if (titleLower.includes('lightly played') || / lp[-\s]/i.test(title) || title.endsWith(' LP')) {
+          condition = 'LP';
+        } else if (titleLower.includes('moderately played') || / mp[-\s]/i.test(title) || title.endsWith(' MP')) {
+          condition = 'MP';
+        } else if (titleLower.includes('heavily played') || / hp[-\s]/i.test(title) || title.endsWith(' HP')) {
+          condition = 'HP';
+        } else if (titleLower.includes('damaged') || / dmg[-\s]/i.test(title) || title.endsWith(' DMG')) {
+          condition = 'DMG';
+        } else {
+          // No condition found - treat as its own unique entry (could be a sealed product, etc)
+          condition = 'DEFAULT';
         }
+        
+        if (!groupedCards[baseName]) {
+          groupedCards[baseName] = {
+            baseName,
+            image: option.image || option.imageUrl || null,
+            tags: option.tags || [],
+            variants: {}
+          };
+        }
+        
+        // Keep tags from any variant (they should be the same for same product)
+        if (option.tags && option.tags.length > 0 && groupedCards[baseName].tags.length === 0) {
+          groupedCards[baseName].tags = option.tags;
+        }
+        
+        groupedCards[baseName].variants[condition] = {
+          ...option,
+          condition
+        };
+      });
+
+      let html = '<div class="ea-trade-results">';
+      
+      Object.values(groupedCards).forEach((card, index) => {
+        const variants = card.variants;
+        const conditions = Object.keys(variants);
+        const tags = card.tags || [];
+        
+        // Priority order: NM > LP > MP > HP > DMG > DEFAULT
+        const priorityOrder = ['NM', 'LP', 'MP', 'HP', 'DMG', 'DEFAULT'];
+        const defaultCondition = priorityOrder.find(c => conditions.includes(c)) || conditions[0];
+        const defaultVariant = variants[defaultCondition];
+        const price = defaultVariant?.price || 0;
+        const tradeValue = getTradeValue(price, tags);
+        
+        // Build options HTML
+        let optionsHtml = '';
+        if (conditions.includes('NM')) optionsHtml += `<option value="NM" ${defaultCondition === 'NM' ? 'selected' : ''}>Near Mint ($${(variants['NM'].price || 0).toFixed(2)})</option>`;
+        if (conditions.includes('LP')) optionsHtml += `<option value="LP" ${defaultCondition === 'LP' ? 'selected' : ''}>Lightly Played ($${(variants['LP'].price || 0).toFixed(2)})</option>`;
+        if (conditions.includes('MP')) optionsHtml += `<option value="MP" ${defaultCondition === 'MP' ? 'selected' : ''}>Moderately Played ($${(variants['MP'].price || 0).toFixed(2)})</option>`;
+        if (conditions.includes('HP')) optionsHtml += `<option value="HP" ${defaultCondition === 'HP' ? 'selected' : ''}>Heavily Played ($${(variants['HP'].price || 0).toFixed(2)})</option>`;
+        if (conditions.includes('DMG')) optionsHtml += `<option value="DMG" ${defaultCondition === 'DMG' ? 'selected' : ''}>Damaged ($${(variants['DMG'].price || 0).toFixed(2)})</option>`;
+        if (conditions.includes('DEFAULT')) optionsHtml += `<option value="DEFAULT" ${defaultCondition === 'DEFAULT' ? 'selected' : ''}>Standard ($${(variants['DEFAULT'].price || 0).toFixed(2)})</option>`;
+        
+        html += `
+          <div class="ea-trade-result" data-card-index="${index}" data-card-tags="${tags.join(',').replace(/"/g, '&quot;')}" data-variants='${JSON.stringify(variants).replace(/'/g, "\\'")}'>
+            <div class="ea-trade-result-image" ${card.image ? `onclick="openLightbox('${card.image}')"` : ''}>
+              ${card.image ? `<img src="${card.image}" alt="${card.baseName}" onerror="this.parentElement.innerHTML='🎴'; this.parentElement.onclick=null;">` : '🎴'}
+            </div>
+            <div class="ea-trade-result-info">
+              <div class="ea-trade-result-title">${card.baseName}</div>
+              <div class="ea-trade-result-meta">
+                ${conditions.length > 1 || !conditions.includes('DEFAULT') ? `
+                <select class="ea-trade-result-condition" onchange="updateResultPrice(this)">
+                  ${optionsHtml}
+                </select>
+                ` : `<span class="ea-trade-result-single-condition">Retail: $${price.toFixed(2)}</span>`}
+              </div>
+            </div>
+            <div class="ea-trade-result-value">
+              <div class="ea-trade-result-value-label">Trade Value</div>
+              <div class="ea-trade-result-value-amount" data-base-price="${price}">$${tradeValue.toFixed(2)}</div>
+            </div>
+            <button class="ea-trade-add-btn" onclick="addToCartFromResult(this)">+ Add</button>
+          </div>
+        `;
+      });
+      
+      html += '</div>';
+      resultsContainer.innerHTML = html;
+    }
+
+    function updateResultPrice(selectEl) {
+      const resultEl = selectEl.closest('.ea-trade-result');
+      const variants = JSON.parse(resultEl.dataset.variants);
+      const tags = (resultEl.dataset.cardTags || '').split(',').filter(t => t);
+      const selectedCondition = selectEl.value;
+      const variant = variants[selectedCondition];
+      
+      if (variant) {
+        const price = variant.price || 0;
+        const tradeValue = getTradeValue(price, tags);
+        
+        resultEl.querySelector('.ea-trade-result-value-amount').textContent = `$${tradeValue.toFixed(2)}`;
+        resultEl.querySelector('.ea-trade-result-value-amount').dataset.basePrice = price;
       }
-    };
+    }
 
-    console.log('✅ Processing complete');
-    console.log('🔑 API Credentials Status:', response.debug.apiCredentialsUsed);
-    console.log('🎯 Search method breakdown:', response.debug.searchMethodBreakdown);
-    console.log('🏷️ Tag matches:', response.debug.tagMatches);
-    console.log('⚠️ Uncertain matches:', response.debug.uncertainMatches);
-    console.log('🔀 Multiple options available:', response.debug.multipleOptionsAvailable);
-    console.log('=== API REQUEST END ===');
-    
-    res.status(200).json(response);
+    function addToCartFromResult(btn) {
+      const resultEl = btn.closest('.ea-trade-result');
+      const variants = JSON.parse(resultEl.dataset.variants);
+      const tags = (resultEl.dataset.cardTags || '').split(',').filter(t => t);
+      const selectEl = resultEl.querySelector('.ea-trade-result-condition');
+      
+      // If there's a dropdown, use its value; otherwise use the first/only variant
+      const selectedCondition = selectEl ? selectEl.value : Object.keys(variants)[0];
+      const variant = variants[selectedCondition];
+      
+      if (variant) {
+        cart.push({
+          title: variant.fullTitle || variant.productTitle,
+          sku: variant.sku,
+          price: variant.price || 0,
+          condition: selectedCondition,
+          image: variant.image || variant.imageUrl || null,
+          tags: variant.tags || tags || []
+        });
+        
+        updateCart();
+        
+        // Visual feedback
+        resultEl.style.background = 'rgba(74, 222, 128, 0.2)';
+        resultEl.style.borderColor = '#4ade80';
+        setTimeout(() => {
+          resultEl.style.background = '';
+          resultEl.style.borderColor = '';
+        }, 500);
+      }
+    }
 
-  } catch (err) {
-    console.error("💥 API ERROR:", err);
-    return res.status(500).json({ 
-      error: "Internal server error", 
-      details: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred',
-      timestamp: new Date().toISOString()
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      updateCart();
+    }
+
+    function updateCart() {
+      if (cart.length === 0) {
+        cartItems.innerHTML = `
+          <div class="ea-trade-cart-empty">
+            <div class="ea-trade-cart-empty-icon">🛒</div>
+            <p>Your cart is empty</p>
+            <p style="font-size: 12px; margin-top: 8px;">Search and add cards to get started</p>
+          </div>
+        `;
+        submitBtn.disabled = true;
+      } else {
+        let html = '';
+        cart.forEach((item, index) => {
+          // Use tiered pricing based on retail value and tags
+          const tradeValue = getTradeValue(item.price, item.tags || []);
+          const conditionLabel = {
+            'NM': 'Near Mint',
+            'LP': 'Lightly Played', 
+            'MP': 'Moderately Played',
+            'HP': 'Heavily Played',
+            'DMG': 'Damaged',
+            'DEFAULT': 'Standard'
+          }[item.condition] || item.condition;
+          
+          html += `
+            <div class="ea-trade-cart-item">
+              <div class="ea-trade-cart-item-image">
+                ${item.image ? `<img src="${item.image}" alt="${item.title}" onerror="this.parentElement.innerHTML='🎴'">` : '🎴'}
+              </div>
+              <div class="ea-trade-cart-item-info">
+                <div class="ea-trade-cart-item-title">${item.title}</div>
+                <div class="ea-trade-cart-item-meta">
+                  <span class="ea-trade-cart-item-condition">${conditionLabel}</span>
+                  <span class="ea-trade-cart-item-retail">Retail: $${item.price.toFixed(2)}</span>
+                </div>
+              </div>
+              <div class="ea-trade-cart-item-value">
+                <div class="ea-trade-cart-item-price">$${tradeValue.toFixed(2)}</div>
+              </div>
+              <button class="ea-trade-cart-item-remove" onclick="removeFromCart(${index})">✕</button>
+            </div>
+          `;
+        });
+        cartItems.innerHTML = html;
+        submitBtn.disabled = false;
+      }
+
+      // Update totals
+      let retailTotal = 0;
+      let tradeTotal = 0;
+      
+      cart.forEach(item => {
+        retailTotal += item.price;
+        tradeTotal += getTradeValue(item.price, item.tags || []);
+      });
+
+      cartCount.textContent = `${cart.length} item${cart.length !== 1 ? 's' : ''}`;
+      totalRetail.textContent = `$${retailTotal.toFixed(2)}`;
+      totalQuote.textContent = `$${tradeTotal.toFixed(2)}`;
+    }
+
+    // Payout Selection
+    function setupPayout() {
+      document.querySelectorAll('.ea-trade-payout-option').forEach(option => {
+        option.addEventListener('click', function() {
+          document.querySelectorAll('.ea-trade-payout-option').forEach(o => o.classList.remove('selected'));
+          this.classList.add('selected');
+          selectedPayout = this.dataset.payout;
+          updateCart();
+          
+          // Refresh search results if any
+          if (searchInput.value.trim().length >= 2) {
+            performSearch(searchInput.value.trim());
+          }
+        });
+      });
+    }
+
+    // Submit
+    function setupSubmit() {
+      submitBtn.addEventListener('click', async function() {
+        const name = document.getElementById('customer-name').value.trim();
+        const email = document.getElementById('customer-email').value.trim();
+        const phone = document.getElementById('customer-phone').value.trim();
+
+        if (!name) {
+          alert('Please enter your name.');
+          return;
+        }
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          alert('Please enter a valid email address.');
+          return;
+        }
+        if (cart.length === 0) {
+          alert('Please add at least one card to your cart.');
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="ea-trade-spinner" style="width:20px;height:20px;border-width:2px;margin:0;"></span> Submitting...';
+
+        try {
+          const response = await fetch(SUBMISSION_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              customerName: name,
+              customerEmail: email,
+              customerPhone: phone,
+              payoutMethod: selectedPayout,
+              cards: cart.map(item => ({
+                cardName: item.title,
+                quantity: 1,
+                condition: item.condition,
+                sku: item.sku,
+                searchMethod: 'exact_sku'
+              })),
+              submissionType: 'customer_request'
+            })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) throw new Error(data.error || 'Submission failed');
+
+          // Show confirmation
+          showConfirmation(data.submissionId);
+
+        } catch (error) {
+          alert('Error: ' + error.message);
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>🚀</span> Submit Trade-In Request';
+        }
+      });
+    }
+
+    function showConfirmation(submissionId) {
+      let retailTotal = 0;
+      let tradeTotal = 0;
+      
+      cart.forEach(item => {
+        retailTotal += item.price;
+        tradeTotal += getTradeValue(item.price, item.tags || []);
+      });
+
+      const payoutNames = {
+        'store-credit': 'Store Credit',
+        'cash': 'Cash'
+      };
+
+      document.getElementById('confirmation-code').textContent = submissionId || 'TR-' + Date.now();
+      
+      document.getElementById('modal-summary').innerHTML = `
+        <div class="ea-trade-modal-summary-row">
+          <span>Cards</span>
+          <span>${cart.length} items</span>
+        </div>
+        <div class="ea-trade-modal-summary-row">
+          <span>Payout Method</span>
+          <span>${payoutNames[selectedPayout]}</span>
+        </div>
+        <div class="ea-trade-modal-summary-row">
+          <span>Retail Value</span>
+          <span>$${retailTotal.toFixed(2)}</span>
+        </div>
+        <div class="ea-trade-modal-summary-row">
+          <span style="font-weight: 600;">Estimated Payout</span>
+          <span style="color: #d4af37; font-weight: 700;">$${tradeTotal.toFixed(2)}</span>
+        </div>
+      `;
+
+      document.getElementById('confirmation-modal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('confirmation-modal').classList.remove('active');
+      cart = [];
+      updateCart();
+      searchInput.value = '';
+      clearBtn.classList.remove('visible');
+      resultsContainer.innerHTML = `
+        <div class="ea-trade-empty">
+          <div class="ea-trade-empty-icon">🔍</div>
+          <p>Start typing to search for cards</p>
+        </div>
+      `;
+      document.getElementById('customer-name').value = '';
+      document.getElementById('customer-email').value = '';
+      document.getElementById('customer-phone').value = '';
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>🚀</span> Submit Trade-In Request';
+      resetRepSection();
+    }
+
+    // Representative Trade-In Functions
+    const REP_PASSWORD = 'EArep2025'; // Change this password
+
+    function showRepAuth() {
+      if (cart.length === 0) {
+        alert('Please add cards to the cart first');
+        return;
+      }
+      document.getElementById('rep-trade-btn').style.display = 'none';
+      document.getElementById('rep-auth-section').style.display = 'block';
+      document.getElementById('rep-password').focus();
+    }
+
+    async function processRepTrade() {
+      const password = document.getElementById('rep-password').value;
+      
+      if (password !== REP_PASSWORD) {
+        alert('Incorrect password');
+        document.getElementById('rep-password').value = '';
+        document.getElementById('rep-password').focus();
+        return;
+      }
+
+      if (cart.length === 0) {
+        alert('No items to process');
+        return;
+      }
+
+      const confirmBtn = document.getElementById('rep-confirm-btn');
+      confirmBtn.disabled = true;
+      confirmBtn.innerHTML = '<span class="ea-trade-spinner" style="width:16px;height:16px;border-width:2px;margin:0;"></span> Processing...';
+
+      try {
+        // Call the API WITHOUT estimate mode to actually update inventory
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cards: cart.map(item => ({
+              cardName: item.title,
+              quantity: 1,
+              condition: item.condition,
+              sku: item.sku,
+              searchMethod: 'exact_sku'
+            })),
+            employeeName: 'Customer Portal Rep',
+            payoutMethod: selectedPayout
+            // No estimate=true query param, so it will update inventory
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to process trade-in');
+        }
+
+        // Show success
+        document.getElementById('rep-auth-section').style.display = 'none';
+        document.getElementById('rep-success').style.display = 'flex';
+        
+        // Reset after 3 seconds
+        setTimeout(() => {
+          resetRepSection();
+          cart = [];
+          updateCart();
+          searchInput.value = '';
+          clearBtn.classList.remove('visible');
+          resultsContainer.innerHTML = `
+            <div class="ea-trade-empty">
+              <div class="ea-trade-empty-icon">✅</div>
+              <p>Trade-in processed successfully!</p>
+              <p style="font-size: 13px; margin-top: 8px; opacity: 0.6;">Inventory has been updated</p>
+            </div>
+          `;
+        }, 3000);
+        
+        console.log('Rep trade-in processed:', data);
+
+      } catch (error) {
+        console.error('Rep trade-in error:', error);
+        alert('Error: ' + error.message);
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<span>📦</span> Process & Add to Inventory';
+      }
+    }
+
+    function resetRepSection() {
+      document.getElementById('rep-auth-section').style.display = 'none';
+      document.getElementById('rep-success').style.display = 'none';
+      document.getElementById('rep-trade-btn').style.display = 'flex';
+      document.getElementById('rep-password').value = '';
+      const confirmBtn = document.getElementById('rep-confirm-btn');
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = '<span>📦</span> Process & Add to Inventory';
+    }
+
+    // Image Lightbox
+    function openLightbox(imageUrl) {
+      if (!imageUrl) return;
+      const lightbox = document.getElementById('image-lightbox');
+      const lightboxImg = document.getElementById('lightbox-img');
+      lightboxImg.src = imageUrl;
+      lightbox.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox(event) {
+      // Only close if clicking the background or close button, not the image itself
+      if (event && event.target.classList.contains('ea-trade-lightbox-img')) {
+        return;
+      }
+      const lightbox = document.getElementById('image-lightbox');
+      lightbox.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    // Close lightbox with Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeLightbox();
+      }
     });
-  }
-};
+  </script>
+</body>
+</html>
