@@ -1,991 +1,3377 @@
-// api/customer-submissions.js
-// This handles customer trade-in submissions with LIVE pricing data
-
-module.exports = async function handler(req, res) {
-  // CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sell Your Cards | EA Collectibles</title>
   
-  if (req.method === 'OPTIONS') {
-    console.log('OPTIONS request received - sending CORS headers');
-    return res.status(200).end();
-  }
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-  console.log('=== CUSTOMER SUBMISSION API ===');
-  console.log('Method:', req.method);
-  console.log('Body:', req.body);
-
-  try {
-    if (req.method === 'POST') {
-      return await handleSubmission(req, res);
-    } else if (req.method === 'GET') {
-      return await handleGetSubmissions(req, res);
-    } else {
-      return res.status(405).json({ error: 'Method Not Allowed' });
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+      min-height: 100vh;
+      color: #fff;
     }
-  } catch (err) {
-    console.error("💥 CUSTOMER SUBMISSION ERROR:", err);
-    return res.status(500).json({ 
-      error: "Internal server error", 
-      details: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred',
-      timestamp: new Date().toISOString()
-    });
-  }
-};
 
-async function handleSubmission(req, res) {
-  const { 
-    customerName, 
-    customerEmail, 
-    customerPhone, 
-    payoutMethod, 
-    cards
-  } = req.body;
+    /* Header */
+    .ea-trade-header {
+      padding: 40px 40px 30px;
+      text-align: center;
+    }
 
-  // Validation
-  if (!customerName || !customerEmail || !payoutMethod || !cards || !Array.isArray(cards)) {
-    return res.status(400).json({ 
-      error: 'Missing required fields',
-      required: ['customerName', 'customerEmail', 'payoutMethod', 'cards']
-    });
-  }
+    .ea-trade-header h1 {
+      margin: 0;
+      font-size: 36px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #d4af37 0%, #f4e4a6 50%, #d4af37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-  if (cards.length === 0) {
-    return res.status(400).json({ error: 'At least one card is required' });
-  }
+    .ea-trade-header p {
+      margin: 8px 0 0;
+      opacity: 0.6;
+      font-size: 16px;
+      color: #fff;
+    }
 
-  // Email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(customerEmail)) {
-    return res.status(400).json({ error: 'Invalid email address' });
-  }
+    /* Main Layout */
+    .ea-trade-main {
+      display: flex;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px;
+      gap: 40px;
+    }
 
-  // Generate unique submission ID
-  const submissionId = generateSubmissionId();
-  
-  console.log('📝 Processing customer submission:', submissionId);
-  console.log('🃏 Cards to process:', cards.length);
+    .ea-trade-search-panel {
+      flex: 1;
+      min-width: 0;
+    }
 
-  try {
-    // ✨ NEW: Process cards through main trade-in system to get LIVE pricing
-    console.log('🔄 Getting live pricing estimates from trade-in system...');
-    console.log('📋 Cards to estimate:', JSON.stringify(cards, null, 2));
-    
-    const estimateData = await getEstimateFromTradeInSystem({
-      cards: cards,
-      customerEmail: customerEmail,
-      payoutMethod: payoutMethod
-    });
+    .ea-trade-cart-panel {
+      width: 420px;
+      flex-shrink: 0;
+    }
 
-    console.log('✅ Live estimate received:', JSON.stringify({
-      suggestedTotal: estimateData.suggestedTotal,
-      cardsFound: estimateData.results.filter(r => r.match).length,
-      cardsNotFound: estimateData.results.filter(r => !r.match).length,
-      fullResults: estimateData.results
-    }, null, 2));
+    /* Search Section */
+    .ea-trade-search-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
 
-    // Create submission object with LIVE data
-    const submission = {
-      id: submissionId,
-      status: 'pending',
-      submittedAt: new Date().toISOString(),
-      customer: {
-        name: customerName,
-        email: customerEmail,
-        phone: customerPhone || null
-      },
-      payoutMethod,
-      cards: cards.map((card, index) => {
-        // Enhance card data with actual search results
-        const result = estimateData.results[index];
-        return {
-          cardName: card.cardName,
-          quantity: parseInt(card.quantity) || 1,
-          condition: card.condition || 'NM',
-          sku: result?.sku || card.sku || null,
-          searchMethod: card.searchMethod || 'manual',
-          // Add live pricing data
-          matchFound: !!result?.match,
-          matchedProduct: result?.match || null,
-          retailPrice: result?.retailPrice || 0,
-          suggestedTradeValue: result?.suggestedTradeValue || 0,
-          maximumTradeValue: result?.maximumTradeValue || 0,
-          confidence: result?.confidence || null
-        };
-      }),
-      estimateData: {
-        suggestedTotal: parseFloat(estimateData.suggestedTotal),
-        maximumTotal: parseFloat(estimateData.maximumTotal),
-        totalRetailValue: parseFloat(estimateData.totalRetailValue),
-        cardsFound: estimateData.processingStats.cardsFound,
-        cardsNotFound: estimateData.processingStats.cardsNotFound,
-        timestamp: estimateData.timestamp
-      },
-      estimatedValue: parseFloat(estimateData.suggestedTotal),
-      notes: [],
-      processedBy: null,
-      processedAt: null
-    };
+    .ea-trade-search-box {
+      position: relative;
+      margin-bottom: 20px;
+    }
 
-    console.log('📦 Storing submission with live pricing data...');
+    .ea-trade-search-icon {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0.4;
+      pointer-events: none;
+    }
 
-    // Store in Shopify
-    await storeSubmission(submission);
-    
-    // Send confirmation email to customer
-    await sendCustomerConfirmationEmail(submission);
-    
-    // Send notification to admin/staff
-    await sendAdminNotificationEmail(submission);
-    
-    console.log('✅ Submission processed successfully:', submissionId);
-    
-    return res.status(201).json({
-      success: true,
-      submissionId: submissionId,
-      status: 'pending',
-      message: 'Your trade-in request has been submitted successfully!',
-      estimate: {
-        suggestedTotal: submission.estimatedValue.toFixed(2),
-        maximumTotal: parseFloat(estimateData.maximumTotal).toFixed(2),
-        totalRetailValue: parseFloat(estimateData.totalRetailValue).toFixed(2),
-        cardsProcessed: cards.length,
-        cardsFound: estimateData.processingStats.cardsFound,
-        cardsNotFound: estimateData.processingStats.cardsNotFound
-      },
-      estimatedProcessingTime: '24 hours',
-      nextSteps: [
-        'You will receive a confirmation email shortly',
-        'Our team will review your cards and confirm the final payout',
-        'We will contact you within 24 hours with next steps'
-      ],
-      // Include detailed card results for transparency
-      cardResults: submission.cards.map(card => ({
-        cardName: card.cardName,
-        quantity: card.quantity,
-        matchFound: card.matchFound,
-        matchedProduct: card.matchedProduct,
-        estimatedValue: (card.suggestedTradeValue * card.quantity).toFixed(2)
-      }))
-    });
+    .ea-trade-search-input {
+      width: 100%;
+      padding: 18px 56px 18px 56px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 16px;
+      color: #fff;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      outline: none;
+    }
 
-  } catch (error) {
-    console.error('❌ Failed to process submission:', error);
-    console.error('❌ Error stack:', error.stack);
-    return res.status(500).json({
-      error: 'Failed to process submission',
-      details: 'Please try again or contact support',
-      technicalDetails: error.message,
-      errorStack: error.stack,
-      errorName: error.name
-    });
-  }
-}
+    .ea-trade-search-input:focus {
+      border-color: rgba(212, 175, 55, 0.6);
+      background: rgba(255,255,255,0.05);
+      box-shadow: 0 0 30px rgba(212, 175, 55, 0.1);
+    }
 
-// ✨ NEW: Function to get live estimates from your main trade-in system
-async function getEstimateFromTradeInSystem(data) {
-  console.log('🔄 Calling main trade-in API for estimate...');
-  console.log('📊 Environment check:', {
-    SHOPIFY_DOMAIN: process.env.SHOPIFY_DOMAIN ? '✅' : '❌',
-    SHOPIFY_ACCESS_TOKEN: process.env.SHOPIFY_ACCESS_TOKEN ? '✅' : '❌'
-  });
-  
-  // Import or require your main trade-in logic
-  // Option A: If they're in the same codebase, import the logic directly
-  // Option B: Make an internal API call
-  
-  const SHOPIFY_DOMAIN = process.env.SHOPIFY_DOMAIN;
-  const SHOPIFY_API_KEY = process.env.SHOPIFY_API_KEY;
-  const SHOPIFY_API_SECRET = process.env.SHOPIFY_API_SECRET;
-  const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
+    .ea-trade-search-input::placeholder {
+      color: rgba(255,255,255,0.4);
+    }
 
-  // Validate required environment variables
-  if (!SHOPIFY_DOMAIN || !SHOPIFY_ACCESS_TOKEN) {
-    console.error('❌ Missing Shopify credentials in getEstimateFromTradeInSystem');
-    throw new Error('Missing required Shopify credentials');
-  }
+    .ea-trade-clear-btn {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 28px;
+      height: 28px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      border-radius: 50%;
+      color: rgba(255,255,255,0.6);
+      font-size: 16px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
 
-  console.log('✅ Credentials validated, starting card processing...');
-  console.log('📦 Processing', data.cards.length, 'cards');
+    .ea-trade-clear-btn:hover {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+    }
 
-  // Use the SAME logic from your main trade-in API
-  const makeShopifyRequest = async (endpoint, options = {}) => {
-    const defaultHeaders = {
-      'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
-      'Content-Type': 'application/json',
-    };
+    .ea-trade-clear-btn.visible {
+      display: flex;
+    }
 
-    return fetch(`https://${SHOPIFY_DOMAIN}${endpoint}`, {
-      ...options,
-      headers: {
-        ...defaultHeaders,
-        ...options.headers
+    /* ========== CLEAN IMPORT SECTION ========== */
+    .ea-trade-import-options {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .ea-trade-import-option {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-import-option:hover {
+      background: rgba(212, 175, 55, 0.08);
+      border-color: rgba(212, 175, 55, 0.3);
+    }
+
+    .ea-trade-import-option-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(212, 175, 55, 0.1);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .ea-trade-import-option-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .ea-trade-import-option-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: #fff;
+      margin-bottom: 2px;
+    }
+
+    .ea-trade-import-option-desc {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .ea-trade-import-option-arrow {
+      color: rgba(255,255,255,0.3);
+      font-size: 18px;
+      transition: transform 0.2s;
+    }
+
+    .ea-trade-import-option:hover .ea-trade-import-option-arrow {
+      transform: translateX(3px);
+      color: #d4af37;
+    }
+
+    /* Collectr Link Expanded State */
+    .ea-trade-collectr-expanded {
+      display: none;
+      margin-bottom: 24px;
+      padding: 16px;
+      background: rgba(212, 175, 55, 0.03);
+      border: 1px solid rgba(212, 175, 55, 0.15);
+      border-radius: 12px;
+      animation: slideDown 0.2s ease;
+    }
+
+    .ea-trade-collectr-expanded.active {
+      display: block;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .ea-trade-collectr-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .ea-trade-collectr-input {
+      flex: 1;
+      padding: 14px 16px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .ea-trade-collectr-input:focus {
+      outline: none;
+      border-color: #d4af37;
+      background: rgba(0,0,0,0.5);
+    }
+
+    .ea-trade-collectr-input::placeholder {
+      color: rgba(255,255,255,0.35);
+    }
+
+    .ea-trade-collectr-btn {
+      padding: 14px 24px;
+      background: linear-gradient(135deg, #d4af37 0%, #b8962e 100%);
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      min-width: 100px;
+      justify-content: center;
+    }
+
+    .ea-trade-collectr-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
+    }
+
+    .ea-trade-collectr-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .ea-trade-collectr-btn .spinner {
+      display: none;
+      animation: spin 1s linear infinite;
+    }
+
+    .ea-trade-collectr-btn.loading .btn-text {
+      display: none;
+    }
+
+    .ea-trade-collectr-btn.loading .spinner {
+      display: inline-block;
+    }
+
+    .ea-trade-collectr-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 12px;
+    }
+
+    .ea-trade-collectr-help {
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .ea-trade-collectr-help:hover {
+      color: #d4af37;
+    }
+
+    .ea-trade-collectr-close {
+      color: rgba(255,255,255,0.4);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .ea-trade-collectr-close:hover {
+      color: #fff;
+      background: rgba(255,255,255,0.1);
+    }
+
+    /* Status Message */
+    .ea-trade-status {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      display: none;
+    }
+
+    .ea-trade-status.active {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ea-trade-status.loading {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      color: #93c5fd;
+    }
+
+    .ea-trade-status.success {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      color: #86efac;
+    }
+
+    .ea-trade-status.error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: #fca5a5;
+    }
+
+    .ea-trade-status-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Help Modal - Minimal */
+    .ea-trade-help-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10001;
+      padding: 20px;
+    }
+
+    .ea-trade-help-modal.active {
+      display: flex;
+    }
+
+    .ea-trade-help-content {
+      background: #1a1a1a;
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 380px;
+      width: 100%;
+      position: relative;
+    }
+
+    .ea-trade-help-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: rgba(255,255,255,0.6);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+
+    .ea-trade-help-close:hover {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+    }
+
+    .ea-trade-help-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #d4af37;
+      margin-bottom: 16px;
+    }
+
+    .ea-trade-help-steps {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .ea-trade-help-steps li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 14px;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .ea-trade-help-steps li:last-child {
+      border-bottom: none;
+    }
+
+    .ea-trade-help-step-num {
+      width: 24px;
+      height: 24px;
+      background: rgba(212, 175, 55, 0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #d4af37;
+      flex-shrink: 0;
+    }
+
+    /* Import Modal */
+    .ea-trade-import-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 9999;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .ea-trade-import-modal.active {
+      display: block;
+    }
+
+    .ea-trade-import-modal-content {
+      max-width: 900px;
+      margin: 20px auto;
+      background: #1a1a1a;
+      border-radius: 16px;
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      overflow: hidden;
+    }
+
+    .ea-trade-import-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      background: rgba(212, 175, 55, 0.05);
+    }
+
+    .ea-trade-import-modal-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #d4af37;
+    }
+
+    .ea-trade-import-modal-close {
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      border-radius: 50%;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-import-modal-close:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .ea-trade-import-modal-body {
+      padding: 24px;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .ea-trade-import-summary {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .ea-trade-import-stat {
+      background: rgba(255,255,255,0.03);
+      padding: 16px 20px;
+      border-radius: 10px;
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .ea-trade-import-stat-label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 4px;
+    }
+
+    .ea-trade-import-stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #d4af37;
+    }
+
+    .ea-trade-import-stat-value.green {
+      color: #4ade80;
+    }
+
+    .ea-trade-import-stat-value.red {
+      color: #ef4444;
+    }
+
+    .ea-trade-import-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .ea-trade-import-table th {
+      text-align: left;
+      padding: 12px;
+      background: rgba(255,255,255,0.03);
+      color: rgba(255,255,255,0.6);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .ea-trade-import-table td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 14px;
+    }
+
+    .ea-trade-import-table tr:hover {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .ea-trade-import-table .card-name {
+      max-width: 250px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ea-trade-import-table .match-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .ea-trade-import-table .match-status.matched {
+      background: rgba(74, 222, 128, 0.15);
+      color: #4ade80;
+    }
+
+    .ea-trade-import-table .match-status.partial {
+      background: rgba(251, 191, 36, 0.15);
+      color: #fbbf24;
+    }
+
+    .ea-trade-import-table .match-status.no-match {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+    }
+
+    .ea-trade-import-table input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: #d4af37;
+    }
+
+    .ea-trade-import-modal-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      background: rgba(0,0,0,0.2);
+    }
+
+    .ea-trade-import-select-all {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: rgba(255,255,255,0.7);
+      font-size: 14px;
+    }
+
+    .ea-trade-import-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .ea-trade-import-cancel {
+      padding: 12px 24px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-import-cancel:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .ea-trade-import-add {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #d4af37 0%, #b8962e 100%);
+      border: none;
+      border-radius: 10px;
+      color: #000;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-import-add:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+    }
+
+    .ea-trade-import-add:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .ea-trade-import-processing {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .ea-trade-import-processing p {
+      margin-top: 16px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .ea-trade-import-progress {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #d4af37;
+    }
+
+    /* Loading State */
+    .ea-trade-loading {
+      text-align: center;
+      padding: 40px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .ea-trade-spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid rgba(212, 175, 55, 0.2);
+      border-top-color: #d4af37;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    /* Results */
+    .ea-trade-results {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .ea-trade-result {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-result:hover {
+      background: rgba(212, 175, 55, 0.08);
+      border-color: rgba(212, 175, 55, 0.3);
+      transform: translateX(4px);
+    }
+
+    .ea-trade-result-image {
+      width: 60px;
+      height: 84px;
+      background: #0a0a0a;
+      border-radius: 6px;
+      overflow: hidden;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      position: relative;
+    }
+
+    .ea-trade-result-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .ea-trade-result-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .ea-trade-result-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ea-trade-result-meta {
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .ea-trade-result-condition {
+      padding: 8px 12px;
+      background: rgba(212, 175, 55, 0.15);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      outline: none;
+      min-width: 200px;
+    }
+
+    .ea-trade-result-condition:hover {
+      border-color: rgba(212, 175, 55, 0.6);
+    }
+
+    .ea-trade-result-condition:focus {
+      border-color: #d4af37;
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+    }
+
+    .ea-trade-result-condition option {
+      background: #1a1a2e;
+      padding: 8px;
+    }
+
+    .ea-trade-result-single-condition {
+      color: rgba(255,255,255,0.6);
+      font-size: 13px;
+    }
+
+    .ea-trade-result-value {
+      text-align: right;
+      margin-right: 12px;
+    }
+
+    .ea-trade-result-value-label {
+      font-size: 13px;
+      opacity: 0.5;
+    }
+
+    .ea-trade-result-value-amount {
+      font-size: 18px;
+      font-weight: 600;
+      color: #4ade80;
+    }
+
+    .ea-trade-add-btn {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #d4af37 0%, #b8962e 100%);
+      border: none;
+      border-radius: 8px;
+      color: #0a0a0a;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-add-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+    }
+
+    /* Empty State */
+    .ea-trade-empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .ea-trade-empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    /* Cart Panel */
+    .ea-trade-cart {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 28px;
+      position: sticky;
+      top: 40px;
+    }
+
+    .ea-trade-cart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .ea-trade-cart-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .ea-trade-cart-count {
+      background: rgba(212, 175, 55, 0.2);
+      color: #d4af37;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* Customer Info */
+    .ea-trade-customer {
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .ea-trade-section-label {
+      font-size: 13px;
+      opacity: 0.5;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .ea-trade-input {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      margin-bottom: 10px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-input:focus {
+      border-color: rgba(212, 175, 55, 0.5);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .ea-trade-input::placeholder {
+      color: rgba(255,255,255,0.3);
+    }
+
+    /* Payout Selection */
+    .ea-trade-payout {
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .ea-trade-payout-options {
+      display: flex;
+      gap: 10px;
+    }
+
+    .ea-trade-payout-option {
+      flex: 1;
+      padding: 16px 12px;
+      background: rgba(255,255,255,0.02);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .ea-trade-payout-option:hover {
+      border-color: rgba(212, 175, 55, 0.5);
+    }
+
+    .ea-trade-payout-option.selected {
+      border-color: #d4af37;
+      background: rgba(212, 175, 55, 0.1);
+    }
+
+    .ea-trade-payout-icon {
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+
+    .ea-trade-payout-text {
+      /* Wrapper for name + rate */
+    }
+
+    .ea-trade-payout-name {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .ea-trade-payout-rate {
+      font-weight: 600;
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .ea-trade-payout-option.selected .ea-trade-payout-rate {
+      color: #d4af37;
+    }
+
+    /* Cart Items */
+    .ea-trade-cart-items {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .ea-trade-cart-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .ea-trade-cart-item-image {
+      width: 40px;
+      height: 56px;
+      background: #0a0a0a;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .ea-trade-cart-item-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 3px;
+    }
+
+    .ea-trade-cart-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .ea-trade-cart-item-title {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+
+    .ea-trade-cart-item-meta {
+      font-size: 11px;
+      opacity: 0.5;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .ea-trade-cart-item-condition {
+      background: rgba(212, 175, 55, 0.2);
+      color: #d4af37;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .ea-trade-cart-item-retail {
+      opacity: 0.7;
+    }
+
+    .ea-trade-cart-item-value {
+      text-align: right;
+    }
+
+    .ea-trade-cart-item-price {
+      font-weight: 600;
+      color: #4ade80;
+    }
+
+    .ea-trade-cart-item-remove {
+      width: 28px;
+      height: 28px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 6px;
+      color: #ef4444;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-cart-item-remove:hover {
+      background: #ef4444;
+      color: white;
+      border-color: #ef4444;
+    }
+
+    .ea-trade-cart-empty {
+      text-align: center;
+      padding: 30px;
+      color: rgba(255,255,255,0.3);
+      font-size: 14px;
+    }
+
+    .ea-trade-cart-empty-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    /* Totals */
+    .ea-trade-totals {
+      margin-bottom: 20px;
+    }
+
+    .ea-trade-totals-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 14px;
+    }
+
+    .ea-trade-totals-row.total {
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 16px;
+      margin-top: 8px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .ea-trade-totals-row.total .ea-trade-totals-value {
+      color: #d4af37;
+      font-size: 22px;
+    }
+
+    .ea-trade-totals-label {
+      opacity: 0.6;
+    }
+
+    .ea-trade-totals-value {
+      color: #4ade80;
+      font-weight: 600;
+    }
+
+    /* Submit Button */
+    .ea-trade-submit-btn {
+      width: 100%;
+      padding: 18px 24px;
+      background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+      border: none;
+      border-radius: 14px;
+      color: #0a0a0a;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .ea-trade-submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(74, 222, 128, 0.3);
+    }
+
+    .ea-trade-submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Confirmation Modal */
+    .ea-trade-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .ea-trade-modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .ea-trade-modal {
+      background: linear-gradient(135deg, #1a1a2e 0%, #0a0a0a 100%);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+
+    .ea-trade-modal-overlay.active .ea-trade-modal {
+      transform: scale(1);
+    }
+
+    .ea-trade-modal-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .ea-trade-modal-title {
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #d4af37 0%, #f4e4a6 50%, #d4af37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+    }
+
+    .ea-trade-modal-subtitle {
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .ea-trade-modal-code {
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .ea-trade-modal-code-label {
+      font-size: 12px;
+      opacity: 0.5;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .ea-trade-modal-code-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #d4af37;
+      letter-spacing: 2px;
+      font-family: Monaco, monospace;
+    }
+
+    .ea-trade-modal-summary {
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+
+    .ea-trade-modal-summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .ea-trade-modal-summary-row:last-child {
+      border-bottom: none;
+    }
+
+    .ea-trade-modal-btn {
+      width: 100%;
+      padding: 16px 24px;
+      background: linear-gradient(135deg, #d4af37 0%, #b8962e 100%);
+      border: none;
+      border-radius: 12px;
+      color: #0a0a0a;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-modal-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+    }
+
+    /* Representative Trade-In Section */
+    .ea-trade-rep-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .ea-trade-rep-divider {
+      text-align: center;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .ea-trade-rep-divider::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 1px;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .ea-trade-rep-divider span {
+      position: relative;
+      background: rgba(255,255,255,0.02);
+      padding: 0 12px;
+      color: rgba(255,255,255,0.4);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .ea-trade-rep-btn {
+      width: 100%;
+      padding: 14px 20px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 10px;
+      color: #ef4444;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .ea-trade-rep-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: #ef4444;
+    }
+
+    .ea-trade-rep-auth {
+      margin-top: 16px;
+    }
+
+    .ea-trade-rep-password {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      text-align: center;
+      margin-bottom: 12px;
+      outline: none;
+    }
+
+    .ea-trade-rep-password:focus {
+      border-color: rgba(239, 68, 68, 0.5);
+    }
+
+    .ea-trade-rep-confirm {
+      width: 100%;
+      padding: 14px 20px;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .ea-trade-rep-confirm:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);
+    }
+
+    .ea-trade-rep-confirm:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .ea-trade-rep-note {
+      text-align: center;
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      margin-top: 10px;
+    }
+
+    .ea-trade-rep-success {
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      color: #4ade80;
+      font-weight: 600;
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* Image Lightbox */
+    .ea-trade-lightbox {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      cursor: zoom-out;
+    }
+
+    .ea-trade-lightbox.active {
+      display: flex;
+    }
+
+    .ea-trade-lightbox-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      border-radius: 50%;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      z-index: 10001;
+    }
+
+    .ea-trade-lightbox-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
+    }
+
+    .ea-trade-lightbox-img {
+      max-width: 90vw;
+      max-height: 90vh;
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      cursor: default;
+    }
+
+    /* Make result images clickable */
+    .ea-trade-result-image[onclick] {
+      cursor: zoom-in;
+    }
+
+    .ea-trade-result-image[onclick] img {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .ea-trade-result-image[onclick]:hover img {
+      transform: scale(1.05);
+    }
+
+    .ea-trade-result-image[onclick]:hover {
+      box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.5);
+    }
+
+    .ea-trade-result-image[onclick]:active img {
+      transform: scale(1.02);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+    ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.3); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(212, 175, 55, 0.5); }
+
+    /* Floating Cart Button (Mobile) */
+    .ea-trade-floating-cart {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #d4af37 0%, #b8962e 100%);
+      color: #000;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-floating-cart:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(212, 175, 55, 0.5);
+    }
+
+    .ea-trade-floating-cart:active {
+      transform: translateY(0);
+    }
+
+    .ea-trade-floating-cart-icon {
+      font-size: 18px;
+    }
+
+    .ea-trade-floating-cart-count {
+      background: #000;
+      color: #d4af37;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .ea-trade-floating-cart-total {
+      font-weight: 700;
+    }
+
+    @media (max-width: 1024px) {
+      .ea-trade-floating-cart {
+        display: flex;
       }
-    });
-  };
-
-  const makeShopifyGraphQLRequest = async (query, variables = {}) => {
-    return makeShopifyRequest('/admin/api/2023-10/graphql.json', {
-      method: 'POST',
-      body: JSON.stringify({ 
-        query,
-        variables
-      })
-    });
-  };
-
-  // Trade rate calculation functions (same as main API)
-  function calculateMaximumTradeValue(marketValue) {
-    const price = parseFloat(marketValue);
-    
-    if (price >= 50.00) return parseFloat((price * 0.75).toFixed(2));
-    if (price >= 25.00) return parseFloat((price * 0.70).toFixed(2));
-    if (price >= 15.01) return parseFloat((price * 0.65).toFixed(2));
-    if (price >= 8.00) return parseFloat((price * 0.50).toFixed(2));
-    if (price >= 5.00) return parseFloat((price * 0.35).toFixed(2));
-    if (price >= 3.01) return parseFloat((price * 0.25).toFixed(2));
-    if (price >= 2.00) return 0.50;
-    if (price >= 0.01) return 0.01;
-    return 0;
-  }
-
-  function calculateSuggestedTradeValue(marketValue) {
-    const price = parseFloat(marketValue);
-    
-    if (price >= 50.00) return parseFloat((price * 0.75).toFixed(2));
-    if (price >= 25.00) return parseFloat((price * 0.50).toFixed(2));
-    if (price >= 15.01) return parseFloat((price * 0.35).toFixed(2));
-    if (price >= 8.00) return parseFloat((price * 0.40).toFixed(2));
-    if (price >= 5.00) return parseFloat((price * 0.35).toFixed(2));
-    if (price >= 3.01) return parseFloat((price * 0.25).toFixed(2));
-    if (price >= 2.00) return 0.10;
-    if (price >= 0.01) return 0.01;
-    return 0;
-  }
-
-  // Search functions (same as main API)
-  function normalizeSearchTerm(term) {
-    if (!term) return '';
-    const normalized = term.replace(/[\/\-\s]/g, '');
-    return normalized;
-  }
-
-  function extractPotentialTags(cardName) {
-    if (!cardName) return [];
-    
-    const tags = [];
-    const numberPattern = /(\d+)[\/\-](\d+)/g;
-    let match;
-    
-    while ((match = numberPattern.exec(cardName)) !== null) {
-      tags.push(match[0]);
-      tags.push(match[1] + match[2]);
-    }
-    
-    const standaloneNumbers = cardName.match(/\b\d{3,6}\b/g);
-    if (standaloneNumbers) {
-      tags.push(...standaloneNumbers);
-    }
-    
-    tags.push(normalizeSearchTerm(cardName));
-    
-    return [...new Set(tags)];
-  }
-
-  const searchByTagWithAllOptions = async (tag, originalCardName) => {
-    const normalizedTag = normalizeSearchTerm(tag);
-    
-    const query = `{
-      products(first: 20, query: "tag:${normalizedTag}") {
-        edges {
-          node {
-            id
-            title
-            tags
-            variants(first: 5) {
-              edges {
-                node {
-                  id
-                  title
-                  sku
-                  price
-                  inventoryQuantity
-                }
-              }
-            }
-          }
-        }
+      .ea-trade-floating-cart.hidden {
+        display: none;
       }
-    }`;
-
-    const graphqlRes = await makeShopifyGraphQLRequest(query);
-    const json = await graphqlRes.json();
-    
-    const products = json?.data?.products?.edges || [];
-    
-    if (products.length === 0) {
-      return { found: false };
     }
 
-    // Get first variant from first product (simplified for estimate)
-    const product = products[0].node;
-    const variant = product.variants.edges[0]?.node;
-    
-    if (variant) {
-      return {
-        found: true,
-        product: { title: product.title },
-        variant: {
-          sku: variant.sku,
-          price: variant.price
-        },
-        searchMethod: 'tag'
-      };
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .ea-trade-main {
+        flex-direction: column;
+        padding: 20px;
+      }
+      .ea-trade-cart-panel {
+        width: 100%;
+      }
+      .ea-trade-cart {
+        position: static;
+      }
     }
-    
-    return { found: false };
-  };
 
-  const searchByTitle = async (query) => {
-    const productRes = await makeShopifyRequest(
-      `/admin/api/2023-10/products.json?title=${encodeURIComponent(query)}`
-    );
-
-    const productData = await productRes.json();
-    
-    if (productData?.products?.length > 0) {
-      const product = productData.products[0];
-      const variant = product.variants[0];
+    @media (max-width: 640px) {
+      .ea-trade-header {
+        padding: 24px 16px 16px;
+      }
+      .ea-trade-header h1 {
+        font-size: 24px;
+      }
+      .ea-trade-header p {
+        font-size: 14px;
+      }
       
-      return {
-        found: true,
-        product: product,
-        variant: {
-          sku: variant.sku,
-          price: variant.price
-        },
-        searchMethod: 'title'
-      };
-    }
-    
-    return { found: false };
-  };
-
-  const searchCard = async (card) => {
-    const { cardName, sku } = card;
-    
-    console.log(`  🔍 searchCard called for: "${cardName}"`);
-    
-    // Try tag search first
-    const potentialTags = extractPotentialTags(cardName);
-    console.log(`  🏷️ Extracted tags:`, potentialTags);
-    
-    for (const tag of potentialTags) {
-      if (!tag || tag.length < 2) continue;
+      .ea-trade-main {
+        padding: 16px;
+        gap: 20px;
+      }
       
-      console.log(`    🔎 Trying tag search with: "${tag}"`);
+      /* Import options stack on mobile */
+      .ea-trade-import-options {
+        flex-direction: column;
+      }
       
-      try {
-        const result = await searchByTagWithAllOptions(tag, cardName);
-        if (result.found) {
-          console.log(`    ✅ Found via tag "${tag}"`);
-          return result;
-        } else {
-          console.log(`    ❌ Tag "${tag}" - no results`);
-        }
-      } catch (error) {
-        console.log(`    ❌ Tag search error for "${tag}":`, error.message);
-        continue;
+      /* Payout options - full width stacked */
+      .ea-trade-payout-options {
+        flex-direction: column;
+        gap: 8px;
       }
-    }
-    
-    // Fallback to title search
-    console.log(`  🔎 Trying title search for: "${cardName}"`);
-    try {
-      const result = await searchByTitle(cardName);
-      if (result.found) {
-        console.log(`    ✅ Found via title search`);
-        return result;
-      } else {
-        console.log(`    ❌ Title search - no results`);
+      .ea-trade-payout-option {
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-align: left;
       }
-    } catch (error) {
-      console.log(`    ❌ Title search error:`, error.message);
-    }
-    
-    console.log(`  ❌ All search methods exhausted for: "${cardName}"`);
-    return { found: false };
-  };
-
-  // Process all cards
-  let totalSuggestedValue = 0;
-  let totalMaximumValue = 0;
-  let totalRetailValue = 0;
-  const results = [];
-
-  console.log('🔍 Starting card search loop...');
-
-  for (const card of data.cards) {
-    const { cardName, quantity = 1, condition = 'NM' } = card;
-    
-    console.log(`\n🃏 Processing card: "${cardName}" (qty: ${quantity})`);
-    
-    const searchResult = await searchCard(card);
-    
-    console.log(`🔍 Search result for "${cardName}":`, {
-      found: searchResult.found,
-      method: searchResult.searchMethod,
-      product: searchResult.product?.title,
-      price: searchResult.variant?.price
-    });
-    
-    if (!searchResult.found) {
-      console.log(`❌ No match found for: ${cardName}`);
-      results.push({
-        cardName,
-        match: null,
-        retailPrice: 0,
-        suggestedTradeValue: 0,
-        maximumTradeValue: 0,
-        quantity,
-        condition,
-        sku: null,
-        searchMethod: 'none'
-      });
-      continue;
-    }
-
-    const product = searchResult.product;
-    const variant = searchResult.variant;
-    const variantPrice = parseFloat(variant.price || 0);
-    const suggestedTradeValue = calculateSuggestedTradeValue(variantPrice);
-    const maximumTradeValue = calculateMaximumTradeValue(variantPrice);
-    
-    console.log(`✅ Match found: ${product.title} - ${variantPrice} (Trade: ${suggestedTradeValue})`);
-    
-    totalSuggestedValue += suggestedTradeValue * quantity;
-    totalMaximumValue += maximumTradeValue * quantity;
-    totalRetailValue += variantPrice * quantity;
-
-    results.push({
-      cardName,
-      match: product.title,
-      retailPrice: variantPrice,
-      suggestedTradeValue,
-      maximumTradeValue,
-      quantity,
-      condition,
-      sku: variant.sku,
-      searchMethod: searchResult.searchMethod
-    });
-  }
-
-  console.log('\n📊 Processing complete:', {
-    totalCards: data.cards.length,
-    cardsFound: results.filter(r => r.match).length,
-    cardsNotFound: results.filter(r => !r.match).length,
-    totalSuggestedValue,
-    totalMaximumValue,
-    totalRetailValue
-  });
-
-  return {
-    success: true,
-    estimate: true,
-    results,
-    suggestedTotal: totalSuggestedValue.toFixed(2),
-    maximumTotal: totalMaximumValue.toFixed(2),
-    totalRetailValue: totalRetailValue.toFixed(2),
-    timestamp: new Date().toISOString(),
-    processingStats: {
-      totalCards: data.cards.length,
-      cardsFound: results.filter(r => r.match).length,
-      cardsNotFound: results.filter(r => !r.match).length
-    }
-  };
-}
-
-async function handleGetSubmissions(req, res) {
-  const { submissionId, email, status } = req.query;
-  
-  try {
-    let submissions;
-    
-    if (submissionId) {
-      submissions = await getSubmissionById(submissionId);
-    } else if (email) {
-      submissions = await getSubmissionsByEmail(email);
-    } else {
-      submissions = await getAllSubmissions({ status });
-    }
-    
-    return res.status(200).json({
-      success: true,
-      data: submissions
-    });
-    
-  } catch (error) {
-    console.error('❌ Failed to fetch submissions:', error);
-    return res.status(500).json({
-      error: 'Failed to fetch submissions'
-    });
-  }
-}
-
-// Helper Functions
-
-function generateSubmissionId() {
-  const prefix = 'TR';
-  const year = new Date().getFullYear();
-  const random = Math.random().toString(36).substr(2, 6).toUpperCase();
-  return `${prefix}-${year}-${random}`;
-}
-
-const makeShopifyRequest = async (endpoint, options = {}) => {
-  const SHOPIFY_DOMAIN = process.env.SHOPIFY_DOMAIN;
-  const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
-  
-  const defaultHeaders = {
-    'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
-    'Content-Type': 'application/json',
-  };
-
-  return fetch(`https://${SHOPIFY_DOMAIN}${endpoint}`, {
-    ...options,
-    headers: {
-      ...defaultHeaders,
-      ...options.headers
-    }
-  });
-};
-
-async function storeSubmission(submission) {
-  console.log('📦 Storing submission in Shopify metafields:', submission.id);
-  
-  try {
-    let shopifyCustomer = await findOrCreateShopifyCustomer(submission.customer);
-    submission.customer.shopifyId = shopifyCustomer.id;
-    
-    const metafieldData = {
-      metafield: {
-        namespace: 'trade_in_submissions',
-        key: submission.id,
-        value: JSON.stringify(submission),
-        type: 'json'
+      .ea-trade-payout-icon {
+        margin-bottom: 0;
+        font-size: 20px;
       }
-    };
-    
-    const response = await makeShopifyRequest(
-      `/admin/api/2023-10/customers/${shopifyCustomer.id}/metafields.json`,
-      {
-        method: 'POST',
-        body: JSON.stringify(metafieldData)
+      .ea-trade-payout-text {
+        flex: 1;
       }
-    );
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to store submission metafield: ${errorText}`);
-    }
-    
-    const result = await response.json();
-    console.log('✅ Submission stored in Shopify metafield:', result.metafield.id);
-    
-    await storeSubmissionIndex(submission);
-    
-    return true;
-    
-  } catch (error) {
-    console.error('❌ Failed to store submission in Shopify:', error);
-    throw error;
-  }
-}
-
-async function findOrCreateShopifyCustomer(customerData) {
-  console.log('👤 Finding or creating Shopify customer:', customerData.email);
-  
-  try {
-    const searchResponse = await makeShopifyRequest(
-      `/admin/api/2023-10/customers/search.json?query=email:${encodeURIComponent(customerData.email)}`
-    );
-    
-    const searchData = await searchResponse.json();
-    
-    if (searchData.customers && searchData.customers.length > 0) {
-      console.log('✅ Found existing customer:', searchData.customers[0].id);
-      return searchData.customers[0];
-    }
-    
-    const customerPayload = {
-      customer: {
-        email: customerData.email,
-        first_name: customerData.name.split(' ')[0] || customerData.name,
-        last_name: customerData.name.split(' ').slice(1).join(' ') || '',
-        phone: customerData.phone || null,
-        note: 'Customer created via trade-in portal',
-        tags: 'trade-in-customer',
-        verified_email: false
-      }
-    };
-    
-    const createResponse = await makeShopifyRequest('/admin/api/2023-10/customers.json', {
-      method: 'POST',
-      body: JSON.stringify(customerPayload)
-    });
-    
-    if (!createResponse.ok) {
-      const errorText = await createResponse.text();
-      throw new Error(`Failed to create customer: ${errorText}`);
-    }
-    
-    const customerResult = await createResponse.json();
-    console.log('✅ Created new customer:', customerResult.customer.id);
-    
-    return customerResult.customer;
-    
-  } catch (error) {
-    console.error('❌ Error with customer:', error);
-    throw error;
-  }
-}
-
-async function storeSubmissionIndex(submission) {
-  try {
-    const indexResponse = await makeShopifyRequest('/admin/api/2023-10/metafields.json?namespace=trade_in_system&key=submission_index');
-    const indexData = await indexResponse.json();
-    
-    let submissionIndex = [];
-    
-    if (indexData.metafields && indexData.metafields.length > 0) {
-      try {
-        submissionIndex = JSON.parse(indexData.metafields[0].value);
-      } catch (e) {
-        console.warn('Failed to parse existing submission index, starting fresh');
-        submissionIndex = [];
-      }
-    }
-    
-    const indexEntry = {
-      id: submission.id,
-      customerId: submission.customer.shopifyId,
-      customerEmail: submission.customer.email,
-      customerName: submission.customer.name,
-      submittedAt: submission.submittedAt,
-      status: submission.status,
-      payoutMethod: submission.payoutMethod,
-      estimatedValue: submission.estimatedValue,
-      cardCount: submission.cards.length,
-      cardsFound: submission.estimateData?.cardsFound || 0,
-      cardsNotFound: submission.estimateData?.cardsNotFound || 0
-    };
-    
-    submissionIndex.unshift(indexEntry);
-    
-    if (submissionIndex.length > 1000) {
-      submissionIndex = submissionIndex.slice(0, 1000);
-    }
-    
-    const indexMetafield = {
-      metafield: {
-        namespace: 'trade_in_system',
-        key: 'submission_index',
-        value: JSON.stringify(submissionIndex),
-        type: 'json'
-      }
-    };
-    
-    if (indexData.metafields && indexData.metafields.length > 0) {
-      await makeShopifyRequest(`/admin/api/2023-10/metafields/${indexData.metafields[0].id}.json`, {
-        method: 'PUT',
-        body: JSON.stringify(indexMetafield)
-      });
-    } else {
-      await makeShopifyRequest('/admin/api/2023-10/metafields.json', {
-        method: 'POST',
-        body: JSON.stringify(indexMetafield)
-      });
-    }
-    
-    console.log('✅ Submission index updated');
-    
-  } catch (error) {
-    console.error('⚠️ Failed to update submission index (non-critical):', error);
-  }
-}
-
-async function getSubmissionById(submissionId) {
-  console.log('🔍 Getting submission by ID from Shopify:', submissionId);
-  
-  try {
-    const indexResponse = await makeShopifyRequest('/admin/api/2023-10/metafields.json?namespace=trade_in_system&key=submission_index');
-    const indexData = await indexResponse.json();
-    
-    if (indexData.metafields && indexData.metafields.length > 0) {
-      const submissionIndex = JSON.parse(indexData.metafields[0].value);
-      const indexEntry = submissionIndex.find(entry => entry.id === submissionId);
       
-      if (indexEntry && indexEntry.customerId) {
-        const metafieldResponse = await makeShopifyRequest(
-          `/admin/api/2023-10/customers/${indexEntry.customerId}/metafields.json?namespace=trade_in_submissions&key=${submissionId}`
-        );
+      /* Search input */
+      .ea-trade-search-input {
+        padding: 16px 50px 16px 48px;
+        font-size: 16px;
+      }
+      .ea-trade-search-icon {
+        left: 16px;
+        font-size: 18px;
+      }
+      .ea-trade-clear-btn {
+        right: 12px;
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+      }
+      
+      /* Result items - wrap on mobile */
+      .ea-trade-result {
+        flex-wrap: wrap;
+        padding: 12px;
+        gap: 12px;
+      }
+      .ea-trade-result-image {
+        width: 50px;
+        height: 70px;
+      }
+      .ea-trade-result-info {
+        flex: 1;
+        min-width: calc(100% - 62px - 70px);
+      }
+      .ea-trade-result-title {
+        font-size: 14px;
+        white-space: normal;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+      .ea-trade-result-condition {
+        min-width: 0;
+        width: 100%;
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+      .ea-trade-result-value {
+        order: 3;
+        width: calc(100% - 90px);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .ea-trade-result-value-label {
+        font-size: 11px;
+      }
+      .ea-trade-result-value-amount {
+        font-size: 18px;
+      }
+      .ea-trade-add-btn {
+        order: 4;
+        padding: 12px 20px;
+        font-size: 14px;
+      }
+      
+      /* Cart panel */
+      .ea-trade-cart {
+        padding: 16px;
+        border-radius: 16px;
+      }
+      .ea-trade-cart-header h2 {
+        font-size: 16px;
+      }
+      
+      /* Cart items */
+      .ea-trade-cart-items {
+        max-height: 250px;
+      }
+      .ea-trade-cart-item {
+        padding: 10px;
+        gap: 10px;
+      }
+      .ea-trade-cart-item-image {
+        width: 36px;
+        height: 50px;
+      }
+      .ea-trade-cart-item-title {
+        font-size: 12px;
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+      .ea-trade-cart-item-meta {
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+      .ea-trade-cart-item-price {
+        font-size: 14px;
+      }
+      .ea-trade-cart-item-remove {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+      }
+      
+      /* Totals */
+      .ea-trade-cart-total {
+        padding: 12px;
+      }
+      .ea-trade-quote-value {
+        font-size: 22px;
+      }
+      
+      /* Submit button */
+      .ea-trade-submit-btn {
+        padding: 14px 20px;
+        font-size: 14px;
+      }
+      
+      /* Customer inputs */
+      .ea-trade-input {
+        padding: 14px;
+        font-size: 16px;
+      }
+      
+      /* Lightbox */
+      .ea-trade-lightbox {
+        padding: 10px;
+      }
+      .ea-trade-lightbox-close {
+        top: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+      }
+      .ea-trade-lightbox-img {
+        max-width: 95vw;
+        max-height: 85vh;
+        border-radius: 8px;
+      }
+      
+      /* Rep mode */
+      .ea-trade-rep-section {
+        margin-top: 16px;
+        padding-top: 16px;
+      }
+      .ea-trade-rep-btn,
+      .ea-trade-rep-confirm {
+        padding: 12px 16px;
+        font-size: 13px;
+      }
+      
+      /* Import modal mobile */
+      .ea-trade-import-modal-content {
+        margin: 10px;
+        border-radius: 12px;
+      }
+      .ea-trade-import-modal-header {
+        padding: 16px;
+      }
+      .ea-trade-import-modal-title {
+        font-size: 16px;
+      }
+      .ea-trade-import-modal-body {
+        padding: 16px;
+        max-height: 50vh;
+      }
+      .ea-trade-import-summary {
+        gap: 10px;
+      }
+      .ea-trade-import-stat {
+        padding: 12px;
+        min-width: calc(50% - 10px);
+      }
+      .ea-trade-import-stat-value {
+        font-size: 20px;
+      }
+      .ea-trade-import-table {
+        font-size: 12px;
+      }
+      .ea-trade-import-table th,
+      .ea-trade-import-table td {
+        padding: 8px 6px;
+      }
+      .ea-trade-import-table .card-name {
+        max-width: 120px;
+      }
+      .ea-trade-import-modal-footer {
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px;
+      }
+      .ea-trade-import-actions {
+        width: 100%;
+        flex-direction: column;
+      }
+      .ea-trade-import-cancel,
+      .ea-trade-import-add {
+        width: 100%;
+        text-align: center;
+      }
+      
+      /* Collectr expanded mobile */
+      .ea-trade-collectr-row {
+        flex-direction: column;
+      }
+      .ea-trade-collectr-btn {
+        width: 100%;
+      }
+      .ea-trade-collectr-footer {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+      }
+    }
+    
+    /* Extra small screens */
+    @media (max-width: 380px) {
+      .ea-trade-header h1 {
+        font-size: 22px;
+      }
+      .ea-trade-result-value-amount {
+        font-size: 16px;
+      }
+      .ea-trade-add-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+      }
+      .ea-trade-quote-value {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="ea-trade-header">
+    <h1>Sell Your Cards</h1>
+    <p>Get cash or store credit instantly</p>
+  </header>
+
+  <!-- Main Content -->
+  <main class="ea-trade-main">
+    <!-- Search Panel -->
+    <div class="ea-trade-search-panel">
+      <h2 class="ea-trade-search-title">Search Cards</h2>
+      
+      <div class="ea-trade-search-box">
+        <span class="ea-trade-search-icon">🔍</span>
+        <input type="text" class="ea-trade-search-input" id="search-input" placeholder="Enter card name, set, or number..." autocomplete="off">
+        <button class="ea-trade-clear-btn" id="clear-btn" type="button">✕</button>
+      </div>
+
+      <!-- Clean Import Options -->
+      <div class="ea-trade-import-options">
+        <div class="ea-trade-import-option" onclick="document.getElementById('csv-file-input').click()">
+          <div class="ea-trade-import-option-icon">📁</div>
+          <div class="ea-trade-import-option-text">
+            <div class="ea-trade-import-option-title">Upload CSV File</div>
+            <div class="ea-trade-import-option-desc">Collectr, TCGPlayer exports</div>
+          </div>
+          <span class="ea-trade-import-option-arrow">→</span>
+        </div>
+        <input type="file" id="csv-file-input" accept=".csv,.txt" style="display: none;" onchange="handleCSVImport(event)">
         
-        const metafieldData = await metafieldResponse.json();
-        
-        if (metafieldData.metafields && metafieldData.metafields.length > 0) {
-          return JSON.parse(metafieldData.metafields[0].value);
-        }
-      }
-    }
-    
-    console.log('❌ Submission not found:', submissionId);
-    return null;
-    
-  } catch (error) {
-    console.error('❌ Error getting submission:', error);
-    throw error;
-  }
-}
+        <div class="ea-trade-import-option" onclick="toggleCollectrInput()">
+          <div class="ea-trade-import-option-icon">🔗</div>
+          <div class="ea-trade-import-option-text">
+            <div class="ea-trade-import-option-title">Paste Collectr Link</div>
+            <div class="ea-trade-import-option-desc">Auto-fetch your collection</div>
+          </div>
+          <span class="ea-trade-import-option-arrow">→</span>
+        </div>
+      </div>
 
-async function getSubmissionsByEmail(email) {
-  console.log('🔍 Getting submissions by email from Shopify:', email);
-  
-  try {
-    const searchResponse = await makeShopifyRequest(
-      `/admin/api/2023-10/customers/search.json?query=email:${encodeURIComponent(email)}`
-    );
-    
-    const searchData = await searchResponse.json();
-    
-    if (!searchData.customers || searchData.customers.length === 0) {
-      return [];
-    }
-    
-    const customer = searchData.customers[0];
-    
-    const metafieldsResponse = await makeShopifyRequest(
-      `/admin/api/2023-10/customers/${customer.id}/metafields.json?namespace=trade_in_submissions`
-    );
-    
-    const metafieldsData = await metafieldsResponse.json();
-    
-    if (!metafieldsData.metafields) {
-      return [];
-    }
-    
-    const submissions = metafieldsData.metafields.map(metafield => {
-      try {
-        return JSON.parse(metafield.value);
-      } catch (e) {
-        console.warn('Failed to parse submission metafield:', metafield.id);
-        return null;
-      }
-    }).filter(Boolean);
-    
-    submissions.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-    
-    return submissions;
-    
-  } catch (error) {
-    console.error('❌ Error getting submissions by email:', error);
-    throw error;
-  }
-}
+      <!-- Collectr Link Input (Expandable) -->
+      <div class="ea-trade-collectr-expanded" id="collectr-expanded">
+        <div class="ea-trade-collectr-row">
+          <input 
+            type="text" 
+            id="collectr-url-input" 
+            class="ea-trade-collectr-input"
+            placeholder="https://app.getcollectr.com/showcase/..."
+          >
+          <button 
+            type="button" 
+            id="collectr-import-btn" 
+            class="ea-trade-collectr-btn"
+            onclick="handleCollectrURLImport()"
+          >
+            <span class="btn-text">Fetch</span>
+            <svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="ea-trade-collectr-footer">
+          <a href="#" class="ea-trade-collectr-help" onclick="showCollectrHelp(event)">How do I get my link?</a>
+          <button class="ea-trade-collectr-close" onclick="toggleCollectrInput()">Close</button>
+        </div>
+        <div id="collectr-status" class="ea-trade-status">
+          <div class="ea-trade-status-spinner"></div>
+          <span class="status-text"></span>
+        </div>
+      </div>
 
-async function getAllSubmissions(filters = {}) {
-  console.log('🔍 Getting all submissions from Shopify with filters:', filters);
-  
-  try {
-    const indexResponse = await makeShopifyRequest('/admin/api/2023-10/metafields.json?namespace=trade_in_system&key=submission_index');
-    const indexData = await indexResponse.json();
-    
-    if (!indexData.metafields || indexData.metafields.length === 0) {
-      return [];
-    }
-    
-    let submissions = JSON.parse(indexData.metafields[0].value);
-    
-    if (filters.status) {
-      submissions = submissions.filter(sub => sub.status === filters.status);
-    }
-    
-    return submissions;
-    
-  } catch (error) {
-    console.error('❌ Error getting all submissions:', error);
-    throw error;
-  }
-}
+      <div id="results-container">
+        <div class="ea-trade-empty">
+          <div class="ea-trade-empty-icon">🔍</div>
+          <p>Search for cards or import your collection</p>
+        </div>
+      </div>
+    </div>
 
-async function sendCustomerConfirmationEmail(submission) {
-  console.log('📧 Would send confirmation email to customer');
-  console.log('Email to:', submission.customer.email);
-  console.log('Submission ID:', submission.id);
-  
-  const emailContent = {
-    to: submission.customer.email,
-    subject: `Trade-in Request Confirmation - ${submission.id}`,
-    html: `
-      <h2>Trade-in Request Received!</h2>
-      <p>Dear ${submission.customer.name},</p>
-      <p>Thank you for your trade-in request. We've received your submission and will review it within 24 hours.</p>
+    <!-- Floating Cart Button (Mobile) -->
+    <button class="ea-trade-floating-cart hidden" id="floating-cart" onclick="scrollToCart()">
+      <span class="ea-trade-floating-cart-icon">🛒</span>
+      <span class="ea-trade-floating-cart-count" id="floating-cart-count">0</span>
+      <span class="ea-trade-floating-cart-total" id="floating-cart-total">$0.00</span>
+    </button>
+
+    <!-- Cart Panel -->
+    <div class="ea-trade-cart-panel">
+      <div class="ea-trade-cart">
+        <div class="ea-trade-cart-header">
+          <h3 class="ea-trade-cart-title">Trade-In Cart</h3>
+          <span class="ea-trade-cart-count" id="cart-count">0 items</span>
+        </div>
+
+        <!-- Cart Items -->
+        <div class="ea-trade-cart-items" id="cart-items">
+          <div class="ea-trade-cart-empty">
+            <div class="ea-trade-cart-empty-icon">🛒</div>
+            <p>Your cart is empty</p>
+            <p style="font-size: 12px; margin-top: 8px;">Search and add cards to get started</p>
+          </div>
+        </div>
+
+        <!-- Payout Selection -->
+        <div class="ea-trade-payout">
+          <div class="ea-trade-section-label">Payout Method</div>
+          <div class="ea-trade-payout-options">
+            <div class="ea-trade-payout-option selected" data-payout="store-credit">
+              <div class="ea-trade-payout-icon">🏪</div>
+              <div class="ea-trade-payout-text">
+                <div class="ea-trade-payout-name">Store Credit</div>
+                <div class="ea-trade-payout-rate">Best Value</div>
+              </div>
+            </div>
+            <div class="ea-trade-payout-option cash" data-payout="cash">
+              <div class="ea-trade-payout-icon">💵</div>
+              <div class="ea-trade-payout-text">
+                <div class="ea-trade-payout-name">Cash</div>
+                <div class="ea-trade-payout-rate">In-Store</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Totals -->
+        <div class="ea-trade-totals">
+          <div class="ea-trade-totals-row">
+            <span class="ea-trade-totals-label">Retail Value</span>
+            <span class="ea-trade-totals-value" id="total-retail">$0.00</span>
+          </div>
+          <div class="ea-trade-totals-row total">
+            <span class="ea-trade-totals-label">Your Quote</span>
+            <span class="ea-trade-totals-value" id="total-quote">$0.00</span>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <button class="ea-trade-submit-btn" id="submit-btn" disabled>
+          <span>🚀</span> Submit Trade-In Request
+        </button>
+
+        <!-- Representative Trade-In Section -->
+        <div class="ea-trade-rep-section">
+          <div class="ea-trade-rep-divider">
+            <span>Staff Only</span>
+          </div>
+          <button class="ea-trade-rep-btn" id="rep-trade-btn" onclick="showRepAuth()">
+            <span>🔐</span> Representative Trade-In
+          </button>
+          <div class="ea-trade-rep-auth" id="rep-auth-section" style="display: none;">
+            <input type="password" class="ea-trade-rep-password" id="rep-password" placeholder="Enter staff password">
+            <button class="ea-trade-rep-confirm" id="rep-confirm-btn" onclick="processRepTrade()">
+              <span>📦</span> Process & Add to Inventory
+            </button>
+            <p class="ea-trade-rep-note">This will instantly add cards to Shopify inventory</p>
+          </div>
+          <div class="ea-trade-rep-success" id="rep-success" style="display: none;">
+            <span>✅</span> Inventory Updated Successfully!
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Confirmation Modal -->
+  <div class="ea-trade-modal-overlay" id="confirmation-modal">
+    <div class="ea-trade-modal">
+      <div class="ea-trade-modal-icon">🎉</div>
+      <h2 class="ea-trade-modal-title">Trade-In Submitted!</h2>
+      <p class="ea-trade-modal-subtitle">We've received your request and will review it within 24 hours. Check your email for updates.</p>
       
-      <div style="background: #f5f5f5; padding: 15px; margin: 20px 0; border-radius: 5px;">
-        <strong>Submission ID:</strong> ${submission.id}<br>
-        <strong>Customer:</strong> ${submission.customer.name} (${submission.customer.email})<br>
-        <strong>Phone:</strong> ${submission.customer.phone || 'Not provided'}<br>
-        <strong>Payout Method:</strong> ${submission.payoutMethod}<br>
-        <strong>Cards:</strong> ${submission.cards.length} items<br>
-        <strong>Estimated Value:</strong> ${submission.estimatedValue.toFixed(2)} CAD<br>
-        <strong>Cards Found:</strong> ${submission.estimateData?.cardsFound || 0} / ${submission.cards.length}<br>
-        <strong>Cards Needing Review:</strong> ${submission.estimateData?.cardsNotFound || 0}
+      <div class="ea-trade-modal-code">
+        <div class="ea-trade-modal-code-label">Confirmation Number</div>
+        <div class="ea-trade-modal-code-value" id="confirmation-code">TR-XXXX</div>
+      </div>
+
+      <div class="ea-trade-modal-summary" id="modal-summary"></div>
+
+      <button class="ea-trade-modal-btn" onclick="closeModal()">Done</button>
+    </div>
+  </div>
+
+  <!-- Image Lightbox Modal -->
+  <div class="ea-trade-lightbox" id="image-lightbox" onclick="closeLightbox(event)">
+    <button class="ea-trade-lightbox-close" onclick="closeLightbox(event)">✕</button>
+    <img class="ea-trade-lightbox-img" id="lightbox-img" src="" alt="Card Image">
+  </div>
+
+  <!-- Import Collection Modal -->
+  <div class="ea-trade-import-modal" id="import-modal">
+    <div class="ea-trade-import-modal-content">
+      <div class="ea-trade-import-modal-header">
+        <h3 class="ea-trade-import-modal-title">📁 Import Collection</h3>
+        <button class="ea-trade-import-modal-close" onclick="closeImportModal()">✕</button>
       </div>
       
-      <p><strong>Cards with Live Pricing:</strong></p>
-      <ul>
-        ${submission.cards.map(card => 
-          `<li>${card.cardName} (Qty: ${card.quantity}, Condition: ${card.condition})
-          ${card.matchFound ? `<br>✅ Matched: ${card.matchedProduct} - Retail: ${card.retailPrice}, Trade: ${card.suggestedTradeValue}` : '<br>⚠️ No match found - needs manual review'}</li>`
-        ).join('')}
-      </ul>
+      <div class="ea-trade-import-modal-body" id="import-modal-body">
+        <!-- Content will be dynamically populated -->
+      </div>
       
-      <p><strong>Summary:</strong></p>
-      <ul>
-        <li>Total Retail Value: ${submission.estimateData?.totalRetailValue || 0}</li>
-        <li>Suggested Trade-in: ${submission.estimatedValue.toFixed(2)}</li>
-        <li>Maximum Possible: ${submission.estimateData?.maximumTotal || 0}</li>
-      </ul>
-      
-      <p>Please review and process this submission within 24 hours.</p>
-    `
-  };
-  
-  // TODO: Implement actual email sending here
-  
-  return true;
-}
+      <div class="ea-trade-import-modal-footer" id="import-modal-footer" style="display: none;">
+        <label class="ea-trade-import-select-all">
+          <input type="checkbox" id="import-select-all" onchange="toggleSelectAllImports()">
+          Select all matched cards
+        </label>
+        <div class="ea-trade-import-actions">
+          <button class="ea-trade-import-cancel" onclick="closeImportModal()">Cancel</button>
+          <button class="ea-trade-import-add" id="import-add-btn" onclick="addSelectedImportsToCart()" disabled>
+            Add Selected to Cart
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-// Update submission status (for admin use)
-async function updateSubmissionStatus(submissionId, status, notes, processedBy) {
-  console.log('🔄 Updating submission status:', submissionId, status);
-  
-  try {
-    const submission = await getSubmissionById(submissionId);
+  <!-- Help Modal -->
+  <div class="ea-trade-help-modal" id="collectr-help-modal">
+    <div class="ea-trade-help-content">
+      <button class="ea-trade-help-close" onclick="closeCollectrHelp()">✕</button>
+      <h3 class="ea-trade-help-title">📱 Get Your Collectr Link</h3>
+      <ol class="ea-trade-help-steps">
+        <li>
+          <span class="ea-trade-help-step-num">1</span>
+          <span>Open <strong>Collectr</strong> on your phone</span>
+        </li>
+        <li>
+          <span class="ea-trade-help-step-num">2</span>
+          <span>Go to your <strong>Profile</strong> tab</span>
+        </li>
+        <li>
+          <span class="ea-trade-help-step-num">3</span>
+          <span>Tap <strong>Share</strong> or <strong>Showcase</strong></span>
+        </li>
+        <li>
+          <span class="ea-trade-help-step-num">4</span>
+          <span>Copy the link and paste it here</span>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    // Config
+    const API_URL = '/api/buybackstep4';
+    const SUBMISSION_API_URL = '/api/customer-submissions';
     
-    if (!submission) {
-      throw new Error('Submission not found');
-    }
-    
-    submission.status = status;
-    submission.notes = [...(submission.notes || []), ...notes];
-    submission.processedBy = processedBy;
-    submission.processedAt = new Date().toISOString();
-    
-    const metafieldResponse = await makeShopifyRequest(
-      `/admin/api/2023-10/customers/${submission.customer.shopifyId}/metafields.json?namespace=trade_in_submissions&key=${submissionId}`
-    );
-    
-    const metafieldData = await metafieldResponse.json();
-    
-    if (metafieldData.metafields && metafieldData.metafields.length > 0) {
-      const metafieldId = metafieldData.metafields[0].id;
+    // Tiered pricing for store credit (based on retail price)
+    function getTradeValue(retailPrice, tags = [], payoutMethod = selectedPayout) {
+      let tagArray = [];
+      if (Array.isArray(tags)) {
+        tagArray = tags.map(t => t.toLowerCase());
+      } else if (typeof tags === 'string') {
+        tagArray = tags.toLowerCase().split(',').map(t => t.trim());
+      }
       
-      await makeShopifyRequest(`/admin/api/2023-10/metafields/${metafieldId}.json`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          metafield: {
-            value: JSON.stringify(submission),
-            type: 'json'
-          }
-        })
+      const isSupportedGame = tagArray.some(tag => 
+        tag.includes('pokemon') || 
+        tag.includes('pokémon') ||
+        tag.includes('ptcg') ||
+        tag.includes('magic') || 
+        tag.includes('mtg') ||
+        tag.includes('one piece') ||
+        tag.includes('one-piece') ||
+        tag.includes('onepiece') ||
+        tag.includes('optcg')
+      );
+      
+      if (!isSupportedGame) {
+        return 0;
+      }
+      
+      let storeCredit = 0;
+      
+      if (retailPrice >= 50.00) {
+        storeCredit = retailPrice * 0.75;
+      } else if (retailPrice >= 25.00) {
+        storeCredit = retailPrice * 0.70;
+      } else if (retailPrice >= 15.01) {
+        storeCredit = retailPrice * 0.65;
+      } else if (retailPrice >= 8.00) {
+        storeCredit = retailPrice * 0.50;
+      } else if (retailPrice >= 5.00) {
+        storeCredit = retailPrice * 0.35;
+      } else if (retailPrice >= 3.01) {
+        storeCredit = retailPrice * 0.25;
+      } else if (retailPrice >= 2.00) {
+        storeCredit = 0.25;
+      } else {
+        storeCredit = 0;
+      }
+      
+      if (payoutMethod === 'cash') {
+        return storeCredit * 0.75;
+      }
+      
+      return storeCredit;
+    }
+
+    // State
+    let cart = [];
+    let selectedPayout = 'store-credit';
+    let searchTimeout;
+    let importedCards = [];
+
+    // DOM Elements
+    const searchInput = document.getElementById('search-input');
+    const clearBtn = document.getElementById('clear-btn');
+    const resultsContainer = document.getElementById('results-container');
+    const cartItems = document.getElementById('cart-items');
+    const cartCount = document.getElementById('cart-count');
+    const totalRetail = document.getElementById('total-retail');
+    const totalQuote = document.getElementById('total-quote');
+    const submitBtn = document.getElementById('submit-btn');
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      setupSearch();
+      setupPayout();
+      setupSubmit();
+    });
+
+    // Toggle Collectr Input
+    function toggleCollectrInput() {
+      const expanded = document.getElementById('collectr-expanded');
+      expanded.classList.toggle('active');
+      if (expanded.classList.contains('active')) {
+        document.getElementById('collectr-url-input').focus();
+      }
+    }
+
+    // Search
+    function setupSearch() {
+      searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        if (query.length > 0) {
+          clearBtn.classList.add('visible');
+        } else {
+          clearBtn.classList.remove('visible');
+        }
+        
+        if (searchTimeout) clearTimeout(searchTimeout);
+        
+        if (query.length < 2) {
+          resultsContainer.innerHTML = `
+            <div class="ea-trade-empty">
+              <div class="ea-trade-empty-icon">🔍</div>
+              <p>Start typing to search for cards</p>
+            </div>
+          `;
+          return;
+        }
+
+        resultsContainer.innerHTML = `
+          <div class="ea-trade-loading">
+            <div class="ea-trade-spinner"></div>
+            <p>Searching...</p>
+          </div>
+        `;
+
+        searchTimeout = setTimeout(() => performSearch(query), 400);
+      });
+
+      clearBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        clearBtn.classList.remove('visible');
+        resultsContainer.innerHTML = `
+          <div class="ea-trade-empty">
+            <div class="ea-trade-empty-icon">🔍</div>
+            <p>Search for cards or import your collection</p>
+          </div>
+        `;
+        searchInput.focus();
       });
     }
-    
-    await updateSubmissionInIndex(submissionId, { status, processedBy, processedAt: submission.processedAt });
-    
-    console.log('✅ Submission status updated');
-    return submission;
-    
-  } catch (error) {
-    console.error('❌ Error updating submission status:', error);
-    throw error;
-  }
-}
 
-async function updateSubmissionInIndex(submissionId, updates) {
-  try {
-    const indexResponse = await makeShopifyRequest('/admin/api/2023-10/metafields.json?namespace=trade_in_system&key=submission_index');
-    const indexData = await indexResponse.json();
-    
-    if (indexData.metafields && indexData.metafields.length > 0) {
-      let submissionIndex = JSON.parse(indexData.metafields[0].value);
-      
-      const submissionIdx = submissionIndex.findIndex(sub => sub.id === submissionId);
-      if (submissionIdx !== -1) {
-        submissionIndex[submissionIdx] = { ...submissionIndex[submissionIdx], ...updates };
-        
-        await makeShopifyRequest(`/admin/api/2023-10/metafields/${indexData.metafields[0].id}.json`, {
-          method: 'PUT',
+    async function performSearch(query) {
+      try {
+        const response = await fetch(`${API_URL}?estimate=true`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            metafield: {
-              value: JSON.stringify(submissionIndex),
-              type: 'json'
-            }
+            cards: [{ cardName: query, quantity: 1, condition: 'NM' }],
+            employeeName: 'Customer Portal',
+            payoutMethod: selectedPayout
           })
         });
+
+        const data = await response.json();
         
-        console.log('✅ Submission index updated');
+        if (data.results && data.results[0]) {
+          const result = data.results[0];
+          
+          if (result.allOptions && result.allOptions.length > 0) {
+            displayResults(result.allOptions);
+          } else if (result.match) {
+            displayResults([{
+              fullTitle: result.match,
+              sku: result.sku,
+              price: result.retailPrice
+            }]);
+          } else {
+            resultsContainer.innerHTML = `
+              <div class="ea-trade-empty">
+                <div class="ea-trade-empty-icon">😕</div>
+                <p>No cards found for "${query}"</p>
+                <p style="font-size: 13px; margin-top: 8px; opacity: 0.6;">Try a different search term</p>
+              </div>
+            `;
+          }
+        } else {
+          resultsContainer.innerHTML = `
+            <div class="ea-trade-empty">
+              <div class="ea-trade-empty-icon">😕</div>
+              <p>No results found</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Search error:', error);
+        resultsContainer.innerHTML = `
+          <div class="ea-trade-empty">
+            <div class="ea-trade-empty-icon">⚠️</div>
+            <p>Search failed. Please try again.</p>
+          </div>
+        `;
       }
     }
-  } catch (error) {
-    console.error('⚠️ Failed to update submission in index (non-critical):', error);
-  }
-}px;">
-        <strong>Submission Details:</strong><br>
-        <strong>ID:</strong> ${submission.id}<br>
-        <strong>Submitted:</strong> ${new Date(submission.submittedAt).toLocaleString()}<br>
-        <strong>Cards:</strong> ${submission.cards.length} items<br>
-        <strong>Payout Method:</strong> ${submission.payoutMethod}<br>
-        <strong>Estimated Value:</strong> $${submission.estimatedValue.toFixed(2)} CAD
-      </div>
-      
-      <p><strong>Your Cards:</strong></p>
-      <ul>
-        ${submission.cards.map(card => 
-          `<li>${card.cardName} (Qty: ${card.quantity}) - ${card.matchFound ? `✅ Match found: $${(card.suggestedTradeValue * card.quantity).toFixed(2)}` : '⚠️ Needs manual review'}</li>`
-        ).join('')}
-      </ul>
-      
-      <p><strong>Next Steps:</strong></p>
-      <ul>
-        <li>Our team will review your cards and confirm the final payout</li>
-        <li>We'll contact you within 24 hours with next steps</li>
-        <li>Keep this email for your records</li>
-      </ul>
-      
-      <p>If you have any questions, please contact us and reference your submission ID: ${submission.id}</p>
-      
-      <p>Thank you!</p>
-    `
-  };
-  
-  // TODO: Implement actual email sending here
-  // You could use SendGrid, Nodemailer, or Shopify's email system
-  
-  return true;
-}
 
-async function sendAdminNotificationEmail(submission) {
-  console.log('📧 Would send admin notification email');
-  console.log('New submission:', submission.id);
-  
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@yourstore.com';
-  
-  const emailContent = {
-    to: adminEmail,
-    subject: `New Trade-in Submission - ${submission.id}`,
-    html: `
-      <h2>New Trade-in Submission</h2>
-      <p>A new customer trade-in request has been submitted with LIVE pricing estimates.</p>
+    function displayResults(options) {
+      const groupedCards = {};
       
-      <div style="background: #f5f5f5; padding: 15px; margin: 20px 0; border-radius: 5
+      options.forEach(option => {
+        const title = option.fullTitle || option.productTitle || 'Unknown';
+        const baseName = title
+          .replace(/\s*-\s*(Near Mint|Lightly Played|Moderately Played|Heavily Played|Damaged|NM|LP|MP|HP|DMG)\s*(-\s*Holofoil)?$/i, '')
+          .replace(/\s*-\s*Holofoil$/i, '')
+          .trim();
+        
+        let condition = null;
+        const titleLower = title.toLowerCase();
+        if (titleLower.includes('near mint') || / nm[-\s]/i.test(title) || title.endsWith(' NM')) {
+          condition = 'NM';
+        } else if (titleLower.includes('lightly played') || / lp[-\s]/i.test(title) || title.endsWith(' LP')) {
+          condition = 'LP';
+        } else if (titleLower.includes('moderately played') || / mp[-\s]/i.test(title) || title.endsWith(' MP')) {
+          condition = 'MP';
+        } else if (titleLower.includes('heavily played') || / hp[-\s]/i.test(title) || title.endsWith(' HP')) {
+          condition = 'HP';
+        } else if (titleLower.includes('damaged') || / dmg[-\s]/i.test(title) || title.endsWith(' DMG')) {
+          condition = 'DMG';
+        } else {
+          condition = 'DEFAULT';
+        }
+        
+        if (!groupedCards[baseName]) {
+          groupedCards[baseName] = {
+            baseName,
+            image: option.image || option.imageUrl || null,
+            tags: option.tags || [],
+            variants: {}
+          };
+        }
+        
+        const optionTags = option.tags || [];
+        const hasOptionTags = Array.isArray(optionTags) ? optionTags.length > 0 : (typeof optionTags === 'string' && optionTags.length > 0);
+        const currentTags = groupedCards[baseName].tags;
+        const hasCurrentTags = Array.isArray(currentTags) ? currentTags.length > 0 : (typeof currentTags === 'string' && currentTags.length > 0);
+        
+        if (hasOptionTags && !hasCurrentTags) {
+          groupedCards[baseName].tags = option.tags;
+        }
+        
+        groupedCards[baseName].variants[condition] = {
+          ...option,
+          condition
+        };
+      });
+
+      let html = '<div class="ea-trade-results">';
+      
+      Object.values(groupedCards).forEach((card, index) => {
+        const variants = card.variants;
+        const conditions = Object.keys(variants);
+        let tags = card.tags || [];
+        if (typeof tags === 'string') {
+          tags = tags.split(',').map(t => t.trim()).filter(t => t);
+        }
+        
+        const priorityOrder = ['NM', 'LP', 'MP', 'HP', 'DMG', 'DEFAULT'];
+        const defaultCondition = priorityOrder.find(c => conditions.includes(c)) || conditions[0];
+        const defaultVariant = variants[defaultCondition];
+        const price = defaultVariant?.price || 0;
+        const tradeValue = getTradeValue(price, tags);
+        
+        let optionsHtml = '';
+        if (conditions.includes('NM')) optionsHtml += `<option value="NM" ${defaultCondition === 'NM' ? 'selected' : ''}>Near Mint ($${(variants['NM'].price || 0).toFixed(2)})</option>`;
+        if (conditions.includes('LP')) optionsHtml += `<option value="LP" ${defaultCondition === 'LP' ? 'selected' : ''}>Lightly Played ($${(variants['LP'].price || 0).toFixed(2)})</option>`;
+        if (conditions.includes('MP')) optionsHtml += `<option value="MP" ${defaultCondition === 'MP' ? 'selected' : ''}>Moderately Played ($${(variants['MP'].price || 0).toFixed(2)})</option>`;
+        if (conditions.includes('HP')) optionsHtml += `<option value="HP" ${defaultCondition === 'HP' ? 'selected' : ''}>Heavily Played ($${(variants['HP'].price || 0).toFixed(2)})</option>`;
+        if (conditions.includes('DMG')) optionsHtml += `<option value="DMG" ${defaultCondition === 'DMG' ? 'selected' : ''}>Damaged ($${(variants['DMG'].price || 0).toFixed(2)})</option>`;
+        if (conditions.includes('DEFAULT')) optionsHtml += `<option value="DEFAULT" ${defaultCondition === 'DEFAULT' ? 'selected' : ''}>Standard ($${(variants['DEFAULT'].price || 0).toFixed(2)})</option>`;
+        
+        const imageUrl = card.image ? card.image.replace(/"/g, '&quot;').replace(/'/g, '&#39;') : '';
+        const tagsString = Array.isArray(tags) ? tags.join(',') : (tags || '');
+        
+        html += `
+          <div class="ea-trade-result" data-card-index="${index}" data-card-tags="${tagsString.replace(/"/g, '&quot;')}" data-variants='${JSON.stringify(variants).replace(/'/g, "\\'")}'>
+            <div class="ea-trade-result-image" ${imageUrl ? `data-img-url="${imageUrl}" onclick="openLightbox(this.dataset.imgUrl)"` : ''}>
+              ${card.image ? `<img src="${card.image}" alt="${card.baseName.replace(/"/g, '&quot;')}" onerror="this.parentElement.innerHTML='🎴'; this.parentElement.removeAttribute('onclick'); this.parentElement.removeAttribute('data-img-url');">` : '🎴'}
+            </div>
+            <div class="ea-trade-result-info">
+              <div class="ea-trade-result-title">${card.baseName}</div>
+              <div class="ea-trade-result-meta">
+                ${conditions.length > 1 || !conditions.includes('DEFAULT') ? `
+                <select class="ea-trade-result-condition" onchange="updateResultPrice(this)">
+                  ${optionsHtml}
+                </select>
+                ` : `<span class="ea-trade-result-single-condition">Retail: $${price.toFixed(2)}</span>`}
+              </div>
+            </div>
+            <div class="ea-trade-result-value">
+              <div class="ea-trade-result-value-label">Trade Value</div>
+              <div class="ea-trade-result-value-amount" data-base-price="${price}">$${tradeValue.toFixed(2)}</div>
+            </div>
+            <button class="ea-trade-add-btn" onclick="addToCartFromResult(this)">+ Add</button>
+          </div>
+        `;
+      });
+      
+      html += '</div>';
+      resultsContainer.innerHTML = html;
+    }
+
+    function updateResultPrice(selectEl) {
+      const resultEl = selectEl.closest('.ea-trade-result');
+      const variants = JSON.parse(resultEl.dataset.variants);
+      const tags = (resultEl.dataset.cardTags || '').split(',').filter(t => t);
+      const selectedCondition = selectEl.value;
+      const variant = variants[selectedCondition];
+      
+      if (variant) {
+        const price = variant.price || 0;
+        const tradeValue = getTradeValue(price, tags);
+        
+        resultEl.querySelector('.ea-trade-result-value-amount').textContent = `$${tradeValue.toFixed(2)}`;
+        resultEl.querySelector('.ea-trade-result-value-amount').dataset.basePrice = price;
+      }
+    }
+
+    function addToCartFromResult(btn) {
+      const resultEl = btn.closest('.ea-trade-result');
+      const variants = JSON.parse(resultEl.dataset.variants);
+      const tags = (resultEl.dataset.cardTags || '').split(',').filter(t => t);
+      const selectEl = resultEl.querySelector('.ea-trade-result-condition');
+      
+      const selectedCondition = selectEl ? selectEl.value : Object.keys(variants)[0];
+      const variant = variants[selectedCondition];
+      
+      if (variant) {
+        cart.push({
+          title: variant.fullTitle || variant.productTitle,
+          sku: variant.sku,
+          price: variant.price || 0,
+          condition: selectedCondition,
+          image: variant.image || variant.imageUrl || null,
+          tags: variant.tags || tags || []
+        });
+        
+        updateCart();
+        
+        resultEl.style.background = 'rgba(74, 222, 128, 0.2)';
+        resultEl.style.borderColor = '#4ade80';
+        setTimeout(() => {
+          resultsContainer.innerHTML = '';
+          searchInput.value = '';
+          searchInput.focus();
+        }, 400);
+      }
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      updateCart();
+    }
+
+    function updateCart() {
+      if (cart.length === 0) {
+        cartItems.innerHTML = `
+          <div class="ea-trade-cart-empty">
+            <div class="ea-trade-cart-empty-icon">🛒</div>
+            <p>Your cart is empty</p>
+            <p style="font-size: 12px; margin-top: 8px;">Search and add cards to get started</p>
+          </div>
+        `;
+        submitBtn.disabled = true;
+      } else {
+        let html = '';
+        cart.forEach((item, index) => {
+          const tradeValue = getTradeValue(item.price, item.tags || []);
+          const conditionLabel = {
+            'NM': 'Near Mint',
+            'LP': 'Lightly Played', 
+            'MP': 'Moderately Played',
+            'HP': 'Heavily Played',
+            'DMG': 'Damaged',
+            'DEFAULT': 'Standard'
+          }[item.condition] || item.condition;
+          
+          html += `
+            <div class="ea-trade-cart-item">
+              <div class="ea-trade-cart-item-image">
+                ${item.image ? `<img src="${item.image}" alt="${item.title}" onerror="this.parentElement.innerHTML='🎴'">` : '🎴'}
+              </div>
+              <div class="ea-trade-cart-item-info">
+                <div class="ea-trade-cart-item-title">${item.title}</div>
+                <div class="ea-trade-cart-item-meta">
+                  <span class="ea-trade-cart-item-condition">${conditionLabel}</span>
+                  <span class="ea-trade-cart-item-retail">Retail: $${item.price.toFixed(2)}</span>
+                </div>
+              </div>
+              <div class="ea-trade-cart-item-value">
+                <div class="ea-trade-cart-item-price">$${tradeValue.toFixed(2)}</div>
+              </div>
+              <button class="ea-trade-cart-item-remove" onclick="removeFromCart(${index})">✕</button>
+            </div>
+          `;
+        });
+        cartItems.innerHTML = html;
+        submitBtn.disabled = false;
+      }
+
+      let retailTotal = 0;
+      let tradeTotal = 0;
+      
+      cart.forEach(item => {
+        retailTotal += item.price;
+        tradeTotal += getTradeValue(item.price, item.tags || []);
+      });
+
+      cartCount.textContent = `${cart.length} item${cart.length !== 1 ? 's' : ''}`;
+      totalRetail.textContent = `$${retailTotal.toFixed(2)}`;
+      totalQuote.textContent = `$${tradeTotal.toFixed(2)}`;
+      
+      const floatingCart = document.getElementById('floating-cart');
+      const floatingCount = document.getElementById('floating-cart-count');
+      const floatingTotal = document.getElementById('floating-cart-total');
+      if (floatingCart && floatingCount && floatingTotal) {
+        floatingCount.textContent = cart.length;
+        floatingTotal.textContent = `$${tradeTotal.toFixed(2)}`;
+        if (cart.length === 0) {
+          floatingCart.classList.add('hidden');
+        } else {
+          floatingCart.classList.remove('hidden');
+        }
+      }
+    }
+
+    // Payout Selection
+    function setupPayout() {
+      document.querySelectorAll('.ea-trade-payout-option').forEach(option => {
+        option.addEventListener('click', function() {
+          document.querySelectorAll('.ea-trade-payout-option').forEach(o => o.classList.remove('selected'));
+          this.classList.add('selected');
+          selectedPayout = this.dataset.payout;
+          updateCart();
+          
+          if (searchInput.value.trim().length >= 2) {
+            performSearch(searchInput.value.trim());
+          }
+        });
+      });
+    }
+
+    // Submit
+    function setupSubmit() {
+      submitBtn.addEventListener('click', async function() {
+        const name = '';
+        const email = '';
+        const phone = '';
+
+        if (cart.length === 0) {
+          alert('Please add at least one card to your cart.');
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="ea-trade-spinner" style="width:20px;height:20px;border-width:2px;margin:0;"></span> Submitting...';
+
+        try {
+          const response = await fetch(SUBMISSION_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              customerName: name,
+              customerEmail: email,
+              customerPhone: phone,
+              payoutMethod: selectedPayout,
+              cards: cart.map(item => ({
+                cardName: item.title,
+                quantity: 1,
+                condition: item.condition,
+                sku: item.sku,
+                searchMethod: 'exact_sku'
+              })),
+              submissionType: 'customer_request'
+            })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) throw new Error(data.error || 'Submission failed');
+
+          showConfirmation(data.submissionId);
+
+        } catch (error) {
+          alert('Error: ' + error.message);
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>🚀</span> Submit Trade-In Request';
+        }
+      });
+    }
+
+    function showConfirmation(submissionId) {
+      let retailTotal = 0;
+      let tradeTotal = 0;
+      
+      cart.forEach(item => {
+        retailTotal += item.price;
+        tradeTotal += getTradeValue(item.price, item.tags || []);
+      });
+
+      const payoutNames = {
+        'store-credit': 'Store Credit',
+        'cash': 'Cash'
+      };
+
+      document.getElementById('confirmation-code').textContent = submissionId || 'TR-' + Date.now();
+      
+      document.getElementById('modal-summary').innerHTML = `
+        <div class="ea-trade-modal-summary-row">
+          <span>Cards</span>
+          <span>${cart.length} items</span>
+        </div>
+        <div class="ea-trade-modal-summary-row">
+          <span>Payout Method</span>
+          <span>${payoutNames[selectedPayout]}</span>
+        </div>
+        <div class="ea-trade-modal-summary-row">
+          <span>Retail Value</span>
+          <span>$${retailTotal.toFixed(2)}</span>
+        </div>
+        <div class="ea-trade-modal-summary-row">
+          <span style="font-weight: 600;">Estimated Payout</span>
+          <span style="color: #d4af37; font-weight: 700;">$${tradeTotal.toFixed(2)}</span>
+        </div>
+      `;
+
+      document.getElementById('confirmation-modal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('confirmation-modal').classList.remove('active');
+      cart = [];
+      updateCart();
+      searchInput.value = '';
+      clearBtn.classList.remove('visible');
+      resultsContainer.innerHTML = `
+        <div class="ea-trade-empty">
+          <div class="ea-trade-empty-icon">🔍</div>
+          <p>Start typing to search for cards</p>
+        </div>
+      `;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>🚀</span> Submit Trade-In Request';
+      resetRepSection();
+    }
+
+    // Representative Trade-In Functions
+    const REP_PASSWORD = 'EArep2025';
+
+    function showRepAuth() {
+      if (cart.length === 0) {
+        alert('Please add cards to the cart first');
+        return;
+      }
+      document.getElementById('rep-trade-btn').style.display = 'none';
+      document.getElementById('rep-auth-section').style.display = 'block';
+      document.getElementById('rep-password').focus();
+    }
+
+    async function processRepTrade() {
+      const password = document.getElementById('rep-password').value;
+      
+      if (password !== REP_PASSWORD) {
+        alert('Incorrect password');
+        document.getElementById('rep-password').value = '';
+        document.getElementById('rep-password').focus();
+        return;
+      }
+
+      if (cart.length === 0) {
+        alert('No items to process');
+        return;
+      }
+
+      const confirmBtn = document.getElementById('rep-confirm-btn');
+      confirmBtn.disabled = true;
+      confirmBtn.innerHTML = '<span class="ea-trade-spinner" style="width:16px;height:16px;border-width:2px;margin:0;"></span> Processing...';
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cards: cart.map(item => ({
+              cardName: item.title,
+              quantity: 1,
+              condition: item.condition,
+              sku: item.sku,
+              searchMethod: 'exact_sku'
+            })),
+            employeeName: 'Customer Portal Rep',
+            payoutMethod: selectedPayout
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to process trade-in');
+        }
+
+        document.getElementById('rep-auth-section').style.display = 'none';
+        document.getElementById('rep-success').style.display = 'flex';
+        
+        setTimeout(() => {
+          resetRepSection();
+          cart = [];
+          updateCart();
+          searchInput.value = '';
+          clearBtn.classList.remove('visible');
+          resultsContainer.innerHTML = `
+            <div class="ea-trade-empty">
+              <div class="ea-trade-empty-icon">✅</div>
+              <p>Trade-in processed successfully!</p>
+              <p style="font-size: 13px; margin-top: 8px; opacity: 0.6;">Inventory has been updated</p>
+            </div>
+          `;
+        }, 3000);
+        
+        console.log('Rep trade-in processed:', data);
+
+      } catch (error) {
+        console.error('Rep trade-in error:', error);
+        alert('Error: ' + error.message);
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<span>📦</span> Process & Add to Inventory';
+      }
+    }
+
+    function resetRepSection() {
+      document.getElementById('rep-auth-section').style.display = 'none';
+      document.getElementById('rep-success').style.display = 'none';
+      document.getElementById('rep-trade-btn').style.display = 'flex';
+      document.getElementById('rep-password').value = '';
+      const confirmBtn = document.getElementById('rep-confirm-btn');
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = '<span>📦</span> Process & Add to Inventory';
+    }
+
+    // Image Lightbox
+    function openLightbox(imageUrl) {
+      if (!imageUrl) return;
+      const lightbox = document.getElementById('image-lightbox');
+      const lightboxImg = document.getElementById('lightbox-img');
+      lightboxImg.src = imageUrl;
+      lightbox.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox(event) {
+      if (event && event.target.classList.contains('ea-trade-lightbox-img')) {
+        return;
+      }
+      const lightbox = document.getElementById('image-lightbox');
+      lightbox.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    // Close modals with Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        const importModal = document.getElementById('import-modal');
+        if (importModal && importModal.classList.contains('active')) {
+          closeImportModal();
+          return;
+        }
+        const helpModal = document.getElementById('collectr-help-modal');
+        if (helpModal && helpModal.classList.contains('active')) {
+          closeCollectrHelp();
+          return;
+        }
+        closeLightbox();
+      }
+    });
+
+    // Scroll to cart (for mobile floating button)
+    function scrollToCart() {
+      const cartPanel = document.querySelector('.ea-trade-cart-panel');
+      if (cartPanel) {
+        cartPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    // ========== CSV IMPORT FUNCTIONALITY ==========
+    function handleCSVImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const csvText = e.target.result;
+        parseCSV(csvText);
+      };
+      reader.readAsText(file);
+      
+      event.target.value = '';
+    }
+    
+    function parseCSV(csvText) {
+      const modal = document.getElementById('import-modal');
+      const modalBody = document.getElementById('import-modal-body');
+      const modalFooter = document.getElementById('import-modal-footer');
+      
+      modal.classList.add('active');
+      modalFooter.style.display = 'none';
+      modalBody.innerHTML = `
+        <div class="ea-trade-import-processing">
+          <div class="ea-trade-spinner"></div>
+          <p>Parsing your collection...</p>
+        </div>
+      `;
+      
+      const lines = csvText.split(/\r?\n/).filter(line => line.trim());
+      if (lines.length < 2) {
+        showImportError('CSV file appears to be empty or invalid');
+        return;
+      }
+      
+      const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+      
+      const columnMap = {
+        name: findColumn(headers, ['name', 'product name', 'card name', 'productname', 'card', 'title']),
+        set: findColumn(headers, ['set', 'set name', 'setname', 'expansion', 'series']),
+        number: findColumn(headers, ['number', 'card number', 'collector number', '#', 'no.']),
+        quantity: findColumn(headers, ['quantity', 'qty', 'count', 'amount']),
+        condition: findColumn(headers, ['condition', 'cond', 'quality']),
+        game: findColumn(headers, ['game', 'tcg', 'category', 'type'])
+      };
+      
+      if (columnMap.name === -1) {
+        showImportError('Could not find card name column. Please ensure your CSV has a "Name" or "Product Name" column.');
+        return;
+      }
+      
+      const cards = [];
+      for (let i = 1; i < lines.length; i++) {
+        const values = parseCSVLine(lines[i]);
+        if (values.length === 0) continue;
+        
+        const card = {
+          name: values[columnMap.name] || '',
+          set: columnMap.set !== -1 ? values[columnMap.set] || '' : '',
+          number: columnMap.number !== -1 ? values[columnMap.number] || '' : '',
+          quantity: columnMap.quantity !== -1 ? parseInt(values[columnMap.quantity]) || 1 : 1,
+          condition: columnMap.condition !== -1 ? normalizeCondition(values[columnMap.condition]) : 'NM',
+          game: columnMap.game !== -1 ? values[columnMap.game] || '' : ''
+        };
+        
+        if (card.name.trim()) {
+          cards.push(card);
+        }
+      }
+      
+      if (cards.length === 0) {
+        showImportError('No valid cards found in CSV file');
+        return;
+      }
+      
+      modalBody.innerHTML = `
+        <div class="ea-trade-import-processing">
+          <div class="ea-trade-spinner"></div>
+          <p>Matching cards against inventory...</p>
+          <div class="ea-trade-import-progress" id="import-progress">0 / ${cards.length}</div>
+        </div>
+      `;
+      
+      matchCardsToInventory(cards);
+    }
+    
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim());
+      
+      return result;
+    }
+    
+    function findColumn(headers, possibleNames) {
+      for (const name of possibleNames) {
+        const idx = headers.findIndex(h => h.includes(name));
+        if (idx !== -1) return idx;
+      }
+      return -1;
+    }
+    
+    function normalizeCondition(condition) {
+      if (!condition) return 'NM';
+      const c = condition.toLowerCase().trim();
+      if (c.includes('near mint') || c === 'nm' || c === 'mint') return 'NM';
+      if (c.includes('lightly') || c === 'lp' || c === 'sp') return 'LP';
+      if (c.includes('moderately') || c === 'mp' || c === 'played') return 'MP';
+      if (c.includes('heavily') || c === 'hp') return 'HP';
+      if (c.includes('damaged') || c === 'dmg' || c === 'poor') return 'DMG';
+      return 'NM';
+    }
+    
+    async function matchCardsToInventory(cards) {
+      importedCards = [];
+      const progressEl = document.getElementById('import-progress');
+      
+      for (let i = 0; i < cards.length; i++) {
+        const card = cards[i];
+        progressEl.textContent = `${i + 1} / ${cards.length}`;
+        
+        try {
+          let searchQuery = card.name;
+          if (card.set) searchQuery += ' ' + card.set;
+          if (card.number) searchQuery += ' ' + card.number;
+          
+          const response = await fetch(`${API_URL}?estimate=true`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              cards: [{ cardName: searchQuery, quantity: card.quantity, condition: card.condition }],
+              employeeName: 'CSV Import',
+              payoutMethod: selectedPayout
+            })
+          });
+          
+          const data = await response.json();
+          const result = data.results?.[0];
+          
+          if (result && result.allOptions && result.allOptions.length > 0) {
+            const options = result.allOptions;
+            let bestMatch = options.find(o => {
+              const title = (o.fullTitle || o.productTitle || '').toLowerCase();
+              return title.includes(card.condition.toLowerCase()) || 
+                     title.includes(conditionFullName(card.condition).toLowerCase());
+            }) || options[0];
+            
+            importedCards.push({
+              original: card,
+              matched: true,
+              matchType: 'full',
+              shopifyMatch: bestMatch,
+              tradeValue: getTradeValue(bestMatch.price || 0, bestMatch.tags || []),
+              selected: true
+            });
+          } else if (result && result.match) {
+            importedCards.push({
+              original: card,
+              matched: true,
+              matchType: 'single',
+              shopifyMatch: {
+                fullTitle: result.match,
+                sku: result.sku,
+                price: result.retailPrice,
+                tags: result.tags || []
+              },
+              tradeValue: getTradeValue(result.retailPrice || 0, result.tags || []),
+              selected: true
+            });
+          } else {
+            importedCards.push({
+              original: card,
+              matched: false,
+              matchType: 'none',
+              shopifyMatch: null,
+              tradeValue: 0,
+              selected: false
+            });
+          }
+        } catch (error) {
+          console.error('Error matching card:', card.name, error);
+          importedCards.push({
+            original: card,
+            matched: false,
+            matchType: 'error',
+            shopifyMatch: null,
+            tradeValue: 0,
+            selected: false
+          });
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      displayImportResults();
+    }
+    
+    function conditionFullName(cond) {
+      const names = {
+        'NM': 'Near Mint',
+        'LP': 'Lightly Played',
+        'MP': 'Moderately Played',
+        'HP': 'Heavily Played',
+        'DMG': 'Damaged'
+      };
+      return names[cond] || cond;
+    }
+    
+    function displayImportResults() {
+      const modalBody = document.getElementById('import-modal-body');
+      const modalFooter = document.getElementById('import-modal-footer');
+      
+      const matched = importedCards.filter(c => c.matched);
+      const unmatched = importedCards.filter(c => !c.matched);
+      const totalTradeValue = matched.reduce((sum, c) => sum + (c.tradeValue * c.original.quantity), 0);
+      
+      let html = `
+        <div class="ea-trade-import-summary">
+          <div class="ea-trade-import-stat">
+            <div class="ea-trade-import-stat-label">Total Cards</div>
+            <div class="ea-trade-import-stat-value">${importedCards.length}</div>
+          </div>
+          <div class="ea-trade-import-stat">
+            <div class="ea-trade-import-stat-label">Matched</div>
+            <div class="ea-trade-import-stat-value green">${matched.length}</div>
+          </div>
+          <div class="ea-trade-import-stat">
+            <div class="ea-trade-import-stat-label">Not Found</div>
+            <div class="ea-trade-import-stat-value red">${unmatched.length}</div>
+          </div>
+          <div class="ea-trade-import-stat">
+            <div class="ea-trade-import-stat-label">Est. Trade Value</div>
+            <div class="ea-trade-import-stat-value">$${totalTradeValue.toFixed(2)}</div>
+          </div>
+        </div>
+      `;
+      
+      if (matched.length > 0) {
+        html += `
+          <table class="ea-trade-import-table">
+            <thead>
+              <tr>
+                <th style="width: 40px;"></th>
+                <th>Card Name</th>
+                <th>Condition</th>
+                <th>Qty</th>
+                <th>Retail</th>
+                <th>Trade Value</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        
+        importedCards.forEach((card, index) => {
+          const match = card.shopifyMatch;
+          const statusClass = card.matched ? 'matched' : 'no-match';
+          const statusText = card.matched ? '✓ Matched' : '✗ Not Found';
+          
+          html += `
+            <tr>
+              <td>
+                ${card.matched ? `<input type="checkbox" class="import-card-checkbox" data-index="${index}" ${card.selected ? 'checked' : ''} onchange="updateImportSelection()">` : ''}
+              </td>
+              <td class="card-name" title="${card.original.name}">${card.original.name}</td>
+              <td>${conditionFullName(card.original.condition)}</td>
+              <td>${card.original.quantity}</td>
+              <td>${card.matched ? '$' + (match.price || 0).toFixed(2) : '-'}</td>
+              <td>${card.matched ? '$' + (card.tradeValue * card.original.quantity).toFixed(2) : '-'}</td>
+              <td><span class="match-status ${statusClass}">${statusText}</span></td>
+            </tr>
+          `;
+        });
+        
+        html += '</tbody></table>';
+      }
+      
+      if (unmatched.length > 0 && matched.length > 0) {
+        html += `<p style="margin-top: 16px; font-size: 13px; color: rgba(255,255,255,0.5);">
+          ${unmatched.length} card(s) could not be matched. They may not be in our inventory or the name format differs.
+        </p>`;
+      }
+      
+      if (matched.length === 0) {
+        html += `<p style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5);">
+          No cards could be matched to our inventory. Please try searching for cards individually.
+        </p>`;
+      }
+      
+      modalBody.innerHTML = html;
+      modalFooter.style.display = matched.length > 0 ? 'flex' : 'none';
+      
+      updateImportSelection();
+    }
+    
+    function updateImportSelection() {
+      const checkboxes = document.querySelectorAll('.import-card-checkbox');
+      const selectAllCheckbox = document.getElementById('import-select-all');
+      const addBtn = document.getElementById('import-add-btn');
+      
+      let selectedCount = 0;
+      let totalValue = 0;
+      
+      checkboxes.forEach(cb => {
+        const idx = parseInt(cb.dataset.index);
+        importedCards[idx].selected = cb.checked;
+        if (cb.checked && importedCards[idx].matched) {
+          selectedCount++;
+          totalValue += importedCards[idx].tradeValue * importedCards[idx].original.quantity;
+        }
+      });
+      
+      const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+      const someChecked = Array.from(checkboxes).some(cb => cb.checked);
+      selectAllCheckbox.checked = allChecked;
+      selectAllCheckbox.indeterminate = someChecked && !allChecked;
+      
+      addBtn.disabled = selectedCount === 0;
+      addBtn.textContent = selectedCount > 0 
+        ? `Add ${selectedCount} Cards ($${totalValue.toFixed(2)})` 
+        : 'Add Selected to Cart';
+    }
+    
+    function toggleSelectAllImports() {
+      const selectAll = document.getElementById('import-select-all');
+      const checkboxes = document.querySelectorAll('.import-card-checkbox');
+      
+      checkboxes.forEach(cb => {
+        cb.checked = selectAll.checked;
+      });
+      
+      updateImportSelection();
+    }
+    
+    function addSelectedImportsToCart() {
+      const selectedCards = importedCards.filter(c => c.selected && c.matched);
+      
+      selectedCards.forEach(card => {
+        const match = card.shopifyMatch;
+        for (let i = 0; i < card.original.quantity; i++) {
+          cart.push({
+            title: match.fullTitle || match.productTitle || card.original.name,
+            sku: match.sku || '',
+            price: match.price || 0,
+            condition: card.original.condition,
+            image: match.image || null,
+            tags: match.tags || []
+          });
+        }
+      });
+      
+      updateCart();
+      closeImportModal();
+      
+      resultsContainer.innerHTML = `
+        <div class="ea-trade-empty">
+          <div class="ea-trade-empty-icon">✅</div>
+          <p>Added ${selectedCards.length} cards from your collection!</p>
+          <p style="font-size: 13px; margin-top: 8px; opacity: 0.6;">
+            ${cart.length} total items in cart
+          </p>
+        </div>
+      `;
+    }
+    
+    function closeImportModal() {
+      const modal = document.getElementById('import-modal');
+      modal.classList.remove('active');
+      importedCards = [];
+    }
+    
+    function showImportError(message) {
+      const modalBody = document.getElementById('import-modal-body');
+      const modalFooter = document.getElementById('import-modal-footer');
+      
+      modalBody.innerHTML = `
+        <div style="text-align: center; padding: 40px;">
+          <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+          <p style="color: #ef4444; font-size: 16px; margin-bottom: 16px;">${message}</p>
+          <button class="ea-trade-import-cancel" onclick="closeImportModal()">Close</button>
+        </div>
+      `;
+      modalFooter.style.display = 'none';
+    }
+
+    // ========== COLLECTR URL IMPORT ==========
+    async function handleCollectrURLImport() {
+      const input = document.getElementById('collectr-url-input');
+      const btn = document.getElementById('collectr-import-btn');
+      const url = input.value.trim();
+      
+      if (!url) {
+        showCollectrStatus('error', 'Please paste your Collectr showcase link');
+        input.focus();
+        return;
+      }
+      
+      const isValidUrl = url.includes('getcollectr.com') || 
+                         url.includes('collectr.com') || 
+                         url.match(/^[a-f0-9-]{36}$/i);
+      
+      if (!isValidUrl) {
+        showCollectrStatus('error', 'That doesn\'t look like a Collectr link');
+        return;
+      }
+      
+      btn.classList.add('loading');
+      btn.disabled = true;
+      showCollectrStatus('loading', 'Fetching collection... (30-45 seconds)');
+      
+      try {
+        const response = await fetch('/api/scrape-collectr', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ url })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.message || `Server error: ${response.status}`);
+        }
+        
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to fetch collection');
+        }
+        
+        const cardCount = data.cards?.length || 0;
+        
+        if (cardCount === 0) {
+          showCollectrStatus('error', 'No cards found. Make sure your collection is public.');
+          return;
+        }
+        
+        showCollectrStatus('success', `✓ Found ${cardCount} cards!`);
+        
+        await processCollectrCards(data.cards);
+        
+        input.value = '';
+        
+      } catch (error) {
+        console.error('Collectr import error:', error);
+        
+        let errorMsg = error.message;
+        if (error.message.includes('fetch') || error.message.includes('network')) {
+          errorMsg = 'Could not connect to the server. Please try again.';
+        }
+        
+        showCollectrStatus('error', errorMsg);
+      } finally {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+      }
+    }
+
+    async function processCollectrCards(cards) {
+      const modal = document.getElementById('import-modal');
+      const modalBody = document.getElementById('import-modal-body');
+      const modalFooter = document.getElementById('import-modal-footer');
+      
+      modal.classList.add('active');
+      modalFooter.style.display = 'none';
+      modalBody.innerHTML = `
+        <div class="ea-trade-import-processing">
+          <div class="ea-trade-spinner"></div>
+          <p>Matching ${cards.length} cards with our inventory...</p>
+        </div>
+      `;
+      
+      importedCards = cards.map((card) => ({
+        original: {
+          name: card.name,
+          set: card.set || '',
+          number: card.number || '',
+          quantity: card.quantity || 1,
+          condition: mapCollectrCondition(card.condition)
+        },
+        marketPrice: card.marketPrice,
+        image: card.image,
+        matched: false,
+        matchType: 'none',
+        shopifyMatch: null,
+        tradeValue: 0,
+        selected: false
+      }));
+      
+      for (let i = 0; i < importedCards.length; i++) {
+        const card = importedCards[i];
+        
+        modalBody.innerHTML = `
+          <div class="ea-trade-import-processing">
+            <div class="ea-trade-spinner"></div>
+            <p>Matching cards... ${i + 1} / ${importedCards.length}</p>
+          </div>
+        `;
+        
+        try {
+          const searchQuery = `${card.original.name} ${card.original.set}`.trim();
+          const response = await fetch(`${API_URL}?estimate=true`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              cards: [{ cardName: searchQuery, quantity: card.original.quantity, condition: card.original.condition }],
+              employeeName: 'Collectr Import',
+              payoutMethod: selectedPayout
+            })
+          });
+          
+          const data = await response.json();
+          const result = data.results?.[0];
+          
+          if (result && result.allOptions && result.allOptions.length > 0) {
+            const options = result.allOptions;
+            let bestMatch = options.find(o => {
+              const title = (o.fullTitle || o.productTitle || '').toLowerCase();
+              return title.includes(card.original.condition.toLowerCase()) || 
+                     title.includes(conditionFullName(card.original.condition).toLowerCase());
+            }) || options[0];
+            
+            card.matched = true;
+            card.matchType = 'full';
+            card.shopifyMatch = bestMatch;
+            card.tradeValue = getTradeValue(bestMatch.price || 0, bestMatch.tags || []);
+            card.selected = true;
+          } else if (result && result.match) {
+            card.matched = true;
+            card.matchType = 'single';
+            card.shopifyMatch = {
+              fullTitle: result.match,
+              sku: result.sku,
+              price: result.retailPrice,
+              tags: result.tags || []
+            };
+            card.tradeValue = getTradeValue(result.retailPrice || 0, result.tags || []);
+            card.selected = true;
+          }
+        } catch (e) {
+          console.warn('Error matching card:', card.original.name, e);
+        }
+        
+        await new Promise(r => setTimeout(r, 100));
+      }
+      
+      displayImportResults();
+    }
+
+    function mapCollectrCondition(condition) {
+      if (!condition) return 'NM';
+      
+      const map = {
+        'mint': 'NM',
+        'near mint': 'NM',
+        'nm': 'NM',
+        'lightly played': 'LP',
+        'lp': 'LP',
+        'moderately played': 'MP',
+        'mp': 'MP',
+        'heavily played': 'HP',
+        'hp': 'HP',
+        'damaged': 'DMG',
+        'dmg': 'DMG'
+      };
+      
+      return map[condition.toLowerCase()] || 'NM';
+    }
+
+    function showCollectrStatus(type, message) {
+      const status = document.getElementById('collectr-status');
+      const textSpan = status.querySelector('.status-text');
+      const spinner = status.querySelector('.ea-trade-status-spinner');
+      
+      status.className = 'ea-trade-status active ' + type;
+      textSpan.textContent = message;
+      
+      if (spinner) {
+        spinner.style.display = type === 'loading' ? 'block' : 'none';
+      }
+    }
+
+    function showCollectrHelp(event) {
+      if (event) event.preventDefault();
+      document.getElementById('collectr-help-modal').classList.add('active');
+    }
+
+    function closeCollectrHelp() {
+      document.getElementById('collectr-help-modal').classList.remove('active');
+    }
+
+    // Close help modal on backdrop click
+    document.getElementById('collectr-help-modal')?.addEventListener('click', (e) => {
+      if (e.target.id === 'collectr-help-modal') {
+        closeCollectrHelp();
+      }
+    });
+
+    // Allow Enter key to submit Collectr URL
+    document.getElementById('collectr-url-input')?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        handleCollectrURLImport();
+      }
+    });
+  </script>
+</body>
+</html>
