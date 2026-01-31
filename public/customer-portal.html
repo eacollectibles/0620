@@ -66,7 +66,7 @@
 
     .ea-trade-search-box {
       position: relative;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .ea-trade-search-icon {
@@ -128,103 +128,101 @@
       display: flex;
     }
 
-    /* Import Collection Section */
-    .ea-trade-import-section {
-      margin-top: 16px;
-      text-align: center;
+    /* ========== CLEAN IMPORT SECTION ========== */
+    .ea-trade-import-options {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
     }
 
-    .ea-trade-import-divider {
+    .ea-trade-import-option {
+      flex: 1;
       display: flex;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 16px;
-      color: rgba(255,255,255,0.3);
-      font-size: 13px;
-    }
-
-    .ea-trade-import-divider::before,
-    .ea-trade-import-divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: rgba(255,255,255,0.1);
-    }
-
-    .ea-trade-import-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 14px 24px;
-      background: rgba(212, 175, 55, 0.1);
-      border: 2px dashed rgba(212, 175, 55, 0.4);
+      gap: 12px;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
       border-radius: 12px;
-      color: #d4af37;
-      font-size: 15px;
-      font-weight: 600;
       cursor: pointer;
       transition: all 0.2s ease;
     }
 
-    .ea-trade-import-btn:hover {
-      background: rgba(212, 175, 55, 0.2);
-      border-color: rgba(212, 175, 55, 0.6);
-      transform: translateY(-2px);
+    .ea-trade-import-option:hover {
+      background: rgba(212, 175, 55, 0.08);
+      border-color: rgba(212, 175, 55, 0.3);
     }
 
-    .ea-trade-import-btn span {
-      font-size: 18px;
-    }
-
-    .ea-trade-import-hint {
-      margin-top: 10px;
-      font-size: 12px;
-      color: rgba(255,255,255,0.4);
-    }
-
-    /* Collectr URL Import */
-    .ea-trade-collectr-section {
-      margin-top: 16px;
-      padding: 16px;
-      background: rgba(201, 162, 39, 0.05);
-      border: 1px solid rgba(201, 162, 39, 0.2);
+    .ea-trade-import-option-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(212, 175, 55, 0.1);
       border-radius: 10px;
-    }
-
-    .ea-trade-collectr-header {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
     }
 
-    .ea-trade-collectr-header h4 {
-      margin: 0;
-      color: #fff;
-      font-size: 14px;
+    .ea-trade-import-option-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .ea-trade-import-option-title {
       font-weight: 600;
+      font-size: 14px;
+      color: #fff;
+      margin-bottom: 2px;
     }
 
-    .ea-trade-collectr-badge {
-      background: linear-gradient(135deg, #c9a227, #d4af37);
-      color: #000;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 9px;
-      font-weight: 700;
-      text-transform: uppercase;
+    .ea-trade-import-option-desc {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
     }
 
-    .ea-trade-collectr-input-row {
+    .ea-trade-import-option-arrow {
+      color: rgba(255,255,255,0.3);
+      font-size: 18px;
+      transition: transform 0.2s;
+    }
+
+    .ea-trade-import-option:hover .ea-trade-import-option-arrow {
+      transform: translateX(3px);
+      color: #d4af37;
+    }
+
+    /* Collectr Link Expanded State */
+    .ea-trade-collectr-expanded {
+      display: none;
+      margin-bottom: 24px;
+      padding: 16px;
+      background: rgba(212, 175, 55, 0.03);
+      border: 1px solid rgba(212, 175, 55, 0.15);
+      border-radius: 12px;
+      animation: slideDown 0.2s ease;
+    }
+
+    .ea-trade-collectr-expanded.active {
+      display: block;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .ea-trade-collectr-row {
       display: flex;
       gap: 10px;
     }
 
     .ea-trade-collectr-input {
       flex: 1;
-      padding: 12px 14px;
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 8px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
       background: rgba(0,0,0,0.3);
       color: #fff;
       font-size: 14px;
@@ -233,7 +231,7 @@
 
     .ea-trade-collectr-input:focus {
       outline: none;
-      border-color: #c9a227;
+      border-color: #d4af37;
       background: rgba(0,0,0,0.5);
     }
 
@@ -242,27 +240,25 @@
     }
 
     .ea-trade-collectr-btn {
-      padding: 12px 20px;
-      background: linear-gradient(135deg, #c9a227, #d4af37);
+      padding: 14px 24px;
+      background: linear-gradient(135deg, #d4af37 0%, #b8962e 100%);
       color: #000;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       font-weight: 700;
-      font-size: 13px;
+      font-size: 14px;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       transition: all 0.2s;
-      min-width: 120px;
+      min-width: 100px;
       justify-content: center;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
     }
 
     .ea-trade-collectr-btn:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(201, 162, 39, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
     }
 
     .ea-trade-collectr-btn:disabled {
@@ -273,7 +269,7 @@
 
     .ea-trade-collectr-btn .spinner {
       display: none;
-      animation: collectrSpin 1s linear infinite;
+      animation: spin 1s linear infinite;
     }
 
     .ea-trade-collectr-btn.loading .btn-text {
@@ -284,27 +280,42 @@
       display: inline-block;
     }
 
-    @keyframes collectrSpin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+    .ea-trade-collectr-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 12px;
     }
 
-    .ea-trade-collectr-hint {
-      font-size: 11px;
+    .ea-trade-collectr-help {
       color: rgba(255,255,255,0.4);
-      margin: 10px 0 0 0;
-    }
-
-    .ea-trade-collectr-hint a {
-      color: #c9a227;
       text-decoration: none;
+      transition: color 0.2s;
     }
 
-    .ea-trade-collectr-hint a:hover {
-      text-decoration: underline;
+    .ea-trade-collectr-help:hover {
+      color: #d4af37;
     }
 
-    .ea-trade-collectr-status {
+    .ea-trade-collectr-close {
+      color: rgba(255,255,255,0.4);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .ea-trade-collectr-close:hover {
+      color: #fff;
+      background: rgba(255,255,255,0.1);
+    }
+
+    /* Status Message */
+    .ea-trade-status {
       margin-top: 12px;
       padding: 12px 14px;
       border-radius: 8px;
@@ -312,51 +323,45 @@
       display: none;
     }
 
-    .ea-trade-collectr-status.active {
-      display: block;
+    .ea-trade-status.active {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
-    .ea-trade-collectr-status.loading {
+    .ea-trade-status.loading {
       background: rgba(59, 130, 246, 0.1);
-      border: 1px solid rgba(59, 130, 246, 0.3);
+      border: 1px solid rgba(59, 130, 246, 0.25);
       color: #93c5fd;
     }
 
-    .ea-trade-collectr-status.success {
+    .ea-trade-status.success {
       background: rgba(34, 197, 94, 0.1);
-      border: 1px solid rgba(34, 197, 94, 0.3);
+      border: 1px solid rgba(34, 197, 94, 0.25);
       color: #86efac;
     }
 
-    .ea-trade-collectr-status.error {
+    .ea-trade-status.error {
       background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.3);
+      border: 1px solid rgba(239, 68, 68, 0.25);
       color: #fca5a5;
     }
 
-    .ea-trade-collectr-progress {
-      margin-top: 8px;
-      height: 3px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 2px;
-      overflow: hidden;
+    .ea-trade-status-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
     }
 
-    .ea-trade-collectr-progress-bar {
-      height: 100%;
-      background: linear-gradient(90deg, #c9a227, #d4af37, #c9a227);
-      background-size: 200% 100%;
-      animation: collectrShimmer 1.5s infinite;
-      width: 100%;
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
-    @keyframes collectrShimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-
-    /* Collectr Help Modal */
-    .ea-trade-collectr-modal {
+    /* Help Modal - Minimal */
+    .ea-trade-help-modal {
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,0.85);
@@ -367,68 +372,82 @@
       padding: 20px;
     }
 
-    .ea-trade-collectr-modal.active {
+    .ea-trade-help-modal.active {
       display: flex;
     }
 
-    .ea-trade-collectr-modal-content {
+    .ea-trade-help-content {
       background: #1a1a1a;
-      border: 1px solid rgba(201, 162, 39, 0.3);
+      border: 1px solid rgba(212, 175, 55, 0.2);
       border-radius: 16px;
       padding: 24px;
-      max-width: 420px;
+      max-width: 380px;
       width: 100%;
       position: relative;
-      color: #fff;
     }
 
-    .ea-trade-collectr-modal-close {
+    .ea-trade-help-close {
       position: absolute;
-      top: 12px;
+      top: 16px;
       right: 16px;
-      background: none;
-      border: none;
-      color: rgba(255,255,255,0.5);
-      font-size: 24px;
-      cursor: pointer;
-      line-height: 1;
-    }
-
-    .ea-trade-collectr-modal-close:hover {
-      color: #fff;
-    }
-
-    .ea-trade-collectr-modal h3 {
-      margin: 0 0 16px 0;
-      color: #c9a227;
-      font-size: 16px;
-    }
-
-    .ea-trade-collectr-modal ol {
-      margin: 0 0 16px 0;
-      padding-left: 20px;
-      color: rgba(255,255,255,0.8);
-      font-size: 14px;
-    }
-
-    .ea-trade-collectr-modal li {
-      margin: 10px 0;
-      line-height: 1.5;
-    }
-
-    .ea-trade-collectr-modal strong {
-      color: #fff;
-    }
-
-    .ea-trade-collectr-modal code {
       background: rgba(255,255,255,0.1);
-      padding: 8px 10px;
-      display: block;
-      border-radius: 6px;
-      font-size: 10px;
-      word-break: break-all;
-      color: #c9a227;
-      font-family: monospace;
+      border: none;
+      color: rgba(255,255,255,0.6);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+
+    .ea-trade-help-close:hover {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+    }
+
+    .ea-trade-help-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #d4af37;
+      margin-bottom: 16px;
+    }
+
+    .ea-trade-help-steps {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .ea-trade-help-steps li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 14px;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .ea-trade-help-steps li:last-child {
+      border-bottom: none;
+    }
+
+    .ea-trade-help-step-num {
+      width: 24px;
+      height: 24px;
+      background: rgba(212, 175, 55, 0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #d4af37;
+      flex-shrink: 0;
     }
 
     /* Import Modal */
@@ -691,10 +710,6 @@
       border-radius: 50%;
       animation: spin 1s linear infinite;
       margin: 0 auto 12px;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
     }
 
     /* Results */
@@ -1564,6 +1579,11 @@
         gap: 20px;
       }
       
+      /* Import options stack on mobile */
+      .ea-trade-import-options {
+        flex-direction: column;
+      }
+      
       /* Payout options - full width stacked */
       .ea-trade-payout-options {
         flex-direction: column;
@@ -1587,7 +1607,7 @@
       /* Search input */
       .ea-trade-search-input {
         padding: 16px 50px 16px 48px;
-        font-size: 16px; /* Prevents iOS zoom */
+        font-size: 16px;
       }
       .ea-trade-search-icon {
         left: 16px;
@@ -1705,7 +1725,7 @@
       /* Customer inputs */
       .ea-trade-input {
         padding: 14px;
-        font-size: 16px; /* Prevents iOS zoom */
+        font-size: 16px;
       }
       
       /* Lightbox */
@@ -1736,13 +1756,7 @@
         font-size: 13px;
       }
       
-      /* Import section mobile */
-      .ea-trade-import-btn {
-        width: 100%;
-        justify-content: center;
-        padding: 12px 20px;
-        font-size: 14px;
-      }
+      /* Import modal mobile */
       .ea-trade-import-modal-content {
         margin: 10px;
         border-radius: 12px;
@@ -1792,18 +1806,17 @@
         text-align: center;
       }
       
-      /* Collectr section mobile */
-      .ea-trade-collectr-section {
-        padding: 14px;
-      }
-      .ea-trade-collectr-input-row {
+      /* Collectr expanded mobile */
+      .ea-trade-collectr-row {
         flex-direction: column;
       }
       .ea-trade-collectr-btn {
         width: 100%;
       }
-      .ea-trade-collectr-modal-content {
-        padding: 20px;
+      .ea-trade-collectr-footer {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
       }
     }
     
@@ -1845,73 +1858,56 @@
         <button class="ea-trade-clear-btn" id="clear-btn" type="button">✕</button>
       </div>
 
-      <!-- Import Collection Option -->
-      <div class="ea-trade-import-section">
-        <div class="ea-trade-import-divider">
-          <span>or</span>
+      <!-- Clean Import Options -->
+      <div class="ea-trade-import-options">
+        <div class="ea-trade-import-option" onclick="document.getElementById('csv-file-input').click()">
+          <div class="ea-trade-import-option-icon">📁</div>
+          <div class="ea-trade-import-option-text">
+            <div class="ea-trade-import-option-title">Upload CSV File</div>
+            <div class="ea-trade-import-option-desc">Collectr, TCGPlayer exports</div>
+          </div>
+          <span class="ea-trade-import-option-arrow">→</span>
         </div>
-        <button class="ea-trade-import-btn" onclick="document.getElementById('csv-file-input').click()">
-          <span>📁</span> Import from Collectr / CSV
-        </button>
         <input type="file" id="csv-file-input" accept=".csv,.txt" style="display: none;" onchange="handleCSVImport(event)">
-        <p class="ea-trade-import-hint">Export your collection from Collectr or TCGPlayer and upload the CSV</p>
-
-        <!-- Collectr URL Import -->
-        <div class="ea-trade-collectr-section">
-          <div class="ea-trade-collectr-header">
-            <span>🔗</span>
-            <h4>Or paste your Collectr link</h4>
-            <span class="ea-trade-collectr-badge">Auto-Fetch</span>
+        
+        <div class="ea-trade-import-option" onclick="toggleCollectrInput()">
+          <div class="ea-trade-import-option-icon">🔗</div>
+          <div class="ea-trade-import-option-text">
+            <div class="ea-trade-import-option-title">Paste Collectr Link</div>
+            <div class="ea-trade-import-option-desc">Auto-fetch your collection</div>
           </div>
-          
-          <div class="ea-trade-collectr-input-row">
-            <input 
-              type="text" 
-              id="collectr-url-input" 
-              class="ea-trade-collectr-input"
-              placeholder="https://app.getcollectr.com/showcase/profile/..."
-            >
-            <button 
-              type="button" 
-              id="collectr-import-btn" 
-              class="ea-trade-collectr-btn"
-              onclick="handleCollectrURLImport()"
-            >
-              <span class="btn-text">Fetch</span>
-              <svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-linecap="round"/>
-              </svg>
-            </button>
-          </div>
-          
-          <p class="ea-trade-collectr-hint">
-            Share your collection on Collectr → paste the link here. 
-            <a href="#" onclick="showCollectrHelp(event)">How do I get my link?</a>
-          </p>
-          
-          <div id="collectr-status" class="ea-trade-collectr-status">
-            <span class="status-text"></span>
-            <div class="ea-trade-collectr-progress" style="display:none;">
-              <div class="ea-trade-collectr-progress-bar"></div>
-            </div>
-          </div>
+          <span class="ea-trade-import-option-arrow">→</span>
         </div>
       </div>
 
-      <!-- Collectr Help Modal -->
-      <div id="collectr-help-modal" class="ea-trade-collectr-modal">
-        <div class="ea-trade-collectr-modal-content">
-          <button class="ea-trade-collectr-modal-close" onclick="closeCollectrHelp()">&times;</button>
-          <h3>📱 How to Get Your Collectr Link</h3>
-          <ol>
-            <li>Open the <strong>Collectr app</strong> on your phone</li>
-            <li>Go to your <strong>Profile</strong> tab</li>
-            <li>Tap <strong>Share</strong> or <strong>Showcase</strong></li>
-            <li>Choose <strong>Copy Link</strong></li>
-            <li>Paste it here!</li>
-          </ol>
-          <p style="margin-bottom:10px; color: rgba(255,255,255,0.5); font-size: 12px;">Your link looks like:</p>
-          <code>https://app.getcollectr.com/showcase/profile/abc123...</code>
+      <!-- Collectr Link Input (Expandable) -->
+      <div class="ea-trade-collectr-expanded" id="collectr-expanded">
+        <div class="ea-trade-collectr-row">
+          <input 
+            type="text" 
+            id="collectr-url-input" 
+            class="ea-trade-collectr-input"
+            placeholder="https://app.getcollectr.com/showcase/..."
+          >
+          <button 
+            type="button" 
+            id="collectr-import-btn" 
+            class="ea-trade-collectr-btn"
+            onclick="handleCollectrURLImport()"
+          >
+            <span class="btn-text">Fetch</span>
+            <svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="ea-trade-collectr-footer">
+          <a href="#" class="ea-trade-collectr-help" onclick="showCollectrHelp(event)">How do I get my link?</a>
+          <button class="ea-trade-collectr-close" onclick="toggleCollectrInput()">Close</button>
+        </div>
+        <div id="collectr-status" class="ea-trade-status">
+          <div class="ea-trade-status-spinner"></div>
+          <span class="status-text"></span>
         </div>
       </div>
 
@@ -1938,7 +1934,7 @@
           <span class="ea-trade-cart-count" id="cart-count">0 items</span>
         </div>
 
-        <!-- Cart Items (now first) -->
+        <!-- Cart Items -->
         <div class="ea-trade-cart-items" id="cart-items">
           <div class="ea-trade-cart-empty">
             <div class="ea-trade-cart-empty-icon">🛒</div>
@@ -2059,16 +2055,39 @@
     </div>
   </div>
 
+  <!-- Help Modal -->
+  <div class="ea-trade-help-modal" id="collectr-help-modal">
+    <div class="ea-trade-help-content">
+      <button class="ea-trade-help-close" onclick="closeCollectrHelp()">✕</button>
+      <h3 class="ea-trade-help-title">📱 Get Your Collectr Link</h3>
+      <ol class="ea-trade-help-steps">
+        <li>
+          <span class="ea-trade-help-step-num">1</span>
+          <span>Open <strong>Collectr</strong> on your phone</span>
+        </li>
+        <li>
+          <span class="ea-trade-help-step-num">2</span>
+          <span>Go to your <strong>Profile</strong> tab</span>
+        </li>
+        <li>
+          <span class="ea-trade-help-step-num">3</span>
+          <span>Tap <strong>Share</strong> or <strong>Showcase</strong></span>
+        </li>
+        <li>
+          <span class="ea-trade-help-step-num">4</span>
+          <span>Copy the link and paste it here</span>
+        </li>
+      </ol>
+    </div>
+  </div>
+
   <script>
     // Config
     const API_URL = '/api/buybackstep4';
     const SUBMISSION_API_URL = '/api/customer-submissions';
     
     // Tiered pricing for store credit (based on retail price)
-    // ONLY applies to: Pokemon, Magic the Gathering, One Piece
-    // Cash is approximately 75% of store credit rates
     function getTradeValue(retailPrice, tags = [], payoutMethod = selectedPayout) {
-      // Normalize tags - can be array or string
       let tagArray = [];
       if (Array.isArray(tags)) {
         tagArray = tags.map(t => t.toLowerCase());
@@ -2076,7 +2095,6 @@
         tagArray = tags.toLowerCase().split(',').map(t => t.trim());
       }
       
-      // Check if card is from supported games via tags
       const isSupportedGame = tagArray.some(tag => 
         tag.includes('pokemon') || 
         tag.includes('pokémon') ||
@@ -2089,14 +2107,12 @@
         tag.includes('optcg')
       );
       
-      // If not a supported game, no trade value
       if (!isSupportedGame) {
         return 0;
       }
       
       let storeCredit = 0;
       
-      // Tiered pricing based on retail value
       if (retailPrice >= 50.00) {
         storeCredit = retailPrice * 0.75;
       } else if (retailPrice >= 25.00) {
@@ -2110,12 +2126,11 @@
       } else if (retailPrice >= 3.01) {
         storeCredit = retailPrice * 0.25;
       } else if (retailPrice >= 2.00) {
-        storeCredit = 0.25; // Flat $0.25 for cards $2.00-$3.00
+        storeCredit = 0.25;
       } else {
-        storeCredit = 0; // Cards under $2 - no value
+        storeCredit = 0;
       }
       
-      // Cash is ~75% of store credit
       if (payoutMethod === 'cash') {
         return storeCredit * 0.75;
       }
@@ -2127,6 +2142,7 @@
     let cart = [];
     let selectedPayout = 'store-credit';
     let searchTimeout;
+    let importedCards = [];
 
     // DOM Elements
     const searchInput = document.getElementById('search-input');
@@ -2145,12 +2161,20 @@
       setupSubmit();
     });
 
+    // Toggle Collectr Input
+    function toggleCollectrInput() {
+      const expanded = document.getElementById('collectr-expanded');
+      expanded.classList.toggle('active');
+      if (expanded.classList.contains('active')) {
+        document.getElementById('collectr-url-input').focus();
+      }
+    }
+
     // Search
     function setupSearch() {
       searchInput.addEventListener('input', function() {
         const query = this.value.trim();
         
-        // Show/hide clear button
         if (query.length > 0) {
           clearBtn.classList.add('visible');
         } else {
@@ -2179,7 +2203,6 @@
         searchTimeout = setTimeout(() => performSearch(query), 400);
       });
 
-      // Clear button functionality
       clearBtn.addEventListener('click', function() {
         searchInput.value = '';
         clearBtn.classList.remove('visible');
@@ -2247,18 +2270,15 @@
     }
 
     function displayResults(options) {
-      // Group options by base card name (remove condition from title)
       const groupedCards = {};
       
       options.forEach(option => {
         const title = option.fullTitle || option.productTitle || 'Unknown';
-        // Extract base name by removing condition suffixes
         const baseName = title
           .replace(/\s*-\s*(Near Mint|Lightly Played|Moderately Played|Heavily Played|Damaged|NM|LP|MP|HP|DMG)\s*(-\s*Holofoil)?$/i, '')
           .replace(/\s*-\s*Holofoil$/i, '')
           .trim();
         
-        // Determine condition from title - check all conditions explicitly
         let condition = null;
         const titleLower = title.toLowerCase();
         if (titleLower.includes('near mint') || / nm[-\s]/i.test(title) || title.endsWith(' NM')) {
@@ -2272,7 +2292,6 @@
         } else if (titleLower.includes('damaged') || / dmg[-\s]/i.test(title) || title.endsWith(' DMG')) {
           condition = 'DMG';
         } else {
-          // No condition found - treat as its own unique entry (could be a sealed product, etc)
           condition = 'DEFAULT';
         }
         
@@ -2285,7 +2304,6 @@
           };
         }
         
-        // Keep tags from any variant (they should be the same for same product)
         const optionTags = option.tags || [];
         const hasOptionTags = Array.isArray(optionTags) ? optionTags.length > 0 : (typeof optionTags === 'string' && optionTags.length > 0);
         const currentTags = groupedCards[baseName].tags;
@@ -2306,20 +2324,17 @@
       Object.values(groupedCards).forEach((card, index) => {
         const variants = card.variants;
         const conditions = Object.keys(variants);
-        // Normalize tags - handle both array and string formats
         let tags = card.tags || [];
         if (typeof tags === 'string') {
           tags = tags.split(',').map(t => t.trim()).filter(t => t);
         }
         
-        // Priority order: NM > LP > MP > HP > DMG > DEFAULT
         const priorityOrder = ['NM', 'LP', 'MP', 'HP', 'DMG', 'DEFAULT'];
         const defaultCondition = priorityOrder.find(c => conditions.includes(c)) || conditions[0];
         const defaultVariant = variants[defaultCondition];
         const price = defaultVariant?.price || 0;
         const tradeValue = getTradeValue(price, tags);
         
-        // Build options HTML
         let optionsHtml = '';
         if (conditions.includes('NM')) optionsHtml += `<option value="NM" ${defaultCondition === 'NM' ? 'selected' : ''}>Near Mint ($${(variants['NM'].price || 0).toFixed(2)})</option>`;
         if (conditions.includes('LP')) optionsHtml += `<option value="LP" ${defaultCondition === 'LP' ? 'selected' : ''}>Lightly Played ($${(variants['LP'].price || 0).toFixed(2)})</option>`;
@@ -2381,7 +2396,6 @@
       const tags = (resultEl.dataset.cardTags || '').split(',').filter(t => t);
       const selectEl = resultEl.querySelector('.ea-trade-result-condition');
       
-      // If there's a dropdown, use its value; otherwise use the first/only variant
       const selectedCondition = selectEl ? selectEl.value : Object.keys(variants)[0];
       const variant = variants[selectedCondition];
       
@@ -2397,12 +2411,10 @@
         
         updateCart();
         
-        // Visual feedback
         resultEl.style.background = 'rgba(74, 222, 128, 0.2)';
         resultEl.style.borderColor = '#4ade80';
         setTimeout(() => {
-          // Clear search results after adding
-          searchResults.innerHTML = '';
+          resultsContainer.innerHTML = '';
           searchInput.value = '';
           searchInput.focus();
         }, 400);
@@ -2427,7 +2439,6 @@
       } else {
         let html = '';
         cart.forEach((item, index) => {
-          // Use tiered pricing based on retail value and tags
           const tradeValue = getTradeValue(item.price, item.tags || []);
           const conditionLabel = {
             'NM': 'Near Mint',
@@ -2461,7 +2472,6 @@
         submitBtn.disabled = false;
       }
 
-      // Update totals
       let retailTotal = 0;
       let tradeTotal = 0;
       
@@ -2474,14 +2484,12 @@
       totalRetail.textContent = `$${retailTotal.toFixed(2)}`;
       totalQuote.textContent = `$${tradeTotal.toFixed(2)}`;
       
-      // Update floating cart (mobile)
       const floatingCart = document.getElementById('floating-cart');
       const floatingCount = document.getElementById('floating-cart-count');
       const floatingTotal = document.getElementById('floating-cart-total');
       if (floatingCart && floatingCount && floatingTotal) {
         floatingCount.textContent = cart.length;
         floatingTotal.textContent = `$${tradeTotal.toFixed(2)}`;
-        // Hide when cart is empty
         if (cart.length === 0) {
           floatingCart.classList.add('hidden');
         } else {
@@ -2499,7 +2507,6 @@
           selectedPayout = this.dataset.payout;
           updateCart();
           
-          // Refresh search results if any
           if (searchInput.value.trim().length >= 2) {
             performSearch(searchInput.value.trim());
           }
@@ -2510,7 +2517,6 @@
     // Submit
     function setupSubmit() {
       submitBtn.addEventListener('click', async function() {
-        // Customer info fields removed for now
         const name = '';
         const email = '';
         const phone = '';
@@ -2547,7 +2553,6 @@
 
           if (!response.ok) throw new Error(data.error || 'Submission failed');
 
-          // Show confirmation
           showConfirmation(data.submissionId);
 
         } catch (error) {
@@ -2614,7 +2619,7 @@
     }
 
     // Representative Trade-In Functions
-    const REP_PASSWORD = 'EArep2025'; // Change this password
+    const REP_PASSWORD = 'EArep2025';
 
     function showRepAuth() {
       if (cart.length === 0) {
@@ -2646,7 +2651,6 @@
       confirmBtn.innerHTML = '<span class="ea-trade-spinner" style="width:16px;height:16px;border-width:2px;margin:0;"></span> Processing...';
 
       try {
-        // Call the API WITHOUT estimate mode to actually update inventory
         const response = await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -2660,7 +2664,6 @@
             })),
             employeeName: 'Customer Portal Rep',
             payoutMethod: selectedPayout
-            // No estimate=true query param, so it will update inventory
           })
         });
 
@@ -2670,11 +2673,9 @@
           throw new Error(data.error || 'Failed to process trade-in');
         }
 
-        // Show success
         document.getElementById('rep-auth-section').style.display = 'none';
         document.getElementById('rep-success').style.display = 'flex';
         
-        // Reset after 3 seconds
         setTimeout(() => {
           resetRepSection();
           cart = [];
@@ -2721,7 +2722,6 @@
     }
 
     function closeLightbox(event) {
-      // Only close if clicking the background or close button, not the image itself
       if (event && event.target.classList.contains('ea-trade-lightbox-img')) {
         return;
       }
@@ -2733,13 +2733,16 @@
     // Close modals with Escape key
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
-        // Check import modal first (higher priority)
         const importModal = document.getElementById('import-modal');
         if (importModal && importModal.classList.contains('active')) {
           closeImportModal();
           return;
         }
-        // Then lightbox
+        const helpModal = document.getElementById('collectr-help-modal');
+        if (helpModal && helpModal.classList.contains('active')) {
+          closeCollectrHelp();
+          return;
+        }
         closeLightbox();
       }
     });
@@ -2753,8 +2756,6 @@
     }
 
     // ========== CSV IMPORT FUNCTIONALITY ==========
-    let importedCards = [];
-    
     function handleCSVImport(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -2766,12 +2767,10 @@
       };
       reader.readAsText(file);
       
-      // Reset file input so same file can be selected again
       event.target.value = '';
     }
     
     function parseCSV(csvText) {
-      // Show modal with processing state
       const modal = document.getElementById('import-modal');
       const modalBody = document.getElementById('import-modal-body');
       const modalFooter = document.getElementById('import-modal-footer');
@@ -2785,18 +2784,14 @@
         </div>
       `;
       
-      // Parse CSV
       const lines = csvText.split(/\r?\n/).filter(line => line.trim());
       if (lines.length < 2) {
         showImportError('CSV file appears to be empty or invalid');
         return;
       }
       
-      // Parse header row
       const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
-      console.log('CSV Headers:', headers);
       
-      // Map common column names
       const columnMap = {
         name: findColumn(headers, ['name', 'product name', 'card name', 'productname', 'card', 'title']),
         set: findColumn(headers, ['set', 'set name', 'setname', 'expansion', 'series']),
@@ -2806,14 +2801,11 @@
         game: findColumn(headers, ['game', 'tcg', 'category', 'type'])
       };
       
-      console.log('Column mapping:', columnMap);
-      
       if (columnMap.name === -1) {
         showImportError('Could not find card name column. Please ensure your CSV has a "Name" or "Product Name" column.');
         return;
       }
       
-      // Parse data rows
       const cards = [];
       for (let i = 1; i < lines.length; i++) {
         const values = parseCSVLine(lines[i]);
@@ -2833,14 +2825,11 @@
         }
       }
       
-      console.log(`Parsed ${cards.length} cards from CSV`);
-      
       if (cards.length === 0) {
         showImportError('No valid cards found in CSV file');
         return;
       }
       
-      // Show progress and start matching
       modalBody.innerHTML = `
         <div class="ea-trade-import-processing">
           <div class="ea-trade-spinner"></div>
@@ -2902,12 +2891,10 @@
         progressEl.textContent = `${i + 1} / ${cards.length}`;
         
         try {
-          // Build search query
           let searchQuery = card.name;
           if (card.set) searchQuery += ' ' + card.set;
           if (card.number) searchQuery += ' ' + card.number;
           
-          // Call API to search
           const response = await fetch(`${API_URL}?estimate=true`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2922,7 +2909,6 @@
           const result = data.results?.[0];
           
           if (result && result.allOptions && result.allOptions.length > 0) {
-            // Find best match for the condition
             const options = result.allOptions;
             let bestMatch = options.find(o => {
               const title = (o.fullTitle || o.productTitle || '').toLowerCase();
@@ -2939,7 +2925,6 @@
               selected: true
             });
           } else if (result && result.match) {
-            // Single match
             importedCards.push({
               original: card,
               matched: true,
@@ -2954,7 +2939,6 @@
               selected: true
             });
           } else {
-            // No match
             importedCards.push({
               original: card,
               matched: false,
@@ -2976,7 +2960,6 @@
           });
         }
         
-        // Small delay to avoid rate limiting
         await new Promise(resolve => setTimeout(resolve, 100));
       }
       
@@ -3098,13 +3081,11 @@
         }
       });
       
-      // Update select all checkbox state
       const allChecked = Array.from(checkboxes).every(cb => cb.checked);
       const someChecked = Array.from(checkboxes).some(cb => cb.checked);
       selectAllCheckbox.checked = allChecked;
       selectAllCheckbox.indeterminate = someChecked && !allChecked;
       
-      // Update add button
       addBtn.disabled = selectedCount === 0;
       addBtn.textContent = selectedCount > 0 
         ? `Add ${selectedCount} Cards ($${totalValue.toFixed(2)})` 
@@ -3142,8 +3123,6 @@
       updateCart();
       closeImportModal();
       
-      // Show success message in results
-      const resultsContainer = document.getElementById('results-container');
       resultsContainer.innerHTML = `
         <div class="ea-trade-empty">
           <div class="ea-trade-empty-icon">✅</div>
@@ -3175,36 +3154,30 @@
       modalFooter.style.display = 'none';
     }
 
-    // =============================================
-    // COLLECTR URL IMPORT FUNCTIONS
-    // =============================================
-    
+    // ========== COLLECTR URL IMPORT ==========
     async function handleCollectrURLImport() {
       const input = document.getElementById('collectr-url-input');
       const btn = document.getElementById('collectr-import-btn');
       const url = input.value.trim();
       
-      // Validate input
       if (!url) {
         showCollectrStatus('error', 'Please paste your Collectr showcase link');
         input.focus();
         return;
       }
       
-      // Basic URL validation
       const isValidUrl = url.includes('getcollectr.com') || 
                          url.includes('collectr.com') || 
                          url.match(/^[a-f0-9-]{36}$/i);
       
       if (!isValidUrl) {
-        showCollectrStatus('error', 'That doesn\'t look like a Collectr link. Please check and try again.');
+        showCollectrStatus('error', 'That doesn\'t look like a Collectr link');
         return;
       }
       
-      // Show loading state
       btn.classList.add('loading');
       btn.disabled = true;
-      showCollectrStatus('loading', 'Connecting to Collectr... This may take 30-45 seconds.');
+      showCollectrStatus('loading', 'Fetching collection... (30-45 seconds)');
       
       try {
         const response = await fetch('/api/scrape-collectr', {
@@ -3228,17 +3201,14 @@
         const cardCount = data.cards?.length || 0;
         
         if (cardCount === 0) {
-          showCollectrStatus('error', 'No cards found. Make sure your Collectr collection is public and has cards.');
+          showCollectrStatus('error', 'No cards found. Make sure your collection is public.');
           return;
         }
         
-        // Success! Show count
-        showCollectrStatus('success', `✓ Found ${cardCount} cards! Processing...`);
+        showCollectrStatus('success', `✓ Found ${cardCount} cards!`);
         
-        // Process the cards through the existing import modal
         await processCollectrCards(data.cards);
         
-        // Clear input
         input.value = '';
         
       } catch (error) {
@@ -3249,7 +3219,7 @@
           errorMsg = 'Could not connect to the server. Please try again.';
         }
         
-        showCollectrStatus('error', `Import failed: ${errorMsg}`);
+        showCollectrStatus('error', errorMsg);
       } finally {
         btn.classList.remove('loading');
         btn.disabled = false;
@@ -3257,7 +3227,6 @@
     }
 
     async function processCollectrCards(cards) {
-      // Convert to CSV format and use existing import modal
       const modal = document.getElementById('import-modal');
       const modalBody = document.getElementById('import-modal-body');
       const modalFooter = document.getElementById('import-modal-footer');
@@ -3271,28 +3240,26 @@
         </div>
       `;
       
-      // Convert Collectr cards to our format
-      importedCards = cards.map((card, index) => ({
-        originalName: card.name,
-        originalSet: card.set || '',
-        originalNumber: card.number || '',
-        quantity: card.quantity || 1,
-        condition: mapCollectrCondition(card.condition),
+      importedCards = cards.map((card) => ({
+        original: {
+          name: card.name,
+          set: card.set || '',
+          number: card.number || '',
+          quantity: card.quantity || 1,
+          condition: mapCollectrCondition(card.condition)
+        },
         marketPrice: card.marketPrice,
         image: card.image,
         matched: false,
-        matchedProduct: null,
-        partialMatch: false
+        matchType: 'none',
+        shopifyMatch: null,
+        tradeValue: 0,
+        selected: false
       }));
-      
-      // Try to match each card
-      let matchedCount = 0;
-      let partialCount = 0;
       
       for (let i = 0; i < importedCards.length; i++) {
         const card = importedCards[i];
         
-        // Update progress
         modalBody.innerHTML = `
           <div class="ea-trade-import-processing">
             <div class="ea-trade-spinner"></div>
@@ -3301,39 +3268,53 @@
         `;
         
         try {
-          // Search for this card in our inventory
-          const searchQuery = `${card.originalName} ${card.originalSet}`.trim();
-          const response = await fetch(`/api/buybackstep4?query=${encodeURIComponent(searchQuery)}&limit=5`);
-          const results = await response.json();
+          const searchQuery = `${card.original.name} ${card.original.set}`.trim();
+          const response = await fetch(`${API_URL}?estimate=true`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              cards: [{ cardName: searchQuery, quantity: card.original.quantity, condition: card.original.condition }],
+              employeeName: 'Collectr Import',
+              payoutMethod: selectedPayout
+            })
+          });
           
-          if (results && results.length > 0) {
-            // Find best match
-            const exactMatch = results.find(r => 
-              r.title.toLowerCase().includes(card.originalName.toLowerCase())
-            );
+          const data = await response.json();
+          const result = data.results?.[0];
+          
+          if (result && result.allOptions && result.allOptions.length > 0) {
+            const options = result.allOptions;
+            let bestMatch = options.find(o => {
+              const title = (o.fullTitle || o.productTitle || '').toLowerCase();
+              return title.includes(card.original.condition.toLowerCase()) || 
+                     title.includes(conditionFullName(card.original.condition).toLowerCase());
+            }) || options[0];
             
-            if (exactMatch) {
-              card.matched = true;
-              card.matchedProduct = exactMatch;
-              matchedCount++;
-            } else {
-              // Partial match
-              card.partialMatch = true;
-              card.matchedProduct = results[0];
-              partialCount++;
-            }
+            card.matched = true;
+            card.matchType = 'full';
+            card.shopifyMatch = bestMatch;
+            card.tradeValue = getTradeValue(bestMatch.price || 0, bestMatch.tags || []);
+            card.selected = true;
+          } else if (result && result.match) {
+            card.matched = true;
+            card.matchType = 'single';
+            card.shopifyMatch = {
+              fullTitle: result.match,
+              sku: result.sku,
+              price: result.retailPrice,
+              tags: result.tags || []
+            };
+            card.tradeValue = getTradeValue(result.retailPrice || 0, result.tags || []);
+            card.selected = true;
           }
         } catch (e) {
-          console.warn('Error matching card:', card.originalName, e);
+          console.warn('Error matching card:', card.original.name, e);
         }
         
-        // Small delay to avoid overwhelming the API
         await new Promise(r => setTimeout(r, 100));
       }
       
-      // Show results
-      showCollectrStatus('success', `✓ Matched ${matchedCount} cards, ${partialCount} partial matches`);
-      displayImportResults(matchedCount, partialCount, importedCards.length - matchedCount - partialCount);
+      displayImportResults();
     }
 
     function mapCollectrCondition(condition) {
@@ -3359,19 +3340,14 @@
     function showCollectrStatus(type, message) {
       const status = document.getElementById('collectr-status');
       const textSpan = status.querySelector('.status-text');
-      const progress = status.querySelector('.ea-trade-collectr-progress');
+      const spinner = status.querySelector('.ea-trade-status-spinner');
       
-      status.className = 'ea-trade-collectr-status active ' + type;
+      status.className = 'ea-trade-status active ' + type;
       textSpan.textContent = message;
       
-      if (progress) {
-        progress.style.display = type === 'loading' ? 'block' : 'none';
+      if (spinner) {
+        spinner.style.display = type === 'loading' ? 'block' : 'none';
       }
-    }
-
-    function hideCollectrStatus() {
-      const status = document.getElementById('collectr-status');
-      status.classList.remove('active');
     }
 
     function showCollectrHelp(event) {
@@ -3383,7 +3359,7 @@
       document.getElementById('collectr-help-modal').classList.remove('active');
     }
 
-    // Close Collectr help modal on backdrop click
+    // Close help modal on backdrop click
     document.getElementById('collectr-help-modal')?.addEventListener('click', (e) => {
       if (e.target.id === 'collectr-help-modal') {
         closeCollectrHelp();
