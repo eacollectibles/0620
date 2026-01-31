@@ -1014,8 +1014,78 @@
     const SUBMISSION_API_URL = '/api/customer-submissions';
     
     // Tiered pricing for store credit (based on retail price)
+    // ONLY applies to: Pokemon, Magic the Gathering, One Piece
     // Cash is approximately 75% of store credit rates
-    function getTradeValue(retailPrice, payoutMethod = selectedPayout) {
+    function getTradeValue(retailPrice, cardTitle = '', payoutMethod = selectedPayout) {
+      // Check if card is from supported games
+      const titleLower = (cardTitle || '').toLowerCase();
+      const isSupportedGame = 
+        titleLower.includes('pokemon') || 
+        titleLower.includes('pokémon') ||
+        titleLower.includes('pikachu') ||
+        titleLower.includes('charizard') ||
+        titleLower.includes('magic') || 
+        titleLower.includes('mtg') ||
+        titleLower.includes('one piece') ||
+        titleLower.includes('onepiece') ||
+        // Pokemon set names
+        titleLower.includes('prismatic') ||
+        titleLower.includes('surging sparks') ||
+        titleLower.includes('twilight masquerade') ||
+        titleLower.includes('temporal forces') ||
+        titleLower.includes('paldean fates') ||
+        titleLower.includes('obsidian flames') ||
+        titleLower.includes('scarlet & violet') ||
+        titleLower.includes('crown zenith') ||
+        titleLower.includes('silver tempest') ||
+        titleLower.includes('lost origin') ||
+        titleLower.includes('astral radiance') ||
+        titleLower.includes('brilliant stars') ||
+        titleLower.includes('fusion strike') ||
+        titleLower.includes('evolving skies') ||
+        titleLower.includes('chilling reign') ||
+        titleLower.includes('battle styles') ||
+        titleLower.includes('shining fates') ||
+        titleLower.includes('vivid voltage') ||
+        titleLower.includes('champions path') ||
+        titleLower.includes('darkness ablaze') ||
+        titleLower.includes('rebel clash') ||
+        titleLower.includes('sword & shield') ||
+        // Pokemon older sets
+        titleLower.includes('sun & moon') ||
+        titleLower.includes('xy') ||
+        titleLower.includes('black & white') ||
+        titleLower.includes('heartgold') ||
+        titleLower.includes('soulsilver') ||
+        // MTG set indicators
+        titleLower.includes('commander') ||
+        titleLower.includes('modern horizons') ||
+        titleLower.includes('murders at karlov') ||
+        titleLower.includes('outlaws') ||
+        titleLower.includes('bloomburrow') ||
+        titleLower.includes('duskmourn') ||
+        titleLower.includes('foundations') ||
+        // One Piece set indicators
+        titleLower.includes('romance dawn') ||
+        titleLower.includes('paramount war') ||
+        titleLower.includes('pillars of strength') ||
+        titleLower.includes('kingdoms of intrigue') ||
+        titleLower.includes('awakening of the new era') ||
+        titleLower.includes('op01') ||
+        titleLower.includes('op02') ||
+        titleLower.includes('op03') ||
+        titleLower.includes('op04') ||
+        titleLower.includes('op05') ||
+        titleLower.includes('op06') ||
+        titleLower.includes('op07') ||
+        titleLower.includes('op08') ||
+        titleLower.includes('op09');
+      
+      // If not a supported game, no trade value
+      if (!isSupportedGame) {
+        return 0;
+      }
+      
       let storeCredit = 0;
       
       // Tiered pricing based on retail value
@@ -1223,7 +1293,7 @@
         const defaultCondition = priorityOrder.find(c => conditions.includes(c)) || conditions[0];
         const defaultVariant = variants[defaultCondition];
         const price = defaultVariant?.price || 0;
-        const tradeValue = getTradeValue(price);
+        const tradeValue = getTradeValue(price, card.baseName);
         
         // Build options HTML
         let optionsHtml = '';
@@ -1235,7 +1305,7 @@
         if (conditions.includes('DEFAULT')) optionsHtml += `<option value="DEFAULT" ${defaultCondition === 'DEFAULT' ? 'selected' : ''}>Standard ($${(variants['DEFAULT'].price || 0).toFixed(2)})</option>`;
         
         html += `
-          <div class="ea-trade-result" data-card-index="${index}" data-variants='${JSON.stringify(variants).replace(/'/g, "\\'")}'>
+          <div class="ea-trade-result" data-card-index="${index}" data-card-title="${card.baseName.replace(/"/g, '&quot;')}" data-variants='${JSON.stringify(variants).replace(/'/g, "\\'")}'>
             <div class="ea-trade-result-image">
               ${card.image ? `<img src="${card.image}" alt="${card.baseName}" onerror="this.parentElement.innerHTML='🎴'">` : '🎴'}
             </div>
@@ -1265,12 +1335,13 @@
     function updateResultPrice(selectEl) {
       const resultEl = selectEl.closest('.ea-trade-result');
       const variants = JSON.parse(resultEl.dataset.variants);
+      const cardTitle = resultEl.dataset.cardTitle || '';
       const selectedCondition = selectEl.value;
       const variant = variants[selectedCondition];
       
       if (variant) {
         const price = variant.price || 0;
-        const tradeValue = getTradeValue(price);
+        const tradeValue = getTradeValue(price, cardTitle);
         
         resultEl.querySelector('.ea-trade-result-value-amount').textContent = `$${tradeValue.toFixed(2)}`;
         resultEl.querySelector('.ea-trade-result-value-amount').dataset.basePrice = price;
@@ -1325,8 +1396,8 @@
       } else {
         let html = '';
         cart.forEach((item, index) => {
-          // Use tiered pricing based on retail value
-          const tradeValue = getTradeValue(item.price);
+          // Use tiered pricing based on retail value and card title
+          const tradeValue = getTradeValue(item.price, item.title);
           const conditionLabel = {
             'NM': 'Near Mint',
             'LP': 'Lightly Played', 
@@ -1365,7 +1436,7 @@
       
       cart.forEach(item => {
         retailTotal += item.price;
-        tradeTotal += getTradeValue(item.price);
+        tradeTotal += getTradeValue(item.price, item.title);
       });
 
       cartCount.textContent = `${cart.length} item${cart.length !== 1 ? 's' : ''}`;
@@ -1454,7 +1525,7 @@
       
       cart.forEach(item => {
         retailTotal += item.price;
-        tradeTotal += getTradeValue(item.price);
+        tradeTotal += getTradeValue(item.price, item.title);
       });
 
       const payoutNames = {
