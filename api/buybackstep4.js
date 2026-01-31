@@ -156,12 +156,80 @@ module.exports = async function handler(req, res) {
       return normalized;
     }
 
+    // ========== ENHANCED ONE PIECE / POKEMON CARD NUMBER HANDLING ==========
+    // Normalize One Piece / Pokemon set+number patterns
+    // "EB03-026" -> "EB03026", "OP09 001" -> "OP09001"
+    function normalizeCardNumber(cardName) {
+      if (!cardName) return cardName;
+      
+      // One Piece patterns: OP09-001, EB03-026, ST01-001, PRB-001
+      const onePiecePattern = /^(OP|EB|ST|PRB)\s*(\d{1,2})[\s\-]*(\d{1,3})$/i;
+      const match = cardName.match(onePiecePattern);
+      
+      if (match) {
+        const prefix = match[1].toUpperCase();
+        const setNum = match[2].padStart(2, '0');
+        const cardNum = match[3].padStart(3, '0');
+        const normalized = `${prefix}${setNum}${cardNum}`;
+        console.log(`🎴 Normalized One Piece "${cardName}" to "${normalized}"`);
+        return normalized;
+      }
+      
+      // Pokemon patterns: SV07-025, SV07 025, SV7-25
+      const pokemonPattern = /^(SV|SM|XY|BW|SWSH)\s*(\d{1,2})[\s\-]*(\d{1,3})$/i;
+      const pkMatch = cardName.match(pokemonPattern);
+      
+      if (pkMatch) {
+        const prefix = pkMatch[1].toUpperCase();
+        const setNum = pkMatch[2].padStart(2, '0');
+        const cardNum = pkMatch[3].padStart(3, '0');
+        const normalized = `${prefix}${setNum}${cardNum}`;
+        console.log(`⚡ Normalized Pokemon "${cardName}" to "${normalized}"`);
+        return normalized;
+      }
+      
+      return cardName;
+    }
+
     // Helper function to extract potential tags from card names
     function extractPotentialTags(cardName) {
       if (!cardName) return [];
       
       const tags = [];
       
+      // ========== ONE PIECE / POKEMON SET PATTERNS ==========
+      // First, check if it's a One Piece or Pokemon set pattern and normalize it
+      const normalizedCardNum = normalizeCardNumber(cardName);
+      if (normalizedCardNum !== cardName) {
+        tags.push(normalizedCardNum);
+        console.log(`🏷️ Added normalized card number: ${normalizedCardNum}`);
+      }
+      
+      // One Piece patterns in longer strings: "Luffy OP09-001" or "EB03-026 Super Rare"
+      const onePieceInString = cardName.match(/(OP|EB|ST|PRB)\s*(\d{1,2})[\s\-]*(\d{1,3})/gi);
+      if (onePieceInString) {
+        onePieceInString.forEach(match => {
+          const normalized = normalizeCardNumber(match.trim());
+          if (normalized && !tags.includes(normalized)) {
+            tags.push(normalized);
+            console.log(`🏷️ Extracted One Piece tag from string: ${normalized}`);
+          }
+        });
+      }
+      
+      // Pokemon patterns in longer strings: "Charizard SV07-025"
+      const pokemonInString = cardName.match(/(SV|SM|XY|BW|SWSH)\s*(\d{1,2})[\s\-]*(\d{1,3})/gi);
+      if (pokemonInString) {
+        pokemonInString.forEach(match => {
+          const normalized = normalizeCardNumber(match.trim());
+          if (normalized && !tags.includes(normalized)) {
+            tags.push(normalized);
+            console.log(`🏷️ Extracted Pokemon tag from string: ${normalized}`);
+          }
+        });
+      }
+      
+      // ========== ORIGINAL NUMBER PATTERNS ==========
       // Look for number/number patterns (like 138/131)
       const numberPattern = /(\d+)[\/\-](\d+)/g;
       let match;
@@ -180,8 +248,9 @@ module.exports = async function handler(req, res) {
       // Also try the full card name as a tag (normalized)
       tags.push(normalizeSearchTerm(cardName));
       
-      console.log(`🏷️ Extracted potential tags from "${cardName}":`, tags);
-      return [...new Set(tags)]; // Remove duplicates
+      const uniqueTags = [...new Set(tags)];
+      console.log(`🏷️ Extracted ${uniqueTags.length} potential tags from "${cardName}":`, uniqueTags);
+      return uniqueTags;
     }
 
     // Normalize text for comparison
