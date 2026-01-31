@@ -3,20 +3,13 @@
   "version": "1.0.0",
   "main": "api/shopify-image-match.js",
   "scripts": {
-    "dev": "vercel dev",
-    "build": "vercel build",
-    "deploy": "vercel --prod",
-    "start": "vercel dev"
+    "dev": "vercel dev"
   },
   "dependencies": {
     "shopify-api-node": "^3.12.6",
     "multiparty": "^4.2.3",
     "@sparticuz/chromium": "^123.0.1",
     "puppeteer-core": "^22.6.0"
-  },
-  "devDependencies": {
-    "vercel": "^32.0.0",
-    "@vercel/node": "^3.0.0"
   },
   "engines": {
     "node": ">=18.0.0"
