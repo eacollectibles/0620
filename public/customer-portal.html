@@ -15,6 +15,144 @@
       color: #fff;
     }
 
+    /* Disclaimer Modal */
+    .ea-trade-disclaimer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      padding: 20px;
+    }
+
+    .ea-trade-disclaimer-overlay.hidden {
+      display: none;
+    }
+
+    .ea-trade-disclaimer-modal {
+      background: linear-gradient(180deg, #1a1a2e 0%, #151515 100%);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 20px;
+      max-width: 550px;
+      width: 100%;
+      overflow: hidden;
+      animation: disclaimerSlideIn 0.4s ease;
+    }
+
+    @keyframes disclaimerSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .ea-trade-disclaimer-header {
+      padding: 28px 28px 20px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .ea-trade-disclaimer-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .ea-trade-disclaimer-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0;
+      background: linear-gradient(135deg, #d4af37 0%, #f4e4a6 50%, #d4af37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .ea-trade-disclaimer-badge {
+      display: inline-block;
+      background: rgba(251, 191, 36, 0.15);
+      color: #fbbf24;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 12px;
+    }
+
+    .ea-trade-disclaimer-body {
+      padding: 24px 28px;
+      max-height: 45vh;
+      overflow-y: auto;
+    }
+
+    .ea-trade-disclaimer-body p {
+      font-size: 14px;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 16px;
+    }
+
+    .ea-trade-disclaimer-body p:last-child {
+      margin-bottom: 0;
+    }
+
+    .ea-trade-disclaimer-body strong {
+      color: #fff;
+    }
+
+    .ea-trade-disclaimer-list {
+      margin: 16px 0;
+      padding-left: 20px;
+    }
+
+    .ea-trade-disclaimer-list li {
+      font-size: 13px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 8px;
+    }
+
+    .ea-trade-disclaimer-footer {
+      padding: 20px 28px 28px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .ea-trade-disclaimer-accept {
+      width: 100%;
+      padding: 16px 24px;
+      background: linear-gradient(135deg, #d4af37 0%, #b8962e 100%);
+      border: none;
+      border-radius: 12px;
+      color: #000;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .ea-trade-disclaimer-accept:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(212, 175, 55, 0.35);
+    }
+
+    .ea-trade-disclaimer-note {
+      text-align: center;
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      margin-top: 14px;
+    }
+
     /* Header */
     .ea-trade-header {
       padding: 40px 40px 30px;
@@ -2250,6 +2388,40 @@
 </head>
 <body>
 
+  <!-- Disclaimer Modal -->
+  <div class="ea-trade-disclaimer-overlay" id="disclaimer-modal">
+    <div class="ea-trade-disclaimer-modal">
+      <div class="ea-trade-disclaimer-header">
+        <div class="ea-trade-disclaimer-icon">⚠️</div>
+        <h2 class="ea-trade-disclaimer-title">Trade-In Portal Terms</h2>
+        <div class="ea-trade-disclaimer-badge">Beta Version</div>
+      </div>
+      
+      <div class="ea-trade-disclaimer-body">
+        <p><strong>Welcome to our Trade-In Portal!</strong> This system is currently in beta and actively being improved. While fully functional, you may occasionally experience minor glitches or unexpected behavior.</p>
+        
+        <p>By using this portal, you acknowledge and agree to the following:</p>
+        
+        <ul class="ea-trade-disclaimer-list">
+          <li><strong>Quotes are estimates only</strong> – Final trade-in values are subject to in-store verification of card condition, authenticity, and current market pricing.</li>
+          <li><strong>Right to modify or cancel</strong> – EA Collectibles reserves the right to cancel, amend, or adjust any trade-in offer at any time for any reason.</li>
+          <li><strong>Condition verification</strong> – All cards are subject to inspection. Condition grades may be adjusted upon physical review.</li>
+          <li><strong>Price fluctuations</strong> – Card values may change between quote generation and in-store processing.</li>
+          <li><strong>System availability</strong> – We do not guarantee uninterrupted access to this portal.</li>
+        </ul>
+        
+        <p>For questions or concerns about a trade-in, please contact us in-store or via our website.</p>
+      </div>
+      
+      <div class="ea-trade-disclaimer-footer">
+        <button class="ea-trade-disclaimer-accept" onclick="acceptDisclaimer()">
+          <span>✓</span> I Understand & Accept
+        </button>
+        <p class="ea-trade-disclaimer-note">You must accept these terms to use the trade-in portal</p>
+      </div>
+    </div>
+  </div>
+
   <!-- Header -->
   <header class="ea-trade-header">
     <h1>Sell Your Cards</h1>
@@ -2515,7 +2687,24 @@
   </div>
 
   <script>
-    // Config
+    // ========== DISCLAIMER MODAL ==========
+    function checkDisclaimer() {
+      // Check if user has accepted disclaimer this session
+      const accepted = sessionStorage.getItem('ea_trade_disclaimer_accepted');
+      if (accepted === 'true') {
+        document.getElementById('disclaimer-modal').classList.add('hidden');
+      }
+    }
+
+    function acceptDisclaimer() {
+      sessionStorage.setItem('ea_trade_disclaimer_accepted', 'true');
+      document.getElementById('disclaimer-modal').classList.add('hidden');
+    }
+
+    // Check disclaimer on page load
+    document.addEventListener('DOMContentLoaded', checkDisclaimer);
+
+    // ========== CONFIG ==========
     const API_URL = '/api/buybackstep4';
     const SUBMISSION_API_URL = '/api/customer-submissions';
     
