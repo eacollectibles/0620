@@ -182,6 +182,255 @@
       color: rgba(255,255,255,0.4);
     }
 
+    /* Collectr URL Import */
+    .ea-trade-collectr-section {
+      margin-top: 16px;
+      padding: 16px;
+      background: rgba(201, 162, 39, 0.05);
+      border: 1px solid rgba(201, 162, 39, 0.2);
+      border-radius: 10px;
+    }
+
+    .ea-trade-collectr-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .ea-trade-collectr-header h4 {
+      margin: 0;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .ea-trade-collectr-badge {
+      background: linear-gradient(135deg, #c9a227, #d4af37);
+      color: #000;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .ea-trade-collectr-input-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .ea-trade-collectr-input {
+      flex: 1;
+      padding: 12px 14px;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .ea-trade-collectr-input:focus {
+      outline: none;
+      border-color: #c9a227;
+      background: rgba(0,0,0,0.5);
+    }
+
+    .ea-trade-collectr-input::placeholder {
+      color: rgba(255,255,255,0.35);
+    }
+
+    .ea-trade-collectr-btn {
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #c9a227, #d4af37);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      min-width: 120px;
+      justify-content: center;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .ea-trade-collectr-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(201, 162, 39, 0.3);
+    }
+
+    .ea-trade-collectr-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .ea-trade-collectr-btn .spinner {
+      display: none;
+      animation: collectrSpin 1s linear infinite;
+    }
+
+    .ea-trade-collectr-btn.loading .btn-text {
+      display: none;
+    }
+
+    .ea-trade-collectr-btn.loading .spinner {
+      display: inline-block;
+    }
+
+    @keyframes collectrSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .ea-trade-collectr-hint {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      margin: 10px 0 0 0;
+    }
+
+    .ea-trade-collectr-hint a {
+      color: #c9a227;
+      text-decoration: none;
+    }
+
+    .ea-trade-collectr-hint a:hover {
+      text-decoration: underline;
+    }
+
+    .ea-trade-collectr-status {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      display: none;
+    }
+
+    .ea-trade-collectr-status.active {
+      display: block;
+    }
+
+    .ea-trade-collectr-status.loading {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #93c5fd;
+    }
+
+    .ea-trade-collectr-status.success {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #86efac;
+    }
+
+    .ea-trade-collectr-status.error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+
+    .ea-trade-collectr-progress {
+      margin-top: 8px;
+      height: 3px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .ea-trade-collectr-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #c9a227, #d4af37, #c9a227);
+      background-size: 200% 100%;
+      animation: collectrShimmer 1.5s infinite;
+      width: 100%;
+    }
+
+    @keyframes collectrShimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Collectr Help Modal */
+    .ea-trade-collectr-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10001;
+      padding: 20px;
+    }
+
+    .ea-trade-collectr-modal.active {
+      display: flex;
+    }
+
+    .ea-trade-collectr-modal-content {
+      background: #1a1a1a;
+      border: 1px solid rgba(201, 162, 39, 0.3);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 420px;
+      width: 100%;
+      position: relative;
+      color: #fff;
+    }
+
+    .ea-trade-collectr-modal-close {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.5);
+      font-size: 24px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .ea-trade-collectr-modal-close:hover {
+      color: #fff;
+    }
+
+    .ea-trade-collectr-modal h3 {
+      margin: 0 0 16px 0;
+      color: #c9a227;
+      font-size: 16px;
+    }
+
+    .ea-trade-collectr-modal ol {
+      margin: 0 0 16px 0;
+      padding-left: 20px;
+      color: rgba(255,255,255,0.8);
+      font-size: 14px;
+    }
+
+    .ea-trade-collectr-modal li {
+      margin: 10px 0;
+      line-height: 1.5;
+    }
+
+    .ea-trade-collectr-modal strong {
+      color: #fff;
+    }
+
+    .ea-trade-collectr-modal code {
+      background: rgba(255,255,255,0.1);
+      padding: 8px 10px;
+      display: block;
+      border-radius: 6px;
+      font-size: 10px;
+      word-break: break-all;
+      color: #c9a227;
+      font-family: monospace;
+    }
+
     /* Import Modal */
     .ea-trade-import-modal {
       display: none;
@@ -1542,6 +1791,20 @@
         width: 100%;
         text-align: center;
       }
+      
+      /* Collectr section mobile */
+      .ea-trade-collectr-section {
+        padding: 14px;
+      }
+      .ea-trade-collectr-input-row {
+        flex-direction: column;
+      }
+      .ea-trade-collectr-btn {
+        width: 100%;
+      }
+      .ea-trade-collectr-modal-content {
+        padding: 20px;
+      }
     }
     
     /* Extra small screens */
@@ -1592,6 +1855,64 @@
         </button>
         <input type="file" id="csv-file-input" accept=".csv,.txt" style="display: none;" onchange="handleCSVImport(event)">
         <p class="ea-trade-import-hint">Export your collection from Collectr or TCGPlayer and upload the CSV</p>
+
+        <!-- Collectr URL Import -->
+        <div class="ea-trade-collectr-section">
+          <div class="ea-trade-collectr-header">
+            <span>🔗</span>
+            <h4>Or paste your Collectr link</h4>
+            <span class="ea-trade-collectr-badge">Auto-Fetch</span>
+          </div>
+          
+          <div class="ea-trade-collectr-input-row">
+            <input 
+              type="text" 
+              id="collectr-url-input" 
+              class="ea-trade-collectr-input"
+              placeholder="https://app.getcollectr.com/showcase/profile/..."
+            >
+            <button 
+              type="button" 
+              id="collectr-import-btn" 
+              class="ea-trade-collectr-btn"
+              onclick="handleCollectrURLImport()"
+            >
+              <span class="btn-text">Fetch</span>
+              <svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          
+          <p class="ea-trade-collectr-hint">
+            Share your collection on Collectr → paste the link here. 
+            <a href="#" onclick="showCollectrHelp(event)">How do I get my link?</a>
+          </p>
+          
+          <div id="collectr-status" class="ea-trade-collectr-status">
+            <span class="status-text"></span>
+            <div class="ea-trade-collectr-progress" style="display:none;">
+              <div class="ea-trade-collectr-progress-bar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Collectr Help Modal -->
+      <div id="collectr-help-modal" class="ea-trade-collectr-modal">
+        <div class="ea-trade-collectr-modal-content">
+          <button class="ea-trade-collectr-modal-close" onclick="closeCollectrHelp()">&times;</button>
+          <h3>📱 How to Get Your Collectr Link</h3>
+          <ol>
+            <li>Open the <strong>Collectr app</strong> on your phone</li>
+            <li>Go to your <strong>Profile</strong> tab</li>
+            <li>Tap <strong>Share</strong> or <strong>Showcase</strong></li>
+            <li>Choose <strong>Copy Link</strong></li>
+            <li>Paste it here!</li>
+          </ol>
+          <p style="margin-bottom:10px; color: rgba(255,255,255,0.5); font-size: 12px;">Your link looks like:</p>
+          <code>https://app.getcollectr.com/showcase/profile/abc123...</code>
+        </div>
       </div>
 
       <div id="results-container">
@@ -2853,6 +3174,228 @@
       `;
       modalFooter.style.display = 'none';
     }
+
+    // =============================================
+    // COLLECTR URL IMPORT FUNCTIONS
+    // =============================================
+    
+    async function handleCollectrURLImport() {
+      const input = document.getElementById('collectr-url-input');
+      const btn = document.getElementById('collectr-import-btn');
+      const url = input.value.trim();
+      
+      // Validate input
+      if (!url) {
+        showCollectrStatus('error', 'Please paste your Collectr showcase link');
+        input.focus();
+        return;
+      }
+      
+      // Basic URL validation
+      const isValidUrl = url.includes('getcollectr.com') || 
+                         url.includes('collectr.com') || 
+                         url.match(/^[a-f0-9-]{36}$/i);
+      
+      if (!isValidUrl) {
+        showCollectrStatus('error', 'That doesn\'t look like a Collectr link. Please check and try again.');
+        return;
+      }
+      
+      // Show loading state
+      btn.classList.add('loading');
+      btn.disabled = true;
+      showCollectrStatus('loading', 'Connecting to Collectr... This may take 30-45 seconds.');
+      
+      try {
+        const response = await fetch('/api/scrape-collectr', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ url })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.message || `Server error: ${response.status}`);
+        }
+        
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to fetch collection');
+        }
+        
+        const cardCount = data.cards?.length || 0;
+        
+        if (cardCount === 0) {
+          showCollectrStatus('error', 'No cards found. Make sure your Collectr collection is public and has cards.');
+          return;
+        }
+        
+        // Success! Show count
+        showCollectrStatus('success', `✓ Found ${cardCount} cards! Processing...`);
+        
+        // Process the cards through the existing import modal
+        await processCollectrCards(data.cards);
+        
+        // Clear input
+        input.value = '';
+        
+      } catch (error) {
+        console.error('Collectr import error:', error);
+        
+        let errorMsg = error.message;
+        if (error.message.includes('fetch') || error.message.includes('network')) {
+          errorMsg = 'Could not connect to the server. Please try again.';
+        }
+        
+        showCollectrStatus('error', `Import failed: ${errorMsg}`);
+      } finally {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+      }
+    }
+
+    async function processCollectrCards(cards) {
+      // Convert to CSV format and use existing import modal
+      const modal = document.getElementById('import-modal');
+      const modalBody = document.getElementById('import-modal-body');
+      const modalFooter = document.getElementById('import-modal-footer');
+      
+      modal.classList.add('active');
+      modalFooter.style.display = 'none';
+      modalBody.innerHTML = `
+        <div class="ea-trade-import-processing">
+          <div class="ea-trade-spinner"></div>
+          <p>Matching ${cards.length} cards with our inventory...</p>
+        </div>
+      `;
+      
+      // Convert Collectr cards to our format
+      importedCards = cards.map((card, index) => ({
+        originalName: card.name,
+        originalSet: card.set || '',
+        originalNumber: card.number || '',
+        quantity: card.quantity || 1,
+        condition: mapCollectrCondition(card.condition),
+        marketPrice: card.marketPrice,
+        image: card.image,
+        matched: false,
+        matchedProduct: null,
+        partialMatch: false
+      }));
+      
+      // Try to match each card
+      let matchedCount = 0;
+      let partialCount = 0;
+      
+      for (let i = 0; i < importedCards.length; i++) {
+        const card = importedCards[i];
+        
+        // Update progress
+        modalBody.innerHTML = `
+          <div class="ea-trade-import-processing">
+            <div class="ea-trade-spinner"></div>
+            <p>Matching cards... ${i + 1} / ${importedCards.length}</p>
+          </div>
+        `;
+        
+        try {
+          // Search for this card in our inventory
+          const searchQuery = `${card.originalName} ${card.originalSet}`.trim();
+          const response = await fetch(`/api/buybackstep4?query=${encodeURIComponent(searchQuery)}&limit=5`);
+          const results = await response.json();
+          
+          if (results && results.length > 0) {
+            // Find best match
+            const exactMatch = results.find(r => 
+              r.title.toLowerCase().includes(card.originalName.toLowerCase())
+            );
+            
+            if (exactMatch) {
+              card.matched = true;
+              card.matchedProduct = exactMatch;
+              matchedCount++;
+            } else {
+              // Partial match
+              card.partialMatch = true;
+              card.matchedProduct = results[0];
+              partialCount++;
+            }
+          }
+        } catch (e) {
+          console.warn('Error matching card:', card.originalName, e);
+        }
+        
+        // Small delay to avoid overwhelming the API
+        await new Promise(r => setTimeout(r, 100));
+      }
+      
+      // Show results
+      showCollectrStatus('success', `✓ Matched ${matchedCount} cards, ${partialCount} partial matches`);
+      displayImportResults(matchedCount, partialCount, importedCards.length - matchedCount - partialCount);
+    }
+
+    function mapCollectrCondition(condition) {
+      if (!condition) return 'NM';
+      
+      const map = {
+        'mint': 'NM',
+        'near mint': 'NM',
+        'nm': 'NM',
+        'lightly played': 'LP',
+        'lp': 'LP',
+        'moderately played': 'MP',
+        'mp': 'MP',
+        'heavily played': 'HP',
+        'hp': 'HP',
+        'damaged': 'DMG',
+        'dmg': 'DMG'
+      };
+      
+      return map[condition.toLowerCase()] || 'NM';
+    }
+
+    function showCollectrStatus(type, message) {
+      const status = document.getElementById('collectr-status');
+      const textSpan = status.querySelector('.status-text');
+      const progress = status.querySelector('.ea-trade-collectr-progress');
+      
+      status.className = 'ea-trade-collectr-status active ' + type;
+      textSpan.textContent = message;
+      
+      if (progress) {
+        progress.style.display = type === 'loading' ? 'block' : 'none';
+      }
+    }
+
+    function hideCollectrStatus() {
+      const status = document.getElementById('collectr-status');
+      status.classList.remove('active');
+    }
+
+    function showCollectrHelp(event) {
+      if (event) event.preventDefault();
+      document.getElementById('collectr-help-modal').classList.add('active');
+    }
+
+    function closeCollectrHelp() {
+      document.getElementById('collectr-help-modal').classList.remove('active');
+    }
+
+    // Close Collectr help modal on backdrop click
+    document.getElementById('collectr-help-modal')?.addEventListener('click', (e) => {
+      if (e.target.id === 'collectr-help-modal') {
+        closeCollectrHelp();
+      }
+    });
+
+    // Allow Enter key to submit Collectr URL
+    document.getElementById('collectr-url-input')?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        handleCollectrURLImport();
+      }
+    });
   </script>
 </body>
 </html>
