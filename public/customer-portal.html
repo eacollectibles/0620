@@ -1138,6 +1138,43 @@
       box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
     }
 
+    /* Quantity Input */
+    .ea-trade-qty-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-right: 12px;
+    }
+
+    .ea-trade-qty-label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      margin-right: 4px;
+    }
+
+    .ea-trade-qty-input {
+      width: 50px;
+      padding: 8px 6px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px;
+      color: #fff;
+      font-size: 14px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .ea-trade-qty-input:focus {
+      outline: none;
+      border-color: rgba(212, 175, 55, 0.5);
+      background: rgba(255,255,255,0.08);
+    }
+
+    .ea-trade-qty-input::-webkit-inner-spin-button,
+    .ea-trade-qty-input::-webkit-outer-spin-button {
+      opacity: 1;
+    }
+
     /* Empty State */
     .ea-trade-empty {
       text-align: center;
@@ -1361,6 +1398,41 @@
     .ea-trade-cart-item-price {
       font-weight: 600;
       color: #4ade80;
+    }
+
+    .ea-trade-cart-item-qty {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-right: 8px;
+    }
+
+    .ea-trade-cart-qty-btn {
+      width: 24px;
+      height: 24px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 4px;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .ea-trade-cart-qty-btn:hover {
+      background: rgba(212, 175, 55, 0.2);
+      border-color: rgba(212, 175, 55, 0.4);
+    }
+
+    .ea-trade-cart-qty-value {
+      min-width: 24px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 14px;
     }
 
     .ea-trade-cart-item-remove {
@@ -1956,8 +2028,16 @@
       .ea-trade-result-value-amount {
         font-size: 18px;
       }
-      .ea-trade-add-btn {
+      .ea-trade-qty-wrapper {
         order: 4;
+        margin-right: 8px;
+      }
+      .ea-trade-qty-input {
+        width: 45px;
+        padding: 10px 4px;
+      }
+      .ea-trade-add-btn {
+        order: 5;
         padding: 12px 20px;
         font-size: 14px;
       }
@@ -2001,6 +2081,20 @@
         width: 28px;
         height: 28px;
         font-size: 14px;
+      }
+      
+      /* Cart quantity controls */
+      .ea-trade-cart-item-qty {
+        margin-right: 4px;
+      }
+      .ea-trade-cart-qty-btn {
+        width: 22px;
+        height: 22px;
+        font-size: 12px;
+      }
+      .ea-trade-cart-qty-value {
+        font-size: 13px;
+        min-width: 20px;
       }
       
       /* Totals */
@@ -2729,6 +2823,10 @@
               <div class="ea-trade-result-value-label">Trade Value</div>
               <div class="ea-trade-result-value-amount" data-base-price="${price}">$${tradeValue.toFixed(2)}</div>
             </div>
+            <div class="ea-trade-qty-wrapper">
+              <span class="ea-trade-qty-label">Qty:</span>
+              <input type="number" class="ea-trade-qty-input" value="1" min="1" max="99">
+            </div>
             <button class="ea-trade-add-btn" onclick="addToCartFromResult(this)">+ Add</button>
           </div>
         `;
@@ -2759,19 +2857,33 @@
       const variants = JSON.parse(resultEl.dataset.variants);
       const tags = (resultEl.dataset.cardTags || '').split(',').filter(t => t);
       const selectEl = resultEl.querySelector('.ea-trade-result-condition');
+      const qtyInput = resultEl.querySelector('.ea-trade-qty-input');
       
       const selectedCondition = selectEl ? selectEl.value : Object.keys(variants)[0];
       const variant = variants[selectedCondition];
+      const quantity = Math.max(1, Math.min(99, parseInt(qtyInput?.value) || 1));
       
       if (variant) {
-        cart.push({
-          title: variant.fullTitle || variant.productTitle,
-          sku: variant.sku,
-          price: variant.price || 0,
-          condition: selectedCondition,
-          image: variant.image || variant.imageUrl || null,
-          tags: variant.tags || tags || []
-        });
+        // Check if same card+condition already in cart
+        const existingIndex = cart.findIndex(item => 
+          item.sku === variant.sku && item.condition === selectedCondition
+        );
+        
+        if (existingIndex >= 0) {
+          // Add to existing quantity
+          cart[existingIndex].quantity += quantity;
+        } else {
+          // Add new item
+          cart.push({
+            title: variant.fullTitle || variant.productTitle,
+            sku: variant.sku,
+            price: variant.price || 0,
+            condition: selectedCondition,
+            image: variant.image || variant.imageUrl || null,
+            tags: variant.tags || tags || [],
+            quantity: quantity
+          });
+        }
         
         updateCart();
         
@@ -2790,7 +2902,20 @@
       updateCart();
     }
 
+    function updateCartQty(index, delta) {
+      const newQty = (cart[index].quantity || 1) + delta;
+      if (newQty <= 0) {
+        removeFromCart(index);
+      } else {
+        cart[index].quantity = Math.min(99, newQty);
+        updateCart();
+      }
+    }
+
     function updateCart() {
+      // Calculate total number of cards (accounting for quantities)
+      const totalCards = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+      
       if (cart.length === 0) {
         cartItems.innerHTML = `
           <div class="ea-trade-cart-empty">
@@ -2803,7 +2928,9 @@
       } else {
         let html = '';
         cart.forEach((item, index) => {
+          const qty = item.quantity || 1;
           const tradeValue = getTradeValue(item.price, item.tags || []);
+          const lineTotal = tradeValue * qty;
           const conditionLabel = {
             'NM': 'Near Mint',
             'LP': 'Lightly Played', 
@@ -2822,11 +2949,16 @@
                 <div class="ea-trade-cart-item-title">${item.title}</div>
                 <div class="ea-trade-cart-item-meta">
                   <span class="ea-trade-cart-item-condition">${conditionLabel}</span>
-                  <span class="ea-trade-cart-item-retail">Retail: $${item.price.toFixed(2)}</span>
+                  <span class="ea-trade-cart-item-retail">$${item.price.toFixed(2)} ea</span>
                 </div>
               </div>
+              <div class="ea-trade-cart-item-qty">
+                <button class="ea-trade-cart-qty-btn" onclick="updateCartQty(${index}, -1)">−</button>
+                <span class="ea-trade-cart-qty-value">${qty}</span>
+                <button class="ea-trade-cart-qty-btn" onclick="updateCartQty(${index}, 1)">+</button>
+              </div>
               <div class="ea-trade-cart-item-value">
-                <div class="ea-trade-cart-item-price">$${tradeValue.toFixed(2)}</div>
+                <div class="ea-trade-cart-item-price">$${lineTotal.toFixed(2)}</div>
               </div>
               <button class="ea-trade-cart-item-remove" onclick="removeFromCart(${index})">✕</button>
             </div>
@@ -2840,11 +2972,12 @@
       let tradeTotal = 0;
       
       cart.forEach(item => {
-        retailTotal += item.price;
-        tradeTotal += getTradeValue(item.price, item.tags || []);
+        const qty = item.quantity || 1;
+        retailTotal += item.price * qty;
+        tradeTotal += getTradeValue(item.price, item.tags || []) * qty;
       });
 
-      cartCount.textContent = `${cart.length} item${cart.length !== 1 ? 's' : ''}`;
+      cartCount.textContent = `${totalCards} card${totalCards !== 1 ? 's' : ''}`;
       totalRetail.textContent = `$${retailTotal.toFixed(2)}`;
       totalQuote.textContent = `$${tradeTotal.toFixed(2)}`;
       
@@ -2852,7 +2985,7 @@
       const floatingCount = document.getElementById('floating-cart-count');
       const floatingTotal = document.getElementById('floating-cart-total');
       if (floatingCart && floatingCount && floatingTotal) {
-        floatingCount.textContent = cart.length;
+        floatingCount.textContent = totalCards;
         floatingTotal.textContent = `$${tradeTotal.toFixed(2)}`;
         if (cart.length === 0) {
           floatingCart.classList.add('hidden');
@@ -2893,10 +3026,13 @@
 
     // ========== CUSTOMER INFO MODAL ==========
     function openCustomerModal() {
-      // Calculate totals for summary
+      // Calculate totals for summary (accounting for quantities)
       let tradeTotal = 0;
+      let totalCards = 0;
       cart.forEach(item => {
-        tradeTotal += getTradeValue(item.price, item.tags || []);
+        const qty = item.quantity || 1;
+        totalCards += qty;
+        tradeTotal += getTradeValue(item.price, item.tags || []) * qty;
       });
 
       const payoutNames = {
@@ -2905,7 +3041,7 @@
       };
 
       // Update modal summary
-      document.getElementById('customer-modal-cards').textContent = cart.length + ' item' + (cart.length !== 1 ? 's' : '');
+      document.getElementById('customer-modal-cards').textContent = totalCards + ' card' + (totalCards !== 1 ? 's' : '');
       document.getElementById('customer-modal-payout').textContent = payoutNames[selectedPayout] || selectedPayout;
       document.getElementById('customer-modal-total').textContent = '$' + tradeTotal.toFixed(2);
 
@@ -2993,7 +3129,7 @@
             payoutMethod: selectedPayout,
             cards: cart.map(item => ({
               cardName: item.title,
-              quantity: 1,
+              quantity: item.quantity || 1,
               condition: item.condition,
               sku: item.sku,
               searchMethod: 'exact_sku'
@@ -3035,10 +3171,13 @@
     function showConfirmation(submissionId, customerEmail) {
       let retailTotal = 0;
       let tradeTotal = 0;
+      let totalCards = 0;
       
       cart.forEach(item => {
-        retailTotal += item.price;
-        tradeTotal += getTradeValue(item.price, item.tags || []);
+        const qty = item.quantity || 1;
+        totalCards += qty;
+        retailTotal += item.price * qty;
+        tradeTotal += getTradeValue(item.price, item.tags || []) * qty;
       });
 
       const payoutNames = {
@@ -3057,7 +3196,7 @@
       document.getElementById('modal-summary').innerHTML = `
         <div class="ea-trade-modal-summary-row">
           <span>Cards</span>
-          <span>${cart.length} items</span>
+          <span>${totalCards} card${totalCards !== 1 ? 's' : ''}</span>
         </div>
         <div class="ea-trade-modal-summary-row">
           <span>Payout Method</span>
@@ -3137,7 +3276,7 @@
           body: JSON.stringify({
             cards: cart.map(item => ({
               cardName: item.title,
-              quantity: 1,
+              quantity: item.quantity || 1,
               condition: item.condition,
               sku: item.sku,
               searchMethod: 'exact_sku'
