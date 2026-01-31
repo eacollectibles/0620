@@ -128,6 +128,49 @@
       display: flex;
     }
 
+    /* Search Hints */
+    .ea-trade-search-hints {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+      margin-bottom: 20px;
+    }
+
+    .ea-trade-search-hint-label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      display: flex;
+      align-items: center;
+      margin-right: 4px;
+    }
+
+    .ea-trade-search-hint {
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      color: rgba(255,255,255,0.6);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .ea-trade-search-hint:hover {
+      background: rgba(212, 175, 55, 0.1);
+      border-color: rgba(212, 175, 55, 0.3);
+      color: #d4af37;
+    }
+
+    .ea-trade-search-hint-game {
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .ea-trade-search-hint .example {
+      color: rgba(255,255,255,0.8);
+    }
+
     /* ========== CLEAN IMPORT SECTION ========== */
     .ea-trade-import-options {
       display: flex;
@@ -1879,6 +1922,23 @@
         <button class="ea-trade-clear-btn" id="clear-btn" type="button">✕</button>
       </div>
 
+      <!-- Search Hints -->
+      <div class="ea-trade-search-hints">
+        <span class="ea-trade-search-hint-label">Try:</span>
+        <button class="ea-trade-search-hint" onclick="quickSearch('OP09 001')">
+          <span class="ea-trade-search-hint-game">OP:</span> <span class="example">OP09 001</span>
+        </button>
+        <button class="ea-trade-search-hint" onclick="quickSearch('EB03 026')">
+          <span class="ea-trade-search-hint-game">OP:</span> <span class="example">EB03 026</span>
+        </button>
+        <button class="ea-trade-search-hint" onclick="quickSearch('Charizard ex')">
+          <span class="ea-trade-search-hint-game">PKM:</span> <span class="example">Charizard ex</span>
+        </button>
+        <button class="ea-trade-search-hint" onclick="quickSearch('SV07 025')">
+          <span class="ea-trade-search-hint-game">PKM:</span> <span class="example">SV07 025</span>
+        </button>
+      </div>
+
       <!-- Clean Import Options -->
       <div class="ea-trade-import-options">
         <div class="ea-trade-import-option" onclick="document.getElementById('csv-file-input').click()">
@@ -2158,6 +2218,14 @@
         searchTimeout = setTimeout(() => performSearch(query), 400);
       });
 
+      // Enter key support
+      searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && this.value.trim().length >= 2) {
+          if (searchTimeout) clearTimeout(searchTimeout);
+          performSearch(this.value.trim());
+        }
+      });
+
       clearBtn.addEventListener('click', function() {
         searchInput.value = '';
         clearBtn.classList.remove('visible');
@@ -2171,13 +2239,55 @@
       });
     }
 
+    // Quick search from hint buttons
+    function quickSearch(query) {
+      searchInput.value = query;
+      clearBtn.classList.add('visible');
+      performSearch(query);
+      searchInput.focus();
+    }
+
+    // Normalize search query for better matching
+    // Handles One Piece formats: "EB03-026" -> "EB03026", "OP09 001" -> "OP09001"
+    function normalizeSearchQuery(query) {
+      // Check if it looks like a One Piece card number pattern
+      // Patterns: OP09-001, EB03-026, ST01-001, OP09 001, EB03 026
+      const onePiecePattern = /^(OP|EB|ST|PRB)\s*(\d{1,2})[\s\-]*(\d{1,3})$/i;
+      const match = query.match(onePiecePattern);
+      
+      if (match) {
+        // Normalize to format without hyphens: EB03026
+        const prefix = match[1].toUpperCase();
+        const setNum = match[2].padStart(2, '0');
+        const cardNum = match[3].padStart(3, '0');
+        return `${prefix}${setNum}${cardNum}`;
+      }
+      
+      // Also check for Pokemon set patterns: SV07-025, SV07 025
+      const pokemonPattern = /^(SV|SM|XY|BW|SWSH)\s*(\d{1,2})[\s\-]*(\d{1,3})$/i;
+      const pkMatch = query.match(pokemonPattern);
+      
+      if (pkMatch) {
+        const prefix = pkMatch[1].toUpperCase();
+        const setNum = pkMatch[2].padStart(2, '0');
+        const cardNum = pkMatch[3].padStart(3, '0');
+        return `${prefix}${setNum}${cardNum}`;
+      }
+      
+      // Return original if no pattern matched
+      return query;
+    }
+
     async function performSearch(query) {
+      // Normalize query for better One Piece / Pokemon card matching
+      const normalizedQuery = normalizeSearchQuery(query);
+      
       try {
         const response = await fetch(`${API_URL}?estimate=true`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            cards: [{ cardName: query, quantity: 1, condition: 'NM' }],
+            cards: [{ cardName: normalizedQuery, quantity: 1, condition: 'NM' }],
             employeeName: 'Customer Portal',
             payoutMethod: selectedPayout
           })
@@ -2201,7 +2311,9 @@
               <div class="ea-trade-empty">
                 <div class="ea-trade-empty-icon">😕</div>
                 <p>No cards found for "${query}"</p>
-                <p style="font-size: 13px; margin-top: 8px; opacity: 0.6;">Try a different search term</p>
+                <p style="font-size: 13px; margin-top: 8px; opacity: 0.6;">
+                  Try: set code + number (OP09 001, EB03 026) or card name
+                </p>
               </div>
             `;
           }
