@@ -514,6 +514,237 @@
       flex-shrink: 0;
     }
 
+    /* Customer Info Modal */
+    .ea-trade-customer-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 20px;
+    }
+
+    .ea-trade-customer-modal.active {
+      display: flex;
+    }
+
+    .ea-trade-customer-content {
+      background: linear-gradient(180deg, #1a1a2e 0%, #151515 100%);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 20px;
+      max-width: 450px;
+      width: 100%;
+      overflow: hidden;
+      animation: modalSlideIn 0.3s ease;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .ea-trade-customer-header {
+      padding: 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      text-align: center;
+    }
+
+    .ea-trade-customer-header h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+      background: linear-gradient(135deg, #d4af37 0%, #f4e4a6 50%, #d4af37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .ea-trade-customer-header p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      margin: 0;
+    }
+
+    .ea-trade-customer-body {
+      padding: 24px;
+    }
+
+    .ea-trade-customer-field {
+      margin-bottom: 16px;
+    }
+
+    .ea-trade-customer-field:last-child {
+      margin-bottom: 0;
+    }
+
+    .ea-trade-customer-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 8px;
+    }
+
+    .ea-trade-customer-label .required {
+      color: #ef4444;
+      margin-left: 2px;
+    }
+
+    .ea-trade-customer-label .optional {
+      color: rgba(255,255,255,0.4);
+      font-weight: 400;
+      font-size: 12px;
+    }
+
+    .ea-trade-customer-input {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 15px;
+      transition: all 0.2s;
+    }
+
+    .ea-trade-customer-input:focus {
+      outline: none;
+      border-color: rgba(212, 175, 55, 0.5);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .ea-trade-customer-input::placeholder {
+      color: rgba(255,255,255,0.3);
+    }
+
+    .ea-trade-customer-input.error {
+      border-color: rgba(239, 68, 68, 0.5);
+      background: rgba(239, 68, 68, 0.05);
+    }
+
+    .ea-trade-customer-error {
+      font-size: 12px;
+      color: #ef4444;
+      margin-top: 6px;
+      display: none;
+    }
+
+    .ea-trade-customer-error.visible {
+      display: block;
+    }
+
+    .ea-trade-customer-summary {
+      background: rgba(212, 175, 55, 0.08);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .ea-trade-customer-summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+    }
+
+    .ea-trade-customer-summary-row.total {
+      border-top: 1px solid rgba(212, 175, 55, 0.2);
+      margin-top: 8px;
+      padding-top: 12px;
+    }
+
+    .ea-trade-customer-summary-label {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .ea-trade-customer-summary-value {
+      font-size: 14px;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .ea-trade-customer-summary-value.highlight {
+      font-size: 20px;
+      color: #4ade80;
+    }
+
+    .ea-trade-customer-actions {
+      display: flex;
+      gap: 12px;
+      padding: 20px 24px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .ea-trade-customer-btn {
+      flex: 1;
+      padding: 14px 24px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .ea-trade-customer-btn.cancel {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.7);
+    }
+
+    .ea-trade-customer-btn.cancel:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .ea-trade-customer-btn.submit {
+      background: linear-gradient(135deg, #d4af37 0%, #b8962e 100%);
+      border: none;
+      color: #000;
+    }
+
+    .ea-trade-customer-btn.submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
+    }
+
+    .ea-trade-customer-btn.submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .ea-trade-customer-btn .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(0,0,0,0.2);
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: none;
+    }
+
+    .ea-trade-customer-btn.loading .spinner {
+      display: block;
+    }
+
+    .ea-trade-customer-btn.loading .btn-text {
+      display: none;
+    }
+
     /* Import Modal */
     .ea-trade-import-modal {
       display: none;
@@ -2072,6 +2303,68 @@
     </div>
   </div>
 
+  <!-- Customer Info Modal -->
+  <div class="ea-trade-customer-modal" id="customer-info-modal">
+    <div class="ea-trade-customer-content">
+      <div class="ea-trade-customer-header">
+        <h2>📋 Your Information</h2>
+        <p>Enter your details to complete the trade-in request</p>
+      </div>
+      
+      <div class="ea-trade-customer-body">
+        <!-- Summary -->
+        <div class="ea-trade-customer-summary">
+          <div class="ea-trade-customer-summary-row">
+            <span class="ea-trade-customer-summary-label">Cards</span>
+            <span class="ea-trade-customer-summary-value" id="customer-modal-cards">0 items</span>
+          </div>
+          <div class="ea-trade-customer-summary-row">
+            <span class="ea-trade-customer-summary-label">Payout Method</span>
+            <span class="ea-trade-customer-summary-value" id="customer-modal-payout">Store Credit</span>
+          </div>
+          <div class="ea-trade-customer-summary-row total">
+            <span class="ea-trade-customer-summary-label">Your Quote</span>
+            <span class="ea-trade-customer-summary-value highlight" id="customer-modal-total">$0.00</span>
+          </div>
+        </div>
+
+        <!-- Form Fields -->
+        <div class="ea-trade-customer-field">
+          <label class="ea-trade-customer-label">
+            Name <span class="required">*</span>
+          </label>
+          <input type="text" class="ea-trade-customer-input" id="customer-name" placeholder="Your full name">
+          <div class="ea-trade-customer-error" id="customer-name-error">Please enter your name</div>
+        </div>
+
+        <div class="ea-trade-customer-field">
+          <label class="ea-trade-customer-label">
+            Email <span class="required">*</span>
+          </label>
+          <input type="email" class="ea-trade-customer-input" id="customer-email" placeholder="your@email.com">
+          <div class="ea-trade-customer-error" id="customer-email-error">Please enter a valid email</div>
+        </div>
+
+        <div class="ea-trade-customer-field">
+          <label class="ea-trade-customer-label">
+            Phone <span class="optional">(optional)</span>
+          </label>
+          <input type="tel" class="ea-trade-customer-input" id="customer-phone" placeholder="(555) 123-4567">
+        </div>
+      </div>
+
+      <div class="ea-trade-customer-actions">
+        <button class="ea-trade-customer-btn cancel" onclick="closeCustomerModal()">
+          Cancel
+        </button>
+        <button class="ea-trade-customer-btn submit" id="customer-submit-btn" onclick="submitWithCustomerInfo()">
+          <span class="btn-text">Submit Request</span>
+          <span class="spinner"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Image Lightbox Modal -->
   <div class="ea-trade-lightbox" id="image-lightbox" onclick="closeLightbox(event)">
     <button class="ea-trade-lightbox-close" onclick="closeLightbox(event)">✕</button>
@@ -2587,54 +2880,159 @@
 
     // Submit
     function setupSubmit() {
-      submitBtn.addEventListener('click', async function() {
-        const name = '';
-        const email = '';
-        const phone = '';
-
+      submitBtn.addEventListener('click', function() {
         if (cart.length === 0) {
           alert('Please add at least one card to your cart.');
           return;
         }
 
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="ea-trade-spinner" style="width:20px;height:20px;border-width:2px;margin:0;"></span> Submitting...';
-
-        try {
-          const response = await fetch(SUBMISSION_API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              customerName: name,
-              customerEmail: email,
-              customerPhone: phone,
-              payoutMethod: selectedPayout,
-              cards: cart.map(item => ({
-                cardName: item.title,
-                quantity: 1,
-                condition: item.condition,
-                sku: item.sku,
-                searchMethod: 'exact_sku'
-              })),
-              submissionType: 'customer_request'
-            })
-          });
-
-          const data = await response.json();
-
-          if (!response.ok) throw new Error(data.error || 'Submission failed');
-
-          showConfirmation(data.submissionId);
-
-        } catch (error) {
-          alert('Error: ' + error.message);
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '<span>🚀</span> Submit Trade-In Request';
-        }
+        // Open customer info modal instead of submitting directly
+        openCustomerModal();
       });
     }
 
-    function showConfirmation(submissionId) {
+    // ========== CUSTOMER INFO MODAL ==========
+    function openCustomerModal() {
+      // Calculate totals for summary
+      let tradeTotal = 0;
+      cart.forEach(item => {
+        tradeTotal += getTradeValue(item.price, item.tags || []);
+      });
+
+      const payoutNames = {
+        'store-credit': 'Store Credit',
+        'cash': 'Cash'
+      };
+
+      // Update modal summary
+      document.getElementById('customer-modal-cards').textContent = cart.length + ' item' + (cart.length !== 1 ? 's' : '');
+      document.getElementById('customer-modal-payout').textContent = payoutNames[selectedPayout] || selectedPayout;
+      document.getElementById('customer-modal-total').textContent = '$' + tradeTotal.toFixed(2);
+
+      // Clear previous inputs and errors
+      document.getElementById('customer-name').value = '';
+      document.getElementById('customer-email').value = '';
+      document.getElementById('customer-phone').value = '';
+      clearCustomerErrors();
+
+      // Show modal
+      document.getElementById('customer-info-modal').classList.add('active');
+      
+      // Focus first field
+      setTimeout(() => {
+        document.getElementById('customer-name').focus();
+      }, 100);
+    }
+
+    function closeCustomerModal() {
+      document.getElementById('customer-info-modal').classList.remove('active');
+      clearCustomerErrors();
+    }
+
+    function clearCustomerErrors() {
+      document.querySelectorAll('.ea-trade-customer-input').forEach(input => {
+        input.classList.remove('error');
+      });
+      document.querySelectorAll('.ea-trade-customer-error').forEach(error => {
+        error.classList.remove('visible');
+      });
+    }
+
+    function validateCustomerInfo() {
+      let valid = true;
+      clearCustomerErrors();
+
+      const name = document.getElementById('customer-name').value.trim();
+      const email = document.getElementById('customer-email').value.trim();
+
+      if (!name) {
+        document.getElementById('customer-name').classList.add('error');
+        document.getElementById('customer-name-error').classList.add('visible');
+        valid = false;
+      }
+
+      if (!email) {
+        document.getElementById('customer-email').classList.add('error');
+        document.getElementById('customer-email-error').textContent = 'Please enter your email';
+        document.getElementById('customer-email-error').classList.add('visible');
+        valid = false;
+      } else {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          document.getElementById('customer-email').classList.add('error');
+          document.getElementById('customer-email-error').textContent = 'Please enter a valid email';
+          document.getElementById('customer-email-error').classList.add('visible');
+          valid = false;
+        }
+      }
+
+      return valid;
+    }
+
+    async function submitWithCustomerInfo() {
+      if (!validateCustomerInfo()) {
+        return;
+      }
+
+      const name = document.getElementById('customer-name').value.trim();
+      const email = document.getElementById('customer-email').value.trim();
+      const phone = document.getElementById('customer-phone').value.trim();
+
+      const submitBtnModal = document.getElementById('customer-submit-btn');
+      submitBtnModal.disabled = true;
+      submitBtnModal.classList.add('loading');
+
+      try {
+        const response = await fetch(SUBMISSION_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerName: name,
+            customerEmail: email,
+            customerPhone: phone,
+            payoutMethod: selectedPayout,
+            cards: cart.map(item => ({
+              cardName: item.title,
+              quantity: 1,
+              condition: item.condition,
+              sku: item.sku,
+              searchMethod: 'exact_sku'
+            })),
+            submissionType: 'customer_request'
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.error || 'Submission failed');
+
+        // Close customer modal and show confirmation
+        closeCustomerModal();
+        showConfirmation(data.submissionId, email);
+
+      } catch (error) {
+        alert('Error: ' + error.message);
+      } finally {
+        submitBtnModal.disabled = false;
+        submitBtnModal.classList.remove('loading');
+      }
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('customer-info-modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeCustomerModal();
+      }
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && document.getElementById('customer-info-modal').classList.contains('active')) {
+        closeCustomerModal();
+      }
+    });
+
+    function showConfirmation(submissionId, customerEmail) {
       let retailTotal = 0;
       let tradeTotal = 0;
       
@@ -2649,6 +3047,12 @@
       };
 
       document.getElementById('confirmation-code').textContent = submissionId || 'TR-' + Date.now();
+      
+      // Update modal subtitle with email if provided
+      const subtitle = document.querySelector('.ea-trade-modal-subtitle');
+      if (customerEmail) {
+        subtitle.innerHTML = `We've received your request and will review it within 24 hours.<br><span style="color: #d4af37;">Confirmation sent to ${customerEmail}</span>`;
+      }
       
       document.getElementById('modal-summary').innerHTML = `
         <div class="ea-trade-modal-summary-row">
@@ -2674,6 +3078,11 @@
 
     function closeModal() {
       document.getElementById('confirmation-modal').classList.remove('active');
+      
+      // Reset the subtitle text
+      const subtitle = document.querySelector('.ea-trade-modal-subtitle');
+      subtitle.innerHTML = "We've received your request and will review it within 24 hours. Check your email for updates.";
+      
       cart = [];
       updateCart();
       searchInput.value = '';
