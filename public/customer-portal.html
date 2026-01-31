@@ -241,6 +241,11 @@
       padding: 8px;
     }
 
+    .ea-trade-result-single-condition {
+      color: rgba(255,255,255,0.6);
+      font-size: 13px;
+    }
+
     .ea-trade-result-value {
       text-align: right;
       margin-right: 12px;
@@ -1146,12 +1151,23 @@
           .replace(/\s*-\s*Holofoil$/i, '')
           .trim();
         
-        // Determine condition from title
-        let condition = 'NM';
-        if (/Lightly Played|LP/i.test(title)) condition = 'LP';
-        else if (/Moderately Played|MP/i.test(title)) condition = 'MP';
-        else if (/Heavily Played|HP/i.test(title)) condition = 'HP';
-        else if (/Damaged|DMG/i.test(title)) condition = 'DMG';
+        // Determine condition from title - check all conditions explicitly
+        let condition = null;
+        const titleLower = title.toLowerCase();
+        if (titleLower.includes('near mint') || / nm[-\s]/i.test(title) || title.endsWith(' NM')) {
+          condition = 'NM';
+        } else if (titleLower.includes('lightly played') || / lp[-\s]/i.test(title) || title.endsWith(' LP')) {
+          condition = 'LP';
+        } else if (titleLower.includes('moderately played') || / mp[-\s]/i.test(title) || title.endsWith(' MP')) {
+          condition = 'MP';
+        } else if (titleLower.includes('heavily played') || / hp[-\s]/i.test(title) || title.endsWith(' HP')) {
+          condition = 'HP';
+        } else if (titleLower.includes('damaged') || / dmg[-\s]/i.test(title) || title.endsWith(' DMG')) {
+          condition = 'DMG';
+        } else {
+          // No condition found - treat as its own unique entry (could be a sealed product, etc)
+          condition = 'DEFAULT';
+        }
         
         if (!groupedCards[baseName]) {
           groupedCards[baseName] = {
@@ -1172,11 +1188,23 @@
       Object.values(groupedCards).forEach((card, index) => {
         const variants = card.variants;
         const conditions = Object.keys(variants);
-        const defaultCondition = conditions.includes('NM') ? 'NM' : conditions[0];
+        
+        // Priority order: NM > LP > MP > HP > DMG > DEFAULT
+        const priorityOrder = ['NM', 'LP', 'MP', 'HP', 'DMG', 'DEFAULT'];
+        const defaultCondition = priorityOrder.find(c => conditions.includes(c)) || conditions[0];
         const defaultVariant = variants[defaultCondition];
         const price = defaultVariant?.price || 0;
         const rate = getCurrentRate();
         const tradeValue = price * rate;
+        
+        // Build options HTML
+        let optionsHtml = '';
+        if (conditions.includes('NM')) optionsHtml += `<option value="NM" ${defaultCondition === 'NM' ? 'selected' : ''}>Near Mint ($${(variants['NM'].price || 0).toFixed(2)})</option>`;
+        if (conditions.includes('LP')) optionsHtml += `<option value="LP" ${defaultCondition === 'LP' ? 'selected' : ''}>Lightly Played ($${(variants['LP'].price || 0).toFixed(2)})</option>`;
+        if (conditions.includes('MP')) optionsHtml += `<option value="MP" ${defaultCondition === 'MP' ? 'selected' : ''}>Moderately Played ($${(variants['MP'].price || 0).toFixed(2)})</option>`;
+        if (conditions.includes('HP')) optionsHtml += `<option value="HP" ${defaultCondition === 'HP' ? 'selected' : ''}>Heavily Played ($${(variants['HP'].price || 0).toFixed(2)})</option>`;
+        if (conditions.includes('DMG')) optionsHtml += `<option value="DMG" ${defaultCondition === 'DMG' ? 'selected' : ''}>Damaged ($${(variants['DMG'].price || 0).toFixed(2)})</option>`;
+        if (conditions.includes('DEFAULT')) optionsHtml += `<option value="DEFAULT" ${defaultCondition === 'DEFAULT' ? 'selected' : ''}>Standard ($${(variants['DEFAULT'].price || 0).toFixed(2)})</option>`;
         
         html += `
           <div class="ea-trade-result" data-card-index="${index}" data-variants='${JSON.stringify(variants).replace(/'/g, "\\'")}'>
@@ -1186,13 +1214,11 @@
             <div class="ea-trade-result-info">
               <div class="ea-trade-result-title">${card.baseName}</div>
               <div class="ea-trade-result-meta">
+                ${conditions.length > 1 || !conditions.includes('DEFAULT') ? `
                 <select class="ea-trade-result-condition" onchange="updateResultPrice(this)">
-                  ${conditions.includes('NM') ? `<option value="NM" ${defaultCondition === 'NM' ? 'selected' : ''}>Near Mint ($${(variants['NM'].price || 0).toFixed(2)})</option>` : ''}
-                  ${conditions.includes('LP') ? `<option value="LP" ${defaultCondition === 'LP' ? 'selected' : ''}>Lightly Played ($${(variants['LP'].price || 0).toFixed(2)})</option>` : ''}
-                  ${conditions.includes('MP') ? `<option value="MP" ${defaultCondition === 'MP' ? 'selected' : ''}>Moderately Played ($${(variants['MP'].price || 0).toFixed(2)})</option>` : ''}
-                  ${conditions.includes('HP') ? `<option value="HP" ${defaultCondition === 'HP' ? 'selected' : ''}>Heavily Played ($${(variants['HP'].price || 0).toFixed(2)})</option>` : ''}
-                  ${conditions.includes('DMG') ? `<option value="DMG" ${defaultCondition === 'DMG' ? 'selected' : ''}>Damaged ($${(variants['DMG'].price || 0).toFixed(2)})</option>` : ''}
+                  ${optionsHtml}
                 </select>
+                ` : `<span class="ea-trade-result-single-condition">Retail: $${price.toFixed(2)}</span>`}
               </div>
             </div>
             <div class="ea-trade-result-value">
@@ -1227,7 +1253,10 @@
     function addToCartFromResult(btn) {
       const resultEl = btn.closest('.ea-trade-result');
       const variants = JSON.parse(resultEl.dataset.variants);
-      const selectedCondition = resultEl.querySelector('.ea-trade-result-condition').value;
+      const selectEl = resultEl.querySelector('.ea-trade-result-condition');
+      
+      // If there's a dropdown, use its value; otherwise use the first/only variant
+      const selectedCondition = selectEl ? selectEl.value : Object.keys(variants)[0];
       const variant = variants[selectedCondition];
       
       if (variant) {
@@ -1277,7 +1306,8 @@
             'LP': 'Lightly Played', 
             'MP': 'Moderately Played',
             'HP': 'Heavily Played',
-            'DMG': 'Damaged'
+            'DMG': 'Damaged',
+            'DEFAULT': 'Standard'
           }[item.condition] || item.condition;
           
           html += `
