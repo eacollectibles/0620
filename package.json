@@ -11,8 +11,8 @@
   "dependencies": {
     "shopify-api-node": "^3.12.6",
     "multiparty": "^4.2.3",
-    "@sparticuz/chromium": "^119.0.2",
-    "puppeteer-core": "^21.6.1"
+    "@sparticuz/chromium": "^123.0.1",
+    "puppeteer-core": "^22.6.0"
   },
   "devDependencies": {
     "vercel": "^32.0.0",
@@ -21,12 +21,5 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "keywords": [
-    "shopify",
-    "image-recognition", 
-    "card-matching",
-    "vercel",
-    "serverless"
-  ],
   "license": "MIT"
 }
