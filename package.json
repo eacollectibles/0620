@@ -1,0 +1,32 @@
+{
+  "name": "shopify-image-match-api",
+  "version": "1.0.0",
+  "main": "api/shopify-image-match.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "vercel build", 
+    "deploy": "vercel --prod",
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "shopify-api-node": "^3.12.6",
+    "multiparty": "^4.2.3",
+    "@sparticuz/chromium": "^119.0.2",
+    "puppeteer-core": "^21.6.1"
+  },
+  "devDependencies": {
+    "vercel": "^32.0.0",
+    "@vercel/node": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "shopify",
+    "image-recognition", 
+    "card-matching",
+    "vercel",
+    "serverless"
+  ],
+  "license": "MIT"
+}

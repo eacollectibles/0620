@@ -3,6 +3,10 @@
   "functions": {
     "api/shopify-image-match.js": {
       "maxDuration": 30
+    },
+    "api/scrape-collectr.js": {
+      "maxDuration": 60,
+      "memory": 1024
     }
   }
 }
