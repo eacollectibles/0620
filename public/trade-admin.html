@@ -610,6 +610,10 @@
       border-color: rgba(212, 175, 55, 0.5);
     }
 
+    .admin-login-input::placeholder {
+      color: rgba(255,255,255,0.4);
+    }
+
     .admin-login-btn {
       width: 100%;
       padding: 16px 24px;
@@ -678,10 +682,11 @@
     <div class="admin-login-box">
       <div class="admin-login-icon">🔐</div>
       <h1 class="admin-login-title">Trade-In Admin</h1>
-      <p class="admin-login-subtitle">Enter staff password to continue</p>
-      <input type="password" class="admin-login-input" id="login-password" placeholder="Password" autofocus>
+      <p class="admin-login-subtitle">Enter your credentials to continue</p>
+      <input type="text" class="admin-login-input" id="login-username" placeholder="Username" autofocus autocomplete="username">
+      <input type="password" class="admin-login-input" id="login-password" placeholder="Password" autocomplete="current-password">
       <button class="admin-login-btn" onclick="attemptLogin()">Sign In</button>
-      <p class="admin-login-error" id="login-error">Incorrect password</p>
+      <p class="admin-login-error" id="login-error">Invalid username or password</p>
     </div>
   </div>
 
@@ -694,7 +699,7 @@
         <h1>Trade-In Admin</h1>
       </div>
       <div class="admin-user">
-        <span>Staff Portal</span>
+        <span id="logged-in-user">Staff Portal</span>
         <div class="admin-user-avatar">👤</div>
       </div>
     </header>
@@ -777,22 +782,39 @@
   </div>
 
   <script>
-    const ADMIN_PASSWORD = 'EArep2025'; // Same as rep password
+    // Staff credentials - username: password
+    const ADMIN_CREDENTIALS = {
+      'jaynerdy': 'h033192'
+      // Add more staff here: 'username': 'password'
+    };
+    
     const API_URL = '/api/customer-submissions';
     
     let submissions = [];
     let currentFilter = 'all';
     let currentSubmission = null;
+    let loggedInUser = null;
 
-    // Login
+    // Login - handle Enter key on both fields
+    document.getElementById('login-username').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('login-password').focus();
+    });
     document.getElementById('login-password').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') attemptLogin();
     });
 
     function attemptLogin() {
+      const username = document.getElementById('login-username').value.trim().toLowerCase();
       const password = document.getElementById('login-password').value;
       
-      if (password === ADMIN_PASSWORD) {
+      if (!username || !password) {
+        document.getElementById('login-error').classList.add('visible');
+        return;
+      }
+      
+      if (ADMIN_CREDENTIALS[username] && ADMIN_CREDENTIALS[username] === password) {
+        loggedInUser = username;
+        document.getElementById('logged-in-user').textContent = username;
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('admin-interface').style.display = 'block';
         loadSubmissions();
