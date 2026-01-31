@@ -128,6 +128,305 @@
       display: flex;
     }
 
+    /* Import Collection Section */
+    .ea-trade-import-section {
+      margin-top: 16px;
+      text-align: center;
+    }
+
+    .ea-trade-import-divider {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+      color: rgba(255,255,255,0.3);
+      font-size: 13px;
+    }
+
+    .ea-trade-import-divider::before,
+    .ea-trade-import-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .ea-trade-import-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 24px;
+      background: rgba(212, 175, 55, 0.1);
+      border: 2px dashed rgba(212, 175, 55, 0.4);
+      border-radius: 12px;
+      color: #d4af37;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-import-btn:hover {
+      background: rgba(212, 175, 55, 0.2);
+      border-color: rgba(212, 175, 55, 0.6);
+      transform: translateY(-2px);
+    }
+
+    .ea-trade-import-btn span {
+      font-size: 18px;
+    }
+
+    .ea-trade-import-hint {
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    /* Import Modal */
+    .ea-trade-import-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 9999;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .ea-trade-import-modal.active {
+      display: block;
+    }
+
+    .ea-trade-import-modal-content {
+      max-width: 900px;
+      margin: 20px auto;
+      background: #1a1a1a;
+      border-radius: 16px;
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      overflow: hidden;
+    }
+
+    .ea-trade-import-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      background: rgba(212, 175, 55, 0.05);
+    }
+
+    .ea-trade-import-modal-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #d4af37;
+    }
+
+    .ea-trade-import-modal-close {
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      border-radius: 50%;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-import-modal-close:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .ea-trade-import-modal-body {
+      padding: 24px;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .ea-trade-import-summary {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .ea-trade-import-stat {
+      background: rgba(255,255,255,0.03);
+      padding: 16px 20px;
+      border-radius: 10px;
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .ea-trade-import-stat-label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 4px;
+    }
+
+    .ea-trade-import-stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #d4af37;
+    }
+
+    .ea-trade-import-stat-value.green {
+      color: #4ade80;
+    }
+
+    .ea-trade-import-stat-value.red {
+      color: #ef4444;
+    }
+
+    .ea-trade-import-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .ea-trade-import-table th {
+      text-align: left;
+      padding: 12px;
+      background: rgba(255,255,255,0.03);
+      color: rgba(255,255,255,0.6);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .ea-trade-import-table td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 14px;
+    }
+
+    .ea-trade-import-table tr:hover {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .ea-trade-import-table .card-name {
+      max-width: 250px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ea-trade-import-table .match-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .ea-trade-import-table .match-status.matched {
+      background: rgba(74, 222, 128, 0.15);
+      color: #4ade80;
+    }
+
+    .ea-trade-import-table .match-status.partial {
+      background: rgba(251, 191, 36, 0.15);
+      color: #fbbf24;
+    }
+
+    .ea-trade-import-table .match-status.no-match {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+    }
+
+    .ea-trade-import-table input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: #d4af37;
+    }
+
+    .ea-trade-import-modal-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      background: rgba(0,0,0,0.2);
+    }
+
+    .ea-trade-import-select-all {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: rgba(255,255,255,0.7);
+      font-size: 14px;
+    }
+
+    .ea-trade-import-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .ea-trade-import-cancel {
+      padding: 12px 24px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-import-cancel:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .ea-trade-import-add {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #d4af37 0%, #b8962e 100%);
+      border: none;
+      border-radius: 10px;
+      color: #000;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-import-add:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+    }
+
+    .ea-trade-import-add:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .ea-trade-import-processing {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .ea-trade-import-processing p {
+      margin-top: 16px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .ea-trade-import-progress {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #d4af37;
+    }
+
     /* Loading State */
     .ea-trade-loading {
       text-align: center;
@@ -396,6 +695,10 @@
     .ea-trade-payout-icon {
       font-size: 22px;
       margin-bottom: 6px;
+    }
+
+    .ea-trade-payout-text {
+      /* Wrapper for name + rate */
     }
 
     .ea-trade-payout-name {
@@ -925,6 +1228,63 @@
     ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.3); border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(212, 175, 55, 0.5); }
 
+    /* Floating Cart Button (Mobile) */
+    .ea-trade-floating-cart {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #d4af37 0%, #b8962e 100%);
+      color: #000;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .ea-trade-floating-cart:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(212, 175, 55, 0.5);
+    }
+
+    .ea-trade-floating-cart:active {
+      transform: translateY(0);
+    }
+
+    .ea-trade-floating-cart-icon {
+      font-size: 18px;
+    }
+
+    .ea-trade-floating-cart-count {
+      background: #000;
+      color: #d4af37;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .ea-trade-floating-cart-total {
+      font-weight: 700;
+    }
+
+    @media (max-width: 1024px) {
+      .ea-trade-floating-cart {
+        display: flex;
+      }
+      .ea-trade-floating-cart.hidden {
+        display: none;
+      }
+    }
+
     /* Responsive */
     @media (max-width: 1024px) {
       .ea-trade-main {
@@ -941,17 +1301,165 @@
 
     @media (max-width: 640px) {
       .ea-trade-header {
-        padding: 30px 20px 20px;
+        padding: 24px 16px 16px;
       }
       .ea-trade-header h1 {
-        font-size: 28px;
+        font-size: 24px;
       }
+      .ea-trade-header p {
+        font-size: 14px;
+      }
+      
+      .ea-trade-main {
+        padding: 16px;
+        gap: 20px;
+      }
+      
+      /* Payout options - full width stacked */
       .ea-trade-payout-options {
         flex-direction: column;
+        gap: 8px;
       }
+      .ea-trade-payout-option {
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-align: left;
+      }
+      .ea-trade-payout-icon {
+        margin-bottom: 0;
+        font-size: 20px;
+      }
+      .ea-trade-payout-text {
+        flex: 1;
+      }
+      
+      /* Search input */
       .ea-trade-search-input {
-        padding-right: 50px;
+        padding: 16px 50px 16px 48px;
+        font-size: 16px; /* Prevents iOS zoom */
       }
+      .ea-trade-search-icon {
+        left: 16px;
+        font-size: 18px;
+      }
+      .ea-trade-clear-btn {
+        right: 12px;
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+      }
+      
+      /* Result items - wrap on mobile */
+      .ea-trade-result {
+        flex-wrap: wrap;
+        padding: 12px;
+        gap: 12px;
+      }
+      .ea-trade-result-image {
+        width: 50px;
+        height: 70px;
+      }
+      .ea-trade-result-info {
+        flex: 1;
+        min-width: calc(100% - 62px - 70px);
+      }
+      .ea-trade-result-title {
+        font-size: 14px;
+        white-space: normal;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+      .ea-trade-result-condition {
+        min-width: 0;
+        width: 100%;
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+      .ea-trade-result-value {
+        order: 3;
+        width: calc(100% - 90px);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .ea-trade-result-value-label {
+        font-size: 11px;
+      }
+      .ea-trade-result-value-amount {
+        font-size: 18px;
+      }
+      .ea-trade-add-btn {
+        order: 4;
+        padding: 12px 20px;
+        font-size: 14px;
+      }
+      
+      /* Cart panel */
+      .ea-trade-cart {
+        padding: 16px;
+        border-radius: 16px;
+      }
+      .ea-trade-cart-header h2 {
+        font-size: 16px;
+      }
+      
+      /* Cart items */
+      .ea-trade-cart-items {
+        max-height: 250px;
+      }
+      .ea-trade-cart-item {
+        padding: 10px;
+        gap: 10px;
+      }
+      .ea-trade-cart-item-image {
+        width: 36px;
+        height: 50px;
+      }
+      .ea-trade-cart-item-title {
+        font-size: 12px;
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+      .ea-trade-cart-item-meta {
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+      .ea-trade-cart-item-price {
+        font-size: 14px;
+      }
+      .ea-trade-cart-item-remove {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+      }
+      
+      /* Totals */
+      .ea-trade-cart-total {
+        padding: 12px;
+      }
+      .ea-trade-quote-value {
+        font-size: 22px;
+      }
+      
+      /* Submit button */
+      .ea-trade-submit-btn {
+        padding: 14px 20px;
+        font-size: 14px;
+      }
+      
+      /* Customer inputs */
+      .ea-trade-input {
+        padding: 14px;
+        font-size: 16px; /* Prevents iOS zoom */
+      }
+      
+      /* Lightbox */
       .ea-trade-lightbox {
         padding: 10px;
       }
@@ -966,6 +1474,90 @@
         max-width: 95vw;
         max-height: 85vh;
         border-radius: 8px;
+      }
+      
+      /* Rep mode */
+      .ea-trade-rep-section {
+        margin-top: 16px;
+        padding-top: 16px;
+      }
+      .ea-trade-rep-btn,
+      .ea-trade-rep-confirm {
+        padding: 12px 16px;
+        font-size: 13px;
+      }
+      
+      /* Import section mobile */
+      .ea-trade-import-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px 20px;
+        font-size: 14px;
+      }
+      .ea-trade-import-modal-content {
+        margin: 10px;
+        border-radius: 12px;
+      }
+      .ea-trade-import-modal-header {
+        padding: 16px;
+      }
+      .ea-trade-import-modal-title {
+        font-size: 16px;
+      }
+      .ea-trade-import-modal-body {
+        padding: 16px;
+        max-height: 50vh;
+      }
+      .ea-trade-import-summary {
+        gap: 10px;
+      }
+      .ea-trade-import-stat {
+        padding: 12px;
+        min-width: calc(50% - 10px);
+      }
+      .ea-trade-import-stat-value {
+        font-size: 20px;
+      }
+      .ea-trade-import-table {
+        font-size: 12px;
+      }
+      .ea-trade-import-table th,
+      .ea-trade-import-table td {
+        padding: 8px 6px;
+      }
+      .ea-trade-import-table .card-name {
+        max-width: 120px;
+      }
+      .ea-trade-import-modal-footer {
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px;
+      }
+      .ea-trade-import-actions {
+        width: 100%;
+        flex-direction: column;
+      }
+      .ea-trade-import-cancel,
+      .ea-trade-import-add {
+        width: 100%;
+        text-align: center;
+      }
+    }
+    
+    /* Extra small screens */
+    @media (max-width: 380px) {
+      .ea-trade-header h1 {
+        font-size: 22px;
+      }
+      .ea-trade-result-value-amount {
+        font-size: 16px;
+      }
+      .ea-trade-add-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+      }
+      .ea-trade-quote-value {
+        font-size: 20px;
       }
     }
   </style>
@@ -990,13 +1582,32 @@
         <button class="ea-trade-clear-btn" id="clear-btn" type="button">✕</button>
       </div>
 
+      <!-- Import Collection Option -->
+      <div class="ea-trade-import-section">
+        <div class="ea-trade-import-divider">
+          <span>or</span>
+        </div>
+        <button class="ea-trade-import-btn" onclick="document.getElementById('csv-file-input').click()">
+          <span>📁</span> Import from Collectr / CSV
+        </button>
+        <input type="file" id="csv-file-input" accept=".csv,.txt" style="display: none;" onchange="handleCSVImport(event)">
+        <p class="ea-trade-import-hint">Export your collection from Collectr or TCGPlayer and upload the CSV</p>
+      </div>
+
       <div id="results-container">
         <div class="ea-trade-empty">
           <div class="ea-trade-empty-icon">🔍</div>
-          <p>Start typing to search for cards</p>
+          <p>Search for cards or import your collection</p>
         </div>
       </div>
     </div>
+
+    <!-- Floating Cart Button (Mobile) -->
+    <button class="ea-trade-floating-cart hidden" id="floating-cart" onclick="scrollToCart()">
+      <span class="ea-trade-floating-cart-icon">🛒</span>
+      <span class="ea-trade-floating-cart-count" id="floating-cart-count">0</span>
+      <span class="ea-trade-floating-cart-total" id="floating-cart-total">$0.00</span>
+    </button>
 
     <!-- Cart Panel -->
     <div class="ea-trade-cart-panel">
@@ -1020,13 +1631,17 @@
           <div class="ea-trade-payout-options">
             <div class="ea-trade-payout-option selected" data-payout="store-credit">
               <div class="ea-trade-payout-icon">🏪</div>
-              <div class="ea-trade-payout-name">Store Credit</div>
-              <div class="ea-trade-payout-rate">Best Value</div>
+              <div class="ea-trade-payout-text">
+                <div class="ea-trade-payout-name">Store Credit</div>
+                <div class="ea-trade-payout-rate">Best Value</div>
+              </div>
             </div>
             <div class="ea-trade-payout-option cash" data-payout="cash">
               <div class="ea-trade-payout-icon">💵</div>
-              <div class="ea-trade-payout-name">Cash</div>
-              <div class="ea-trade-payout-rate">In-Store</div>
+              <div class="ea-trade-payout-text">
+                <div class="ea-trade-payout-name">Cash</div>
+                <div class="ea-trade-payout-rate">In-Store</div>
+              </div>
             </div>
           </div>
         </div>
@@ -1102,6 +1717,33 @@
   <div class="ea-trade-lightbox" id="image-lightbox" onclick="closeLightbox(event)">
     <button class="ea-trade-lightbox-close" onclick="closeLightbox(event)">✕</button>
     <img class="ea-trade-lightbox-img" id="lightbox-img" src="" alt="Card Image">
+  </div>
+
+  <!-- Import Collection Modal -->
+  <div class="ea-trade-import-modal" id="import-modal">
+    <div class="ea-trade-import-modal-content">
+      <div class="ea-trade-import-modal-header">
+        <h3 class="ea-trade-import-modal-title">📁 Import Collection</h3>
+        <button class="ea-trade-import-modal-close" onclick="closeImportModal()">✕</button>
+      </div>
+      
+      <div class="ea-trade-import-modal-body" id="import-modal-body">
+        <!-- Content will be dynamically populated -->
+      </div>
+      
+      <div class="ea-trade-import-modal-footer" id="import-modal-footer" style="display: none;">
+        <label class="ea-trade-import-select-all">
+          <input type="checkbox" id="import-select-all" onchange="toggleSelectAllImports()">
+          Select all matched cards
+        </label>
+        <div class="ea-trade-import-actions">
+          <button class="ea-trade-import-cancel" onclick="closeImportModal()">Cancel</button>
+          <button class="ea-trade-import-add" id="import-add-btn" onclick="addSelectedImportsToCart()" disabled>
+            Add Selected to Cart
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -1231,7 +1873,7 @@
         resultsContainer.innerHTML = `
           <div class="ea-trade-empty">
             <div class="ea-trade-empty-icon">🔍</div>
-            <p>Start typing to search for cards</p>
+            <p>Search for cards or import your collection</p>
           </div>
         `;
         searchInput.focus();
@@ -1516,6 +2158,21 @@
       cartCount.textContent = `${cart.length} item${cart.length !== 1 ? 's' : ''}`;
       totalRetail.textContent = `$${retailTotal.toFixed(2)}`;
       totalQuote.textContent = `$${tradeTotal.toFixed(2)}`;
+      
+      // Update floating cart (mobile)
+      const floatingCart = document.getElementById('floating-cart');
+      const floatingCount = document.getElementById('floating-cart-count');
+      const floatingTotal = document.getElementById('floating-cart-total');
+      if (floatingCart && floatingCount && floatingTotal) {
+        floatingCount.textContent = cart.length;
+        floatingTotal.textContent = `$${tradeTotal.toFixed(2)}`;
+        // Hide when cart is empty
+        if (cart.length === 0) {
+          floatingCart.classList.add('hidden');
+        } else {
+          floatingCart.classList.remove('hidden');
+        }
+      }
     }
 
     // Payout Selection
@@ -1768,12 +2425,450 @@
       document.body.style.overflow = '';
     }
 
-    // Close lightbox with Escape key
+    // Close modals with Escape key
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
+        // Check import modal first (higher priority)
+        const importModal = document.getElementById('import-modal');
+        if (importModal && importModal.classList.contains('active')) {
+          closeImportModal();
+          return;
+        }
+        // Then lightbox
         closeLightbox();
       }
     });
+
+    // Scroll to cart (for mobile floating button)
+    function scrollToCart() {
+      const cartPanel = document.querySelector('.ea-trade-cart-panel');
+      if (cartPanel) {
+        cartPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    // ========== CSV IMPORT FUNCTIONALITY ==========
+    let importedCards = [];
+    
+    function handleCSVImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const csvText = e.target.result;
+        parseCSV(csvText);
+      };
+      reader.readAsText(file);
+      
+      // Reset file input so same file can be selected again
+      event.target.value = '';
+    }
+    
+    function parseCSV(csvText) {
+      // Show modal with processing state
+      const modal = document.getElementById('import-modal');
+      const modalBody = document.getElementById('import-modal-body');
+      const modalFooter = document.getElementById('import-modal-footer');
+      
+      modal.classList.add('active');
+      modalFooter.style.display = 'none';
+      modalBody.innerHTML = `
+        <div class="ea-trade-import-processing">
+          <div class="ea-trade-spinner"></div>
+          <p>Parsing your collection...</p>
+        </div>
+      `;
+      
+      // Parse CSV
+      const lines = csvText.split(/\r?\n/).filter(line => line.trim());
+      if (lines.length < 2) {
+        showImportError('CSV file appears to be empty or invalid');
+        return;
+      }
+      
+      // Parse header row
+      const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+      console.log('CSV Headers:', headers);
+      
+      // Map common column names
+      const columnMap = {
+        name: findColumn(headers, ['name', 'product name', 'card name', 'productname', 'card', 'title']),
+        set: findColumn(headers, ['set', 'set name', 'setname', 'expansion', 'series']),
+        number: findColumn(headers, ['number', 'card number', 'collector number', '#', 'no.']),
+        quantity: findColumn(headers, ['quantity', 'qty', 'count', 'amount']),
+        condition: findColumn(headers, ['condition', 'cond', 'quality']),
+        game: findColumn(headers, ['game', 'tcg', 'category', 'type'])
+      };
+      
+      console.log('Column mapping:', columnMap);
+      
+      if (columnMap.name === -1) {
+        showImportError('Could not find card name column. Please ensure your CSV has a "Name" or "Product Name" column.');
+        return;
+      }
+      
+      // Parse data rows
+      const cards = [];
+      for (let i = 1; i < lines.length; i++) {
+        const values = parseCSVLine(lines[i]);
+        if (values.length === 0) continue;
+        
+        const card = {
+          name: values[columnMap.name] || '',
+          set: columnMap.set !== -1 ? values[columnMap.set] || '' : '',
+          number: columnMap.number !== -1 ? values[columnMap.number] || '' : '',
+          quantity: columnMap.quantity !== -1 ? parseInt(values[columnMap.quantity]) || 1 : 1,
+          condition: columnMap.condition !== -1 ? normalizeCondition(values[columnMap.condition]) : 'NM',
+          game: columnMap.game !== -1 ? values[columnMap.game] || '' : ''
+        };
+        
+        if (card.name.trim()) {
+          cards.push(card);
+        }
+      }
+      
+      console.log(`Parsed ${cards.length} cards from CSV`);
+      
+      if (cards.length === 0) {
+        showImportError('No valid cards found in CSV file');
+        return;
+      }
+      
+      // Show progress and start matching
+      modalBody.innerHTML = `
+        <div class="ea-trade-import-processing">
+          <div class="ea-trade-spinner"></div>
+          <p>Matching cards against inventory...</p>
+          <div class="ea-trade-import-progress" id="import-progress">0 / ${cards.length}</div>
+        </div>
+      `;
+      
+      matchCardsToInventory(cards);
+    }
+    
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim());
+      
+      return result;
+    }
+    
+    function findColumn(headers, possibleNames) {
+      for (const name of possibleNames) {
+        const idx = headers.findIndex(h => h.includes(name));
+        if (idx !== -1) return idx;
+      }
+      return -1;
+    }
+    
+    function normalizeCondition(condition) {
+      if (!condition) return 'NM';
+      const c = condition.toLowerCase().trim();
+      if (c.includes('near mint') || c === 'nm' || c === 'mint') return 'NM';
+      if (c.includes('lightly') || c === 'lp' || c === 'sp') return 'LP';
+      if (c.includes('moderately') || c === 'mp' || c === 'played') return 'MP';
+      if (c.includes('heavily') || c === 'hp') return 'HP';
+      if (c.includes('damaged') || c === 'dmg' || c === 'poor') return 'DMG';
+      return 'NM';
+    }
+    
+    async function matchCardsToInventory(cards) {
+      importedCards = [];
+      const progressEl = document.getElementById('import-progress');
+      
+      for (let i = 0; i < cards.length; i++) {
+        const card = cards[i];
+        progressEl.textContent = `${i + 1} / ${cards.length}`;
+        
+        try {
+          // Build search query
+          let searchQuery = card.name;
+          if (card.set) searchQuery += ' ' + card.set;
+          if (card.number) searchQuery += ' ' + card.number;
+          
+          // Call API to search
+          const response = await fetch(`${API_URL}?estimate=true`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              cards: [{ cardName: searchQuery, quantity: card.quantity, condition: card.condition }],
+              employeeName: 'CSV Import',
+              payoutMethod: selectedPayout
+            })
+          });
+          
+          const data = await response.json();
+          const result = data.results?.[0];
+          
+          if (result && result.allOptions && result.allOptions.length > 0) {
+            // Find best match for the condition
+            const options = result.allOptions;
+            let bestMatch = options.find(o => {
+              const title = (o.fullTitle || o.productTitle || '').toLowerCase();
+              return title.includes(card.condition.toLowerCase()) || 
+                     title.includes(conditionFullName(card.condition).toLowerCase());
+            }) || options[0];
+            
+            importedCards.push({
+              original: card,
+              matched: true,
+              matchType: 'full',
+              shopifyMatch: bestMatch,
+              tradeValue: getTradeValue(bestMatch.price || 0, bestMatch.tags || []),
+              selected: true
+            });
+          } else if (result && result.match) {
+            // Single match
+            importedCards.push({
+              original: card,
+              matched: true,
+              matchType: 'single',
+              shopifyMatch: {
+                fullTitle: result.match,
+                sku: result.sku,
+                price: result.retailPrice,
+                tags: result.tags || []
+              },
+              tradeValue: getTradeValue(result.retailPrice || 0, result.tags || []),
+              selected: true
+            });
+          } else {
+            // No match
+            importedCards.push({
+              original: card,
+              matched: false,
+              matchType: 'none',
+              shopifyMatch: null,
+              tradeValue: 0,
+              selected: false
+            });
+          }
+        } catch (error) {
+          console.error('Error matching card:', card.name, error);
+          importedCards.push({
+            original: card,
+            matched: false,
+            matchType: 'error',
+            shopifyMatch: null,
+            tradeValue: 0,
+            selected: false
+          });
+        }
+        
+        // Small delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      displayImportResults();
+    }
+    
+    function conditionFullName(cond) {
+      const names = {
+        'NM': 'Near Mint',
+        'LP': 'Lightly Played',
+        'MP': 'Moderately Played',
+        'HP': 'Heavily Played',
+        'DMG': 'Damaged'
+      };
+      return names[cond] || cond;
+    }
+    
+    function displayImportResults() {
+      const modalBody = document.getElementById('import-modal-body');
+      const modalFooter = document.getElementById('import-modal-footer');
+      
+      const matched = importedCards.filter(c => c.matched);
+      const unmatched = importedCards.filter(c => !c.matched);
+      const totalTradeValue = matched.reduce((sum, c) => sum + (c.tradeValue * c.original.quantity), 0);
+      
+      let html = `
+        <div class="ea-trade-import-summary">
+          <div class="ea-trade-import-stat">
+            <div class="ea-trade-import-stat-label">Total Cards</div>
+            <div class="ea-trade-import-stat-value">${importedCards.length}</div>
+          </div>
+          <div class="ea-trade-import-stat">
+            <div class="ea-trade-import-stat-label">Matched</div>
+            <div class="ea-trade-import-stat-value green">${matched.length}</div>
+          </div>
+          <div class="ea-trade-import-stat">
+            <div class="ea-trade-import-stat-label">Not Found</div>
+            <div class="ea-trade-import-stat-value red">${unmatched.length}</div>
+          </div>
+          <div class="ea-trade-import-stat">
+            <div class="ea-trade-import-stat-label">Est. Trade Value</div>
+            <div class="ea-trade-import-stat-value">$${totalTradeValue.toFixed(2)}</div>
+          </div>
+        </div>
+      `;
+      
+      if (matched.length > 0) {
+        html += `
+          <table class="ea-trade-import-table">
+            <thead>
+              <tr>
+                <th style="width: 40px;"></th>
+                <th>Card Name</th>
+                <th>Condition</th>
+                <th>Qty</th>
+                <th>Retail</th>
+                <th>Trade Value</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        
+        importedCards.forEach((card, index) => {
+          const match = card.shopifyMatch;
+          const statusClass = card.matched ? 'matched' : 'no-match';
+          const statusText = card.matched ? '✓ Matched' : '✗ Not Found';
+          
+          html += `
+            <tr>
+              <td>
+                ${card.matched ? `<input type="checkbox" class="import-card-checkbox" data-index="${index}" ${card.selected ? 'checked' : ''} onchange="updateImportSelection()">` : ''}
+              </td>
+              <td class="card-name" title="${card.original.name}">${card.original.name}</td>
+              <td>${conditionFullName(card.original.condition)}</td>
+              <td>${card.original.quantity}</td>
+              <td>${card.matched ? '$' + (match.price || 0).toFixed(2) : '-'}</td>
+              <td>${card.matched ? '$' + (card.tradeValue * card.original.quantity).toFixed(2) : '-'}</td>
+              <td><span class="match-status ${statusClass}">${statusText}</span></td>
+            </tr>
+          `;
+        });
+        
+        html += '</tbody></table>';
+      }
+      
+      if (unmatched.length > 0 && matched.length > 0) {
+        html += `<p style="margin-top: 16px; font-size: 13px; color: rgba(255,255,255,0.5);">
+          ${unmatched.length} card(s) could not be matched. They may not be in our inventory or the name format differs.
+        </p>`;
+      }
+      
+      if (matched.length === 0) {
+        html += `<p style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5);">
+          No cards could be matched to our inventory. Please try searching for cards individually.
+        </p>`;
+      }
+      
+      modalBody.innerHTML = html;
+      modalFooter.style.display = matched.length > 0 ? 'flex' : 'none';
+      
+      updateImportSelection();
+    }
+    
+    function updateImportSelection() {
+      const checkboxes = document.querySelectorAll('.import-card-checkbox');
+      const selectAllCheckbox = document.getElementById('import-select-all');
+      const addBtn = document.getElementById('import-add-btn');
+      
+      let selectedCount = 0;
+      let totalValue = 0;
+      
+      checkboxes.forEach(cb => {
+        const idx = parseInt(cb.dataset.index);
+        importedCards[idx].selected = cb.checked;
+        if (cb.checked && importedCards[idx].matched) {
+          selectedCount++;
+          totalValue += importedCards[idx].tradeValue * importedCards[idx].original.quantity;
+        }
+      });
+      
+      // Update select all checkbox state
+      const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+      const someChecked = Array.from(checkboxes).some(cb => cb.checked);
+      selectAllCheckbox.checked = allChecked;
+      selectAllCheckbox.indeterminate = someChecked && !allChecked;
+      
+      // Update add button
+      addBtn.disabled = selectedCount === 0;
+      addBtn.textContent = selectedCount > 0 
+        ? `Add ${selectedCount} Cards ($${totalValue.toFixed(2)})` 
+        : 'Add Selected to Cart';
+    }
+    
+    function toggleSelectAllImports() {
+      const selectAll = document.getElementById('import-select-all');
+      const checkboxes = document.querySelectorAll('.import-card-checkbox');
+      
+      checkboxes.forEach(cb => {
+        cb.checked = selectAll.checked;
+      });
+      
+      updateImportSelection();
+    }
+    
+    function addSelectedImportsToCart() {
+      const selectedCards = importedCards.filter(c => c.selected && c.matched);
+      
+      selectedCards.forEach(card => {
+        const match = card.shopifyMatch;
+        for (let i = 0; i < card.original.quantity; i++) {
+          cart.push({
+            title: match.fullTitle || match.productTitle || card.original.name,
+            sku: match.sku || '',
+            price: match.price || 0,
+            condition: card.original.condition,
+            image: match.image || null,
+            tags: match.tags || []
+          });
+        }
+      });
+      
+      updateCart();
+      closeImportModal();
+      
+      // Show success message in results
+      const resultsContainer = document.getElementById('results-container');
+      resultsContainer.innerHTML = `
+        <div class="ea-trade-empty">
+          <div class="ea-trade-empty-icon">✅</div>
+          <p>Added ${selectedCards.length} cards from your collection!</p>
+          <p style="font-size: 13px; margin-top: 8px; opacity: 0.6;">
+            ${cart.length} total items in cart
+          </p>
+        </div>
+      `;
+    }
+    
+    function closeImportModal() {
+      const modal = document.getElementById('import-modal');
+      modal.classList.remove('active');
+      importedCards = [];
+    }
+    
+    function showImportError(message) {
+      const modalBody = document.getElementById('import-modal-body');
+      const modalFooter = document.getElementById('import-modal-footer');
+      
+      modalBody.innerHTML = `
+        <div style="text-align: center; padding: 40px;">
+          <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+          <p style="color: #ef4444; font-size: 16px; margin-bottom: 16px;">${message}</p>
+          <button class="ea-trade-import-cancel" onclick="closeImportModal()">Close</button>
+        </div>
+      `;
+      modalFooter.style.display = 'none';
+    }
   </script>
 </body>
 </html>
