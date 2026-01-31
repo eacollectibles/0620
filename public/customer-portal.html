@@ -2341,9 +2341,13 @@
       
       options.forEach(option => {
         const title = option.fullTitle || option.productTitle || 'Unknown';
+        
+        // Extract baseName by removing condition from ANYWHERE in the title
+        // Handles: "Card Name - Near Mint - Foil" AND "Card Name - Near Mint"
         const baseName = title
-          .replace(/\s*-\s*(Near Mint|Lightly Played|Moderately Played|Heavily Played|Damaged|NM|LP|MP|HP|DMG)\s*(-\s*Holofoil)?$/i, '')
-          .replace(/\s*-\s*Holofoil$/i, '')
+          .replace(/\s*-\s*(Near Mint|Lightly Played|Moderately Played|Heavily Played|Damaged|NM|LP|MP|HP|DMG)(\s*-\s*|\s*$)/gi, '$2')
+          .replace(/\s*-\s*-\s*/g, ' - ')  // Clean up double dashes
+          .replace(/\s*-\s*$/g, '')         // Remove trailing dash
           .trim();
         
         let condition = null;
