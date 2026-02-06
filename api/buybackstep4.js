@@ -1052,8 +1052,12 @@ module.exports = async function handler(req, res) {
         const product = searchResult.product;
         const variant = searchResult.variant;
         const variantPrice = parseFloat(variant.price || 0);
-        const suggestedTradeValue = calculateSuggestedTradeValue(variantPrice);
-        const maximumTradeValue = calculateMaximumTradeValue(variantPrice);
+        
+        // Condition multiplier: NM and LP get full value, MP/HP/DMG get $0
+        const conditionUpper = (condition || 'NM').toUpperCase();
+        const isDisabledCondition = ['MP', 'HP', 'DMG'].includes(conditionUpper);
+        const suggestedTradeValue = isDisabledCondition ? 0 : calculateSuggestedTradeValue(variantPrice);
+        const maximumTradeValue = isDisabledCondition ? 0 : calculateMaximumTradeValue(variantPrice);
         
         totalSuggestedValue += suggestedTradeValue * quantity;
         totalMaximumValue += maximumTradeValue * quantity;
