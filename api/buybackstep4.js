@@ -394,9 +394,9 @@ module.exports = async function handler(req, res) {
       return { found: false };
     };
 
-    // Search by title with better normalization
+    // Search by title with better normalization (REST - exact match)
     const searchByTitle = async (query) => {
-      console.log('🔍 Searching by title:', query);
+      console.log('🔍 Searching by title (REST exact):', query);
       
       const productRes = await makeShopifyRequest(
         `/admin/api/2023-10/products.json?title=${encodeURIComponent(query)}`
@@ -431,6 +431,192 @@ module.exports = async function handler(req, res) {
       
       return { found: false };
     };
+
+    // NEW: GraphQL fulltext search - finds products by partial name match
+    // This is the key fix for searches like "Rayquaza", "Pikachu", etc.
+    const searchByTitleFulltext = async (query, originalCardName) => {
+      console.log('🔍 Searching by title (GraphQL fulltext):', query);
+      
+      // Escape quotes in the query for GraphQL
+      const escapedQuery = query.replace(/"/g, '\\"');
+      
+      const graphqlQuery = `{
+        products(first: 20, query: "title:*${escapedQuery}*") {
+          edges {
+            node {
+              id
+              title
+              tags
+              featuredImage {
+                url
+              }
+              variants(first: 5) {
+                edges {
+                  node {
+                    id
+                    title
+                    sku
+                    price
+                    inventoryQuantity
+                    inventoryItem {
+                      id
+                    }
+                    product {
+                      id
+                      title
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }`;
+
+      const graphqlRes = await makeShopifyGraphQLRequest(graphqlQuery);
+      const json = await graphqlRes.json();
+      const products = json?.data?.products?.edges || [];
+      console.log(`🔍 Fulltext title search for "${query}" found ${products.length} products`);
+      
+      if (products.length === 0) {
+        // Fallback: try general search (searches across title, tags, vendor, etc.)
+        console.log('🔍 Trying general product search...');
+        const generalQuery = `{
+          products(first: 20, query: "${escapedQuery}") {
+            edges {
+              node {
+                id
+                title
+                tags
+                featuredImage {
+                  url
+                }
+                variants(first: 5) {
+                  edges {
+                    node {
+                      id
+                      title
+                      sku
+                      price
+                      inventoryQuantity
+                      inventoryItem {
+                        id
+                      }
+                      product {
+                        id
+                        title
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }`;
+
+        const generalRes = await makeShopifyGraphQLRequest(generalQuery);
+        const generalJson = await generalRes.json();
+        const generalProducts = generalJson?.data?.products?.edges || [];
+        console.log(`🔍 General search for "${query}" found ${generalProducts.length} products`);
+        
+        if (generalProducts.length === 0) {
+          return { found: false };
+        }
+        
+        // Use generalProducts
+        return buildFulltextResult(generalProducts, originalCardName || query);
+      }
+      
+      return buildFulltextResult(products, originalCardName || query);
+    };
+
+    // Helper to build result from fulltext search products
+    function buildFulltextResult(products, originalCardName) {
+      const allOptions = [];
+      products.forEach(productEdge => {
+        const product = productEdge.node;
+        product.variants.edges.forEach(variantEdge => {
+          const variant = variantEdge.node;
+          allOptions.push({
+            productTitle: product.title,
+            variantTitle: variant.title,
+            sku: variant.sku,
+            price: parseFloat(variant.price || 0),
+            inventory: variant.inventoryQuantity,
+            inventoryItemId: variant.inventoryItem?.id?.replace('gid://shopify/InventoryItem/', ''),
+            fullTitle: variant.title !== 'Default Title' ? `${product.title} - ${variant.title}` : product.title,
+            productId: product.id,
+            variantId: variant.id,
+            image: product.featuredImage?.url || null,
+            tags: Array.isArray(product.tags) ? product.tags : []
+          });
+        });
+      });
+
+      console.log(`🔍 Fulltext search found ${allOptions.length} total variants across ${products.length} products`);
+
+      if (allOptions.length === 0) {
+        return { found: false };
+      }
+
+      if (allOptions.length === 1) {
+        const option = allOptions[0];
+        return {
+          found: true,
+          product: { title: option.productTitle, id: option.productId },
+          variant: {
+            sku: option.sku,
+            price: option.price,
+            inventory_item_id: option.inventoryItemId,
+            product_id: option.productId
+          },
+          searchMethod: 'fulltext_single',
+          confidence: 'high',
+          image: option.image || null
+        };
+      }
+
+      // Multiple options - find best match or return all for user selection
+      const bestMatch = findBestVariantMatch(originalCardName, allOptions);
+      
+      if (bestMatch.score > 0.8) {
+        console.log(`🎯 Fulltext high confidence match: "${bestMatch.option.fullTitle}" (score: ${bestMatch.score.toFixed(2)})`);
+        return {
+          found: true,
+          product: { title: bestMatch.option.productTitle, id: bestMatch.option.productId },
+          variant: {
+            sku: bestMatch.option.sku,
+            price: bestMatch.option.price,
+            inventory_item_id: bestMatch.option.inventoryItemId,
+            product_id: bestMatch.option.productId
+          },
+          searchMethod: 'fulltext_confident',
+          confidence: 'high',
+          alternativeCount: allOptions.length - 1,
+          allOptions: allOptions,
+          image: bestMatch.option.image || null
+        };
+      }
+
+      // Return all options for user to pick
+      console.log(`⚠️ Fulltext multiple options, best guess: "${bestMatch.option.fullTitle}" (score: ${bestMatch.score.toFixed(2)})`);
+      return {
+        found: true,
+        product: { title: bestMatch.option.productTitle, id: bestMatch.option.productId },
+        variant: {
+          sku: bestMatch.option.sku,
+          price: bestMatch.option.price,
+          inventory_item_id: bestMatch.option.inventoryItemId,
+          product_id: bestMatch.option.productId
+        },
+        searchMethod: 'fulltext_uncertain',
+        confidence: bestMatch.score > 0.5 ? 'medium' : 'low',
+        alternativeCount: allOptions.length - 1,
+        allOptions: allOptions,
+        needsConfirmation: true,
+        image: bestMatch.option.image || null
+      };
+    }
 
     const searchBySKU = async (sku) => {
       console.log('🔍 Searching by SKU (fallback):', sku);
@@ -640,7 +826,7 @@ module.exports = async function handler(req, res) {
       };
     };
 
-    // FIXED: Updated main search function with enhanced tag search
+    // FIXED: Updated main search function with enhanced tag search + fulltext name search
     const searchCard = async (card) => {
       const { cardName, sku, searchMethod } = card;
       
@@ -678,7 +864,18 @@ module.exports = async function handler(req, res) {
         }
       }
       
-      // FALLBACK: Use other search methods
+      // PRIORITY 3: GraphQL fulltext title search (handles partial names like "Rayquaza", "Pikachu")
+      try {
+        const fulltextResult = await searchByTitleFulltext(cardName, cardName);
+        if (fulltextResult.found) {
+          console.log(`✅ Found via fulltext search: ${fulltextResult.product.title}`);
+          return fulltextResult;
+        }
+      } catch (error) {
+        console.log(`❌ Fulltext search failed for "${cardName}":`, error.message);
+      }
+      
+      // FALLBACK: REST exact title search and SKU search
       const searchMethods = [
         { query: cardName, method: searchByTitle, name: 'title' },
         { query: sku || cardName, method: searchBySKU, name: 'sku' }
