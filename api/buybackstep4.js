@@ -440,8 +440,10 @@ module.exports = async function handler(req, res) {
       // Escape quotes in the query for GraphQL
       const escapedQuery = query.replace(/"/g, '\\"');
       
+      // Strategy 1: General search (searches across title, tags, body, vendor, etc.)
+      // This is Shopify's most flexible search - just pass the term without a field prefix
       const graphqlQuery = `{
-        products(first: 20, query: "title:*${escapedQuery}*") {
+        products(first: 20, query: "${escapedQuery}") {
           edges {
             node {
               id
@@ -476,13 +478,13 @@ module.exports = async function handler(req, res) {
       const graphqlRes = await makeShopifyGraphQLRequest(graphqlQuery);
       const json = await graphqlRes.json();
       const products = json?.data?.products?.edges || [];
-      console.log(`🔍 Fulltext title search for "${query}" found ${products.length} products`);
+      console.log(`🔍 Fulltext search for "${query}" found ${products.length} products`);
       
       if (products.length === 0) {
-        // Fallback: try general search (searches across title, tags, vendor, etc.)
-        console.log('🔍 Trying general product search...');
-        const generalQuery = `{
-          products(first: 20, query: "${escapedQuery}") {
+        // Strategy 2: Try with title: prefix (more targeted but still partial match in Shopify)
+        console.log('🔍 Trying title-prefixed search...');
+        const titleQuery = `{
+          products(first: 20, query: "title:${escapedQuery}") {
             edges {
               node {
                 id
@@ -514,17 +516,16 @@ module.exports = async function handler(req, res) {
           }
         }`;
 
-        const generalRes = await makeShopifyGraphQLRequest(generalQuery);
-        const generalJson = await generalRes.json();
-        const generalProducts = generalJson?.data?.products?.edges || [];
-        console.log(`🔍 General search for "${query}" found ${generalProducts.length} products`);
+        const titleRes = await makeShopifyGraphQLRequest(titleQuery);
+        const titleJson = await titleRes.json();
+        const titleProducts = titleJson?.data?.products?.edges || [];
+        console.log(`🔍 Title-prefixed search for "${query}" found ${titleProducts.length} products`);
         
-        if (generalProducts.length === 0) {
+        if (titleProducts.length === 0) {
           return { found: false };
         }
         
-        // Use generalProducts
-        return buildFulltextResult(generalProducts, originalCardName || query);
+        return buildFulltextResult(titleProducts, originalCardName || query);
       }
       
       return buildFulltextResult(products, originalCardName || query);
