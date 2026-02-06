@@ -2709,7 +2709,12 @@
     const SUBMISSION_API_URL = '/api/customer-submissions';
     
     // Tiered pricing for store credit (based on retail price)
-    function getTradeValue(retailPrice, tags = [], payoutMethod = selectedPayout) {
+    function getTradeValue(retailPrice, tags = [], payoutMethod = selectedPayout, condition = null) {
+      // Disable trade value for conditions worse than LP
+      if (condition && ['MP', 'HP', 'DMG'].includes(condition.toUpperCase())) {
+        return 0;
+      }
+      
       let tagArray = [];
       if (Array.isArray(tags)) {
         tagArray = tags.map(t => t.toLowerCase());
@@ -2733,31 +2738,28 @@
         return 0;
       }
       
-      let storeCredit = 0;
+      let tradeValue = 0;
       
       if (retailPrice >= 50.00) {
-        storeCredit = retailPrice * 0.75;
+        tradeValue = retailPrice * 0.75;
       } else if (retailPrice >= 25.00) {
-        storeCredit = retailPrice * 0.70;
+        tradeValue = retailPrice * 0.70;
       } else if (retailPrice >= 15.01) {
-        storeCredit = retailPrice * 0.65;
+        tradeValue = retailPrice * 0.65;
       } else if (retailPrice >= 8.00) {
-        storeCredit = retailPrice * 0.50;
+        tradeValue = retailPrice * 0.50;
       } else if (retailPrice >= 5.00) {
-        storeCredit = retailPrice * 0.35;
+        tradeValue = retailPrice * 0.35;
       } else if (retailPrice >= 3.01) {
-        storeCredit = retailPrice * 0.25;
+        tradeValue = retailPrice * 0.25;
       } else if (retailPrice >= 2.00) {
-        storeCredit = 0.25;
+        tradeValue = 0.25;
       } else {
-        storeCredit = 0;
+        tradeValue = 0;
       }
       
-      if (payoutMethod === 'cash') {
-        return storeCredit * 0.75;
-      }
-      
-      return storeCredit;
+      // Cash and credit are the same rate
+      return tradeValue;
     }
 
     // State
@@ -3002,15 +3004,18 @@
         const defaultCondition = priorityOrder.find(c => conditions.includes(c)) || conditions[0];
         const defaultVariant = variants[defaultCondition];
         const price = defaultVariant?.price || 0;
-        const tradeValue = getTradeValue(price, tags);
+        const tradeValue = getTradeValue(price, tags, selectedPayout, defaultCondition);
         
         let optionsHtml = '';
         if (conditions.includes('NM')) optionsHtml += `<option value="NM" ${defaultCondition === 'NM' ? 'selected' : ''}>Near Mint ($${(variants['NM'].price || 0).toFixed(2)})</option>`;
         if (conditions.includes('LP')) optionsHtml += `<option value="LP" ${defaultCondition === 'LP' ? 'selected' : ''}>Lightly Played ($${(variants['LP'].price || 0).toFixed(2)})</option>`;
-        if (conditions.includes('MP')) optionsHtml += `<option value="MP" ${defaultCondition === 'MP' ? 'selected' : ''}>Moderately Played ($${(variants['MP'].price || 0).toFixed(2)})</option>`;
-        if (conditions.includes('HP')) optionsHtml += `<option value="HP" ${defaultCondition === 'HP' ? 'selected' : ''}>Heavily Played ($${(variants['HP'].price || 0).toFixed(2)})</option>`;
-        if (conditions.includes('DMG')) optionsHtml += `<option value="DMG" ${defaultCondition === 'DMG' ? 'selected' : ''}>Damaged ($${(variants['DMG'].price || 0).toFixed(2)})</option>`;
+        if (conditions.includes('MP')) optionsHtml += `<option value="MP" ${defaultCondition === 'MP' ? 'selected' : ''}>Moderately Played - No Trade</option>`;
+        if (conditions.includes('HP')) optionsHtml += `<option value="HP" ${defaultCondition === 'HP' ? 'selected' : ''}>Heavily Played - No Trade</option>`;
+        if (conditions.includes('DMG')) optionsHtml += `<option value="DMG" ${defaultCondition === 'DMG' ? 'selected' : ''}>Damaged - No Trade</option>`;
         if (conditions.includes('DEFAULT')) optionsHtml += `<option value="DEFAULT" ${defaultCondition === 'DEFAULT' ? 'selected' : ''}>Standard ($${(variants['DEFAULT'].price || 0).toFixed(2)})</option>`;
+        
+        const isDisabledCondition = ['MP', 'HP', 'DMG'].includes(defaultCondition);
+
         
         const imageUrl = card.image ? card.image.replace(/"/g, '&quot;').replace(/'/g, '&#39;') : '';
         const tagsString = Array.isArray(tags) ? tags.join(',') : (tags || '');
@@ -3032,13 +3037,13 @@
             </div>
             <div class="ea-trade-result-value">
               <div class="ea-trade-result-value-label">Trade Value</div>
-              <div class="ea-trade-result-value-amount" data-base-price="${price}">$${tradeValue.toFixed(2)}</div>
+              <div class="ea-trade-result-value-amount" data-base-price="${price}" ${isDisabledCondition ? 'style="color: #999;"' : ''}>$${tradeValue.toFixed(2)}</div>
             </div>
             <div class="ea-trade-qty-wrapper">
               <span class="ea-trade-qty-label">Qty:</span>
               <input type="number" class="ea-trade-qty-input" value="1" min="1" max="99">
             </div>
-            <button class="ea-trade-add-btn" onclick="addToCartFromResult(this)">+ Add</button>
+            <button class="ea-trade-add-btn" onclick="addToCartFromResult(this)" ${isDisabledCondition ? 'disabled style="opacity: 0.5;"' : ''}>${isDisabledCondition ? 'Not Accepted' : '+ Add'}</button>
           </div>
         `;
       });
@@ -3056,10 +3061,24 @@
       
       if (variant) {
         const price = variant.price || 0;
-        const tradeValue = getTradeValue(price, tags);
+        const tradeValue = getTradeValue(price, tags, selectedPayout, selectedCondition);
         
         resultEl.querySelector('.ea-trade-result-value-amount').textContent = `$${tradeValue.toFixed(2)}`;
         resultEl.querySelector('.ea-trade-result-value-amount').dataset.basePrice = price;
+        
+        // Disable add button for MP/HP/DMG conditions
+        const addBtn = resultEl.querySelector('.ea-trade-add-btn');
+        if (['MP', 'HP', 'DMG'].includes(selectedCondition.toUpperCase())) {
+          addBtn.disabled = true;
+          addBtn.textContent = 'Not Accepted';
+          addBtn.style.opacity = '0.5';
+          resultEl.querySelector('.ea-trade-result-value-amount').style.color = '#999';
+        } else {
+          addBtn.disabled = false;
+          addBtn.textContent = '+ Add';
+          addBtn.style.opacity = '1';
+          resultEl.querySelector('.ea-trade-result-value-amount').style.color = '';
+        }
       }
     }
 
@@ -3140,7 +3159,7 @@
         let html = '';
         cart.forEach((item, index) => {
           const qty = item.quantity || 1;
-          const tradeValue = getTradeValue(item.price, item.tags || []);
+          const tradeValue = getTradeValue(item.price, item.tags || [], selectedPayout, item.condition);
           const lineTotal = tradeValue * qty;
           const conditionLabel = {
             'NM': 'Near Mint',
@@ -3185,7 +3204,7 @@
       cart.forEach(item => {
         const qty = item.quantity || 1;
         retailTotal += item.price * qty;
-        tradeTotal += getTradeValue(item.price, item.tags || []) * qty;
+        tradeTotal += getTradeValue(item.price, item.tags || [], selectedPayout, item.condition) * qty;
       });
 
       cartCount.textContent = `${totalCards} card${totalCards !== 1 ? 's' : ''}`;
@@ -3243,7 +3262,7 @@
       cart.forEach(item => {
         const qty = item.quantity || 1;
         totalCards += qty;
-        tradeTotal += getTradeValue(item.price, item.tags || []) * qty;
+        tradeTotal += getTradeValue(item.price, item.tags || [], selectedPayout, item.condition) * qty;
       });
 
       const payoutNames = {
@@ -3388,7 +3407,7 @@
         const qty = item.quantity || 1;
         totalCards += qty;
         retailTotal += item.price * qty;
-        tradeTotal += getTradeValue(item.price, item.tags || []) * qty;
+        tradeTotal += getTradeValue(item.price, item.tags || [], selectedPayout, item.condition) * qty;
       });
 
       const payoutNames = {
@@ -3764,7 +3783,7 @@
               matched: true,
               matchType: 'full',
               shopifyMatch: bestMatch,
-              tradeValue: getTradeValue(bestMatch.price || 0, bestMatch.tags || []),
+              tradeValue: getTradeValue(bestMatch.price || 0, bestMatch.tags || [], selectedPayout, card.condition),
               selected: true
             });
           } else if (result && result.match) {
@@ -3778,7 +3797,7 @@
                 price: result.retailPrice,
                 tags: result.tags || []
               },
-              tradeValue: getTradeValue(result.retailPrice || 0, result.tags || []),
+              tradeValue: getTradeValue(result.retailPrice || 0, result.tags || [], selectedPayout, card.condition),
               selected: true
             });
           } else {
