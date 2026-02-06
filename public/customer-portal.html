@@ -2384,6 +2384,39 @@
         font-size: 20px;
       }
     }
+
+    /* Toast Notification */
+    .ea-trade-toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: #1a1a2e;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 99999;
+      opacity: 0;
+      transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      max-width: 90vw;
+      text-align: center;
+    }
+    .ea-trade-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .ea-trade-toast .toast-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 <body>
@@ -2744,6 +2777,82 @@
     let selectedPayout = 'store-credit';
     let searchTimeout;
     let importedCards = [];
+    let audioCtx = null;
+
+    // Confirmation sound using Web Audio API (no external files needed)
+    function playAddSound() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Pleasant two-tone "ding" 
+        const now = audioCtx.currentTime;
+        
+        // First tone
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(880, now); // A5
+        gain1.gain.setValueAtTime(0.15, now);
+        gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        osc1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.15);
+        
+        // Second tone (higher, slightly delayed)
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(1318.5, now + 0.08); // E6
+        gain2.gain.setValueAtTime(0, now);
+        gain2.gain.setValueAtTime(0.12, now + 0.08);
+        gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        osc2.start(now + 0.08);
+        osc2.stop(now + 0.25);
+      } catch (e) {
+        // Audio not supported, silently skip
+      }
+    }
+
+    // Toast notification
+    function showToast(message, icon = '✅') {
+      // Remove any existing toast
+      const existing = document.querySelector('.ea-trade-toast');
+      if (existing) existing.remove();
+      
+      const toast = document.createElement('div');
+      toast.className = 'ea-trade-toast';
+      toast.innerHTML = `<span class="toast-icon">${icon}</span><span>${message}</span>`;
+      document.body.appendChild(toast);
+      
+      // Trigger animation
+      requestAnimationFrame(() => {
+        toast.classList.add('show');
+      });
+      
+      // Auto-dismiss
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 350);
+      }, 1500);
+    }
+
+    // Haptic feedback for mobile
+    function hapticFeedback() {
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+    }
+
+    // Combined confirmation: sound + toast + haptic
+    function confirmCardAdded(cardName, qty) {
+      playAddSound();
+      hapticFeedback();
+      const displayName = cardName.length > 30 ? cardName.substring(0, 30) + '…' : cardName;
+      showToast(`${qty > 1 ? qty + 'x ' : ''}${displayName} added`);
+    }
 
     // DOM Elements
     const searchInput = document.getElementById('search-input');
@@ -3093,6 +3202,10 @@
         }
         
         updateCart();
+        
+        // Confirmation feedback
+        const cardTitle = variant.fullTitle || variant.productTitle || 'Card';
+        confirmCardAdded(cardTitle, quantity);
         
         resultEl.style.background = 'rgba(74, 222, 128, 0.2)';
         resultEl.style.borderColor = '#4ade80';
