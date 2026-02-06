@@ -2715,29 +2715,6 @@
         return 0;
       }
       
-      let tagArray = [];
-      if (Array.isArray(tags)) {
-        tagArray = tags.map(t => t.toLowerCase());
-      } else if (typeof tags === 'string') {
-        tagArray = tags.toLowerCase().split(',').map(t => t.trim());
-      }
-      
-      const isSupportedGame = tagArray.some(tag => 
-        tag.includes('pokemon') || 
-        tag.includes('pokémon') ||
-        tag.includes('ptcg') ||
-        tag.includes('magic') || 
-        tag.includes('mtg') ||
-        tag.includes('one piece') ||
-        tag.includes('one-piece') ||
-        tag.includes('onepiece') ||
-        tag.includes('optcg')
-      );
-      
-      if (!isSupportedGame) {
-        return 0;
-      }
-      
       let tradeValue = 0;
       
       if (retailPrice >= 50.00) {
@@ -3021,7 +2998,7 @@
         const tagsString = Array.isArray(tags) ? tags.join(',') : (tags || '');
         
         html += `
-          <div class="ea-trade-result" data-card-index="${index}" data-card-tags="${tagsString.replace(/"/g, '&quot;')}" data-variants='${JSON.stringify(variants).replace(/'/g, "\\'")}'>
+          <div class="ea-trade-result" data-card-index="${index}" data-card-tags="${tagsString.replace(/"/g, '&quot;')}" data-variants="${encodeURIComponent(JSON.stringify(variants))}">
             <div class="ea-trade-result-image" ${imageUrl ? `data-img-url="${imageUrl}" onclick="openLightbox(this.dataset.imgUrl)"` : ''}>
               ${card.image ? `<img src="${card.image}" alt="${card.baseName.replace(/"/g, '&quot;')}" onerror="this.parentElement.innerHTML='🎴'; this.parentElement.removeAttribute('onclick'); this.parentElement.removeAttribute('data-img-url');">` : '🎴'}
             </div>
@@ -3054,7 +3031,7 @@
 
     function updateResultPrice(selectEl) {
       const resultEl = selectEl.closest('.ea-trade-result');
-      const variants = JSON.parse(resultEl.dataset.variants);
+      const variants = JSON.parse(decodeURIComponent(resultEl.dataset.variants));
       const tags = (resultEl.dataset.cardTags || '').split(',').filter(t => t);
       const selectedCondition = selectEl.value;
       const variant = variants[selectedCondition];
@@ -3084,7 +3061,7 @@
 
     function addToCartFromResult(btn) {
       const resultEl = btn.closest('.ea-trade-result');
-      const variants = JSON.parse(resultEl.dataset.variants);
+      const variants = JSON.parse(decodeURIComponent(resultEl.dataset.variants));
       const tags = (resultEl.dataset.cardTags || '').split(',').filter(t => t);
       const selectEl = resultEl.querySelector('.ea-trade-result-condition');
       const qtyInput = resultEl.querySelector('.ea-trade-qty-input');
